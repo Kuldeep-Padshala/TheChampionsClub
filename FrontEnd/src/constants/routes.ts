@@ -1,0 +1,12 @@
+﻿export const ROUTES = {
+  HOME: '/',
+  COURTS: '/courts',
+  CAFE: '/cafe',
+  SHOP: '/shop',
+  MEMBERSHIPS: '/memberships',
+  ABOUT: '/about',
+  CONTACT: '/contact',
+  LOGIN: '/login',
+  REGISTER: '/register',
+};
+

@@ -1,0 +1,178 @@
+[
+  {
+    "id": "prod-1",
+    "name": "Pro Staff RF97 v15",
+    "brand": "Wilson",
+    "category": "rackets",
+    "sport": "tennis",
+    "price": 18500,
+    "memberPrice": 14800,
+    "imageUrl": "https://images.unsplash.com/photo-1617625802912-cde586faf331?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-2",
+    "name": "Babolat Pure Aero 2024",
+    "brand": "Babolat",
+    "category": "rackets",
+    "sport": "tennis",
+    "price": 16000,
+    "memberPrice": 12800,
+    "imageUrl": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-3",
+    "name": "Head Gravity Pro",
+    "brand": "Head",
+    "category": "rackets",
+    "sport": "tennis",
+    "price": 14500,
+    "memberPrice": 11600,
+    "imageUrl": "https://images.unsplash.com/photo-1620660998208-8db78e8e1f58?q=80&w=400&auto=format&fit=crop",
+    "stock": "low-stock"
+  },
+  {
+    "id": "prod-4",
+    "name": "SS Ton Elite Cricket Bat",
+    "brand": "SS Ton",
+    "category": "rackets",
+    "sport": "cricket",
+    "price": 9500,
+    "memberPrice": 8550,
+    "imageUrl": "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-5",
+    "name": "SG Tournament Red Ball",
+    "brand": "SG",
+    "category": "balls",
+    "sport": "cricket",
+    "price": 800,
+    "memberPrice": 720,
+    "imageUrl": "https://images.unsplash.com/photo-1593766827228-8737b4534aa6?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-6",
+    "name": "Wilson Pro Tennis Balls (4-pack)",
+    "brand": "Wilson",
+    "category": "balls",
+    "sport": "tennis",
+    "price": 550,
+    "memberPrice": 495,
+    "imageUrl": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-7",
+    "name": "Yonex Mavis Shuttlecocks (6-pack)",
+    "brand": "Yonex",
+    "category": "balls",
+    "sport": "badminton",
+    "price": 420,
+    "memberPrice": 378,
+    "imageUrl": "https://images.unsplash.com/photo-1600087626128-ea00d59da4d2?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-8",
+    "name": "Nike Court Zoom Cage 4",
+    "brand": "Nike",
+    "category": "shoes",
+    "sport": "tennis",
+    "price": 8500,
+    "memberPrice": 7650,
+    "imageUrl": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-9",
+    "name": "Adidas SoleMatch Control",
+    "brand": "Adidas",
+    "category": "shoes",
+    "sport": "tennis",
+    "price": 7800,
+    "memberPrice": 7020,
+    "imageUrl": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=400&auto=format&fit=crop",
+    "stock": "low-stock"
+  },
+  {
+    "id": "prod-10",
+    "name": "Asics Gel-Resolution 9",
+    "brand": "Asics",
+    "category": "shoes",
+    "sport": "tennis",
+    "price": 9200,
+    "memberPrice": 8280,
+    "imageUrl": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=400&auto=format&fit=crop",
+    "stock": "out-of-stock"
+  },
+  {
+    "id": "prod-11",
+    "name": "Pro Tennis Wristband Set",
+    "brand": "Wilson",
+    "category": "accessories",
+    "sport": "tennis",
+    "price": 350,
+    "memberPrice": 315,
+    "imageUrl": "https://images.unsplash.com/photo-1561154464-82e9adf32764?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-12",
+    "name": "Grip Tape Overgrip (3-pack)",
+    "brand": "Babolat",
+    "category": "accessories",
+    "sport": "tennis",
+    "price": 280,
+    "memberPrice": 252,
+    "imageUrl": "https://images.unsplash.com/photo-1591291621164-2c6367723315?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-13",
+    "name": "Cricket Batting Gloves",
+    "brand": "Kookaburra",
+    "category": "accessories",
+    "sport": "cricket",
+    "price": 1800,
+    "memberPrice": 1620,
+    "imageUrl": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-14",
+    "name": "Champions Club Polo",
+    "brand": "Champions Club",
+    "category": "apparel",
+    "sport": "general",
+    "price": 1200,
+    "memberPrice": 960,
+    "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-15",
+    "name": "Performance Dri-Fit T-Shirt",
+    "brand": "Champions Club",
+    "category": "apparel",
+    "sport": "general",
+    "price": 950,
+    "memberPrice": 760,
+    "imageUrl": "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  },
+  {
+    "id": "prod-16",
+    "name": "Tennis Shorts — Navy",
+    "brand": "Champions Club",
+    "category": "apparel",
+    "sport": "general",
+    "price": 850,
+    "memberPrice": 680,
+    "imageUrl": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=400&auto=format&fit=crop",
+    "stock": "in-stock"
+  }
+]

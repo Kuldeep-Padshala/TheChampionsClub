@@ -1,0 +1,63 @@
+[
+  {
+    "id": "silver",
+    "name": "Silver",
+    "tagline": "Standard Access",
+    "monthlyPrice": 2500,
+    "annualPrice": 27000,
+    "highlighted": false,
+    "icon": "star",
+    "benefits": [
+      "Discounted court bookings (₹300–₹500/hr)",
+      "Priority booking 7 days in advance",
+      "10% off all gear shop purchases",
+      "10% off cafe & bar orders",
+      "2 guest passes per month",
+      "Access to member events"
+    ],
+    "courtRate": 350,
+    "shopDiscount": 10,
+    "barDiscount": 10
+  },
+  {
+    "id": "gold",
+    "name": "Gold",
+    "tagline": "Full Access Premium",
+    "monthlyPrice": 5000,
+    "annualPrice": 54000,
+    "highlighted": true,
+    "icon": "trophy",
+    "benefits": [
+      "Unlimited FREE court bookings",
+      "Free equipment & racket hire",
+      "Priority booking 14 days in advance",
+      "20% off all gear shop purchases",
+      "15% off cafe & bar orders",
+      "4 guest passes per month",
+      "Locker room access",
+      "Exclusive member events & tournaments"
+    ],
+    "courtRate": 0,
+    "shopDiscount": 20,
+    "barDiscount": 15
+  },
+  {
+    "id": "junior",
+    "name": "Junior",
+    "tagline": "Under 18 — Discounted",
+    "monthlyPrice": 1500,
+    "annualPrice": 16000,
+    "highlighted": false,
+    "icon": "zap",
+    "benefits": [
+      "Discounted off-peak court bookings",
+      "Access to weekly coaching clinics",
+      "10% off gear shop purchases",
+      "Participation in junior tournaments",
+      "1 guest pass per month"
+    ],
+    "courtRate": 250,
+    "shopDiscount": 10,
+    "barDiscount": 0
+  }
+]

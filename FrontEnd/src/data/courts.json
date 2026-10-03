@@ -1,0 +1,38 @@
+[
+  {
+    "id": "court-1",
+    "name": "Tennis Court 1",
+    "sport": "tennis",
+    "imageUrl": "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=800&auto=format&fit=crop",
+    "description": "Our flagship premium synthetic grass court with professional-grade floodlights. Perfect for competitive matches and training sessions.",
+    "amenities": ["Floodlights", "Spectator Seating", "Water Station", "Ball Hoppers", "Equipment Hire"],
+    "pricePerHour": { "walkin": 600, "silver": 350, "gold": 0 }
+  },
+  {
+    "id": "court-2",
+    "name": "Tennis Court 2",
+    "sport": "tennis",
+    "imageUrl": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=800&auto=format&fit=crop",
+    "description": "All-weather hard court with high-quality acrylic surface. Ideal for practice sessions and casual play.",
+    "amenities": ["Floodlights", "Water Station", "Ball Hoppers"],
+    "pricePerHour": { "walkin": 500, "silver": 300, "gold": 0 }
+  },
+  {
+    "id": "court-3",
+    "name": "Cricket Nets",
+    "sport": "cricket",
+    "imageUrl": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=800&auto=format&fit=crop",
+    "description": "Professional-grade cricket nets with optional bowling machine hire. Four separate batting lanes available for individual or group practice.",
+    "amenities": ["Bowling Machine (hire)", "4 Batting Lanes", "Floodlights", "Seating", "Equipment Store"],
+    "pricePerHour": { "walkin": 800, "silver": 500, "gold": 0 }
+  },
+  {
+    "id": "court-4",
+    "name": "Multi-Purpose Court",
+    "sport": "badminton",
+    "imageUrl": "https://images.unsplash.com/photo-1613918108466-292b78a8ef95?q=80&w=800&auto=format&fit=crop",
+    "description": "Versatile indoor court suitable for badminton, squash warm-ups, and social play. Air-conditioned for year-round comfort.",
+    "amenities": ["Air Conditioned", "Floodlights", "Shuttle Hire", "Changing Rooms"],
+    "pricePerHour": { "walkin": 450, "silver": 280, "gold": 0 }
+  }
+]

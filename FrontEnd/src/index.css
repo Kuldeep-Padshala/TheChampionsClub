@@ -1,0 +1,124 @@
+/* =============================================================
+   THE CHAMPIONS CLUB — Global Styles
+   High-End Luxury Theme
+   - Background: pristine white & subtle warm greige
+   - Accent: elegant champagne gold
+   - Headings: rich dark slate
+   ============================================================= */
+
+/* ── Tailwind CSS v4 base import ── */
+@import "tailwindcss";
+
+/* ── Design token overrides via @theme ── */
+@theme {
+  /* === BRAND COLORS === */
+  --color-navy-primary:  #0A192F; /* Rich, dark slate/navy for maximum contrast */
+  --color-navy-mid:      #1E293B; /* Slate gray for secondary headings           */
+  --color-navy-900:      #050B14; /* Deepest black-navy for footer             */
+
+  --color-gold-primary:  #C5A059; /* Elegant champagne gold                    */
+  --color-gold-light:    #E6D5B8; /* Pale gold for delicate borders            */
+  --color-gold-dark:     #A68444; /* Darker gold for hover states              */
+
+  /* === BACKGROUND COLORS === */
+  --color-bg-primary:    #FFFFFF; /* Crisp pure white base                     */
+  --color-bg-surface:    #FFFFFF; /* Card/Modal surface                        */
+  --color-bg-subtle:     #F9F8F6; /* Extremely subtle warm greige/beige        */
+
+  /* === TEXT COLORS === */
+  --color-text-primary:  #222222; /* Soft black for highly readable body text  */
+  --color-text-secondary:#71717A; /* Refined gray for secondary text           */
+
+  /* === BORDER === */
+  --color-border:        #EAE8E3; /* Very soft border color                    */
+
+  /* === STATUS COLORS === */
+  --color-success:       #16A34A;
+  --color-danger:        #DC2626;
+  --color-warning:       #D97706;
+
+  /* === TYPOGRAPHY === */
+  --font-display: "Playfair Display", Georgia, serif; /* Luxury headlines     */
+  --font-body:    "Inter", system-ui, sans-serif;     /* Clean body text      */
+}
+
+/* ── Base layer: root defaults ── */
+@layer base {
+  :root {
+    --bg-primary:   #FFFFFF;
+    --text-primary: #222222;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    background-color: var(--color-bg-primary, #FFFFFF);
+    color: var(--text-primary, #222222);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-navy-primary, #0A192F);
+    line-height: 1.15;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-gold-primary, #C5A059);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  .text-cream {
+    color: #F8F7F5;
+  }
+
+  /* Refined gradients */
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #F9F8F6 0%, #FFFFFF 50%, #F9F8F6 100%);
+  }
+
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, #0A192F 0%, #1E293B 100%);
+  }
+  
+  /* Glassmorphism for modern luxury */
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(234, 232, 227, 0.6);
+  }
+
+  /* Smooth diffused shadows */
+  .luxury-shadow {
+    box-shadow: 0 12px 40px -12px rgba(10, 25, 47, 0.08);
+  }
+  
+  .luxury-shadow-hover {
+    box-shadow: 0 20px 50px -15px rgba(10, 25, 47, 0.12);
+  }
+
+  /* Animations */
+  @keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+  .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+}
