@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut } from 'lucide-react';
+import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut, Briefcase, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '../../constants/routes';
 import { CLUB_INFO } from '../../constants/club';
 import { cn } from '../../utils/cn';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { memberService } from '../../services/memberService';
 
 interface NavItem {
   name: string;
@@ -38,23 +39,92 @@ const FRONT_DESK_NAV_LINKS: NavItem[] = [
   { name: 'Leads & Enquiries',    path: `${ROUTES.RECEPTIONIST}?tab=enquiries` },
 ];
 
+const MANAGER_NAV_LINKS: NavItem[] = [
+  { name: 'Executive Overview',   path: `${ROUTES.MANAGER}?tab=finance` },
+  { name: 'Court Operations',     path: `${ROUTES.MANAGER}?tab=courts` },
+  { name: 'VIP Overrides',        path: `${ROUTES.MANAGER}?tab=overrides` },
+  { name: 'Inventory & Bar',      path: `${ROUTES.MANAGER}?tab=inventory` },
+  { name: 'Staff & Shifts',       path: `${ROUTES.MANAGER}?tab=hr` },
+];
+
+const BAR_NAV_LINKS: NavItem[] = [
+  { name: 'Cafe POS',             path: `${ROUTES.BAR}?tab=pos` },
+  { name: 'Kitchen KDS Queue',    path: `${ROUTES.BAR}?tab=kds` },
+  { name: 'Tables & Tabs',        path: `${ROUTES.BAR}?tab=tables` },
+  { name: 'Menu 86 Board',        path: `${ROUTES.BAR}?tab=menu` },
+];
+
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { user, isAuthenticated, logout, isFrontDesk } = useAuth();
+  const { user, isAuthenticated, logout, isFrontDesk, isManager, isBarStaff } = useAuth();
   const isNight = theme === 'night';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [memberPlan, setMemberPlan] = useState<{ planCode?: string; isExpiringSoon?: boolean } | null>(null);
 
-  // Dynamic Navigation according to Role
-  const currentNavLinks: NavItem[] = isFrontDesk
+  useEffect(() => {
+    if (isAuthenticated && !isFrontDesk && !isManager && !isBarStaff) {
+      memberService.getProfile().then((data) => {
+        if (data?.active_membership) {
+          const code = (data.active_membership.plan_code || data.active_membership.plan_name || '').toLowerCase();
+          let isExpiringSoon = false;
+          if (data.active_membership.end_date) {
+            const expDate = new Date(data.active_membership.end_date).getTime();
+            const daysLeft = Math.ceil((expDate - Date.now()) / (1000 * 60 * 60 * 24));
+            isExpiringSoon = daysLeft >= 0 && daysLeft <= 5;
+          }
+          setMemberPlan({ planCode: code, isExpiringSoon });
+        } else {
+          setMemberPlan({ planCode: 'none', isExpiringSoon: false });
+        }
+      }).catch(() => {
+        setMemberPlan(null);
+      });
+    } else {
+      setMemberPlan(null);
+    }
+  }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, location.pathname]);
+
+  // Dynamic Navigation according to Role & Membership Status
+  // If member already has Gold and is not expiring in 1-5 days, hide Memberships link
+  const filteredMemberLinks: NavItem[] = MEMBER_NAV_LINKS.filter((item) => {
+    if (item.path === ROUTES.MEMBERSHIPS) {
+      if (memberPlan?.planCode === 'gold' && !memberPlan?.isExpiringSoon) {
+        return false; // Already has Gold; hide redundant membership link
+      }
+    }
+    return true;
+  }).map((item) => {
+    if (item.path === ROUTES.MEMBERSHIPS && memberPlan?.isExpiringSoon) {
+      return { ...item, name: 'Renew Pass' };
+    }
+    return item;
+  });
+
+  const currentNavLinks: NavItem[] = isBarStaff && !isManager
+    ? BAR_NAV_LINKS
+    : isManager
+    ? MANAGER_NAV_LINKS
+    : isFrontDesk
     ? FRONT_DESK_NAV_LINKS
     : isAuthenticated
-    ? MEMBER_NAV_LINKS
+    ? filteredMemberLinks
     : PUBLIC_NAV_LINKS;
 
-  const brandHomeRoute = isFrontDesk ? ROUTES.RECEPTIONIST : ROUTES.HOME;
-  const brandSubline = isFrontDesk
+  const brandHomeRoute = isBarStaff && !isManager
+    ? ROUTES.BAR
+    : isManager
+    ? ROUTES.MANAGER
+    : isFrontDesk
+    ? ROUTES.RECEPTIONIST
+    : ROUTES.HOME;
+
+  const brandSubline = isBarStaff && !isManager
+    ? 'Champions Cafe & Bar Lounge • POS Station'
+    : isManager
+    ? 'Executive Operations • General Manager Suite'
+    : isFrontDesk
     ? 'Front Desk Operations • Live Station'
     : isAuthenticated
     ? 'Private Member Sanctuary • Est. 2018'
@@ -63,7 +133,10 @@ export const Navbar: React.FC = () => {
   const isLinkActive = (itemPath: string) => {
     const fullPath = location.pathname + location.search;
     if (itemPath.includes('?')) {
-      return fullPath === itemPath || (location.pathname === ROUTES.RECEPTIONIST && itemPath.endsWith('checkin') && !location.search);
+      return fullPath === itemPath || 
+        (location.pathname === ROUTES.RECEPTIONIST && itemPath.endsWith('checkin') && !location.search) ||
+        (location.pathname === ROUTES.MANAGER && itemPath.endsWith('finance') && !location.search) ||
+        (location.pathname === ROUTES.BAR && itemPath.endsWith('pos') && !location.search);
     }
     return location.pathname === itemPath;
   };
@@ -100,22 +173,22 @@ export const Navbar: React.FC = () => {
       <header className="fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl" style={{ contain: 'layout style' }}>
         <nav
           className={cn(
-            'flex items-center justify-between rounded-full transition-all duration-300 ease-out border backdrop-blur-md',
+            'flex items-center justify-between rounded-full px-5 sm:px-7 py-3 transition-colors duration-200 border shadow-lg select-none',
             isNight
-              ? scrolled
-                ? 'px-4 sm:px-6 py-2.5 bg-[#0A0A0D]/88 border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_0_1px_rgba(184,144,71,0.25),inset_0_1px_1px_rgba(255,255,255,0.1)]'
-                : 'px-5 sm:px-7 py-3.5 bg-[#0A0A0D]/80 border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_0_1px_rgba(184,144,71,0.2),inset_0_1px_1px_rgba(255,255,255,0.08)]'
-              : scrolled
-                ? 'px-4 sm:px-6 py-2.5 bg-white/92 border-white/90 shadow-[0_16px_40px_-10px_rgba(15,20,35,0.1),0_0_0_1px_rgba(184,144,71,0.2),inset_0_1px_2px_0_rgba(255,255,255,1)]'
-                : 'px-5 sm:px-7 py-3.5 bg-white/85 border-white/70 shadow-[0_10px_30px_-8px_rgba(15,20,35,0.06),0_0_0_1px_rgba(184,144,71,0.14),inset_0_1px_2px_0_rgba(255,255,255,0.9)]'
+              ? 'bg-[#0D0D12]/95 border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl'
+              : 'bg-[#FCFBF9]/95 border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.08)] backdrop-blur-xl'
           )}
         >
           {/* ── Brand Monogram & Crest ── */}
-          <Link to={brandHomeRoute} className="flex items-center gap-3 group select-none">
+          <Link to={brandHomeRoute} className="flex items-center gap-2.5 sm:gap-3 group select-none flex-shrink-0 whitespace-nowrap">
             {/* Multi-layered Champagne Gold & Obsidian Seal */}
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[1.5px] bg-gradient-to-br from-[#EAD29A] via-[#B89047] to-[#7D5A1E] shadow-sm transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
               <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
-                {isFrontDesk ? (
+                {isBarStaff && !isManager ? (
+                  <Coffee size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
+                ) : isManager ? (
+                  <Briefcase size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
+                ) : isFrontDesk ? (
                   <ShieldCheck size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
                 ) : (
                   <Trophy size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
@@ -127,22 +200,22 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Prestige Club Title & Heritage Subline */}
-            <div className="flex flex-col">
+            <div className="flex flex-col whitespace-nowrap flex-shrink-0">
               <span className={cn(
-                'text-[13px] sm:text-[15px] font-bold tracking-[0.14em] uppercase leading-none font-display transition-colors',
+                'text-[13px] sm:text-[15px] font-bold tracking-[0.14em] uppercase leading-none font-display transition-colors whitespace-nowrap',
                 isNight ? 'text-white' : 'text-[#121214]'
               )}>
                 {CLUB_INFO.shortName}
               </span>
-              <span className="text-[8.5px] sm:text-[9.5px] font-semibold tracking-[0.24em] text-[#A67C38] dark:text-[#EAD29A] uppercase mt-1 hidden sm:inline leading-none">
+              <span className="text-[8.5px] sm:text-[9.5px] font-semibold tracking-[0.24em] text-[#A67C38] dark:text-[#EAD29A] uppercase mt-1 hidden sm:inline leading-none whitespace-nowrap">
                 {brandSubline}
               </span>
             </div>
           </Link>
 
-          {/* ── Center: Fluid Crystal Navigation ── */}
+          {/* ── Center: Fluid Crystal Navigation (Guaranteed Single-Line) ── */}
           <div className={cn(
-            'hidden lg:flex items-center gap-1 px-2 py-1 rounded-full border transition-colors',
+            'hidden lg:flex items-center gap-0.5 xl:gap-1 px-1.5 xl:px-2 py-1 rounded-full border transition-colors whitespace-nowrap flex-shrink-0',
             isNight ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.04]'
           )}>
             {currentNavLinks.map((link) => {
@@ -152,7 +225,7 @@ export const Navbar: React.FC = () => {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    'relative px-4 py-1.5 text-[13px] font-medium rounded-full transition-colors duration-200 select-none flex items-center gap-1.5',
+                    'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-colors duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
                     isActive
                       ? isNight ? 'text-white font-semibold' : 'text-[#121214] font-semibold'
                       : isNight ? 'text-[#A1A1A6] hover:text-[#EAD29A]' : 'text-[#55555A] hover:text-[#B89047]'
@@ -161,7 +234,7 @@ export const Navbar: React.FC = () => {
                   {isActive && (
                     <motion.div
                       layoutId="luxury-active-indicator"
-                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                      transition={{ type: 'spring', stiffness: 350, damping: 28, mass: 0.8 }}
                       className={cn(
                         'absolute inset-0 rounded-full border',
                         isNight
@@ -170,11 +243,11 @@ export const Navbar: React.FC = () => {
                       )}
                     />
                   )}
-                  <span className="relative z-10 flex items-center gap-1.5">
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap leading-none">
                     {isActive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)] flex-shrink-0" />
                     )}
-                    {link.name}
+                    <span className="whitespace-nowrap">{link.name}</span>
                   </span>
                 </Link>
               );
@@ -182,12 +255,12 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* ── Right Section: Theme Toggle, Role-Based Access & CTA ── */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 xl:gap-3 flex-shrink-0 whitespace-nowrap">
             {/* Luxury Night / Day Mode Toggle */}
             <button
               onClick={toggleTheme}
               className={cn(
-                'relative w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border active:scale-90 cursor-pointer',
+                'relative w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border active:scale-90 cursor-pointer flex-shrink-0',
                 isNight
                   ? 'bg-[#18181D] text-[#EAD29A] border-[#B89047]/40 hover:border-[#B89047] shadow-[0_0_12px_rgba(184,144,71,0.25)]'
                   : 'bg-[#F5F5F7] text-[#1D1D1F] border-black/10 hover:border-[#B89047]/40 shadow-sm'
@@ -222,57 +295,67 @@ export const Navbar: React.FC = () => {
 
             {/* Authenticated State vs Public State */}
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 xl:gap-2 flex-shrink-0 whitespace-nowrap">
                 {/* Role Badge */}
-                {isFrontDesk ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 select-none">
+                {isBarStaff && !isManager ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/15 text-amber-500 border-amber-500/30 select-none whitespace-nowrap flex-shrink-0">
+                    <Coffee size={13} className="text-amber-500 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Bar & Cafe</span>
+                  </div>
+                ) : isManager ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/15 text-amber-500 border-amber-500/30 select-none whitespace-nowrap flex-shrink-0">
+                    <Briefcase size={13} className="text-amber-500 flex-shrink-0" />
+                    <span className="whitespace-nowrap">General Manager</span>
+                  </div>
+                ) : isFrontDesk ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 select-none whitespace-nowrap flex-shrink-0">
                     <ShieldCheck size={13} className="text-[#B89047] flex-shrink-0" />
-                    <span>Front Desk</span>
+                    <span className="whitespace-nowrap">Front Desk</span>
                   </div>
                 ) : (
                   <Link
                     to={ROUTES.MEMBER_PORTAL}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 hover:bg-[#B89047]/25 transition-all select-none"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 hover:bg-[#B89047]/25 transition-all select-none whitespace-nowrap flex-shrink-0"
                     title="Open Member Sanctuary Portal"
                   >
                     <Trophy size={12} className="text-[#B89047] flex-shrink-0" />
-                    <span>Member Pass</span>
+                    <span className="whitespace-nowrap">Member Pass</span>
                   </Link>
                 )}
 
                 {/* User Name Pill */}
                 <Link
-                  to={isFrontDesk ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL}
+                  to={isBarStaff && !isManager ? ROUTES.BAR : isManager ? ROUTES.MANAGER : isFrontDesk ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL}
                   className={cn(
-                    'inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50',
+                    'inline-flex items-center gap-1.5 xl:gap-2 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50 whitespace-nowrap flex-shrink-0',
                     isNight
                       ? 'bg-[#16161A] text-white border-white/10'
                       : 'bg-[#F7F5F0] text-[#121214] border-black/5'
                   )}
                   title="My Sanctuary Account"
                 >
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214]">
-                    {user.name ? user.name.charAt(0).toUpperCase() : (isFrontDesk ? 'S' : 'M')}
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214] flex-shrink-0">
+                    {user.name ? user.name.charAt(0).toUpperCase() : (isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
                   </div>
-                  <span className="max-w-[100px] truncate">{user.name?.split(' ')[0] || 'User'}</span>
+                  <span className="max-w-[90px] xl:max-w-[120px] truncate whitespace-nowrap">{user.name?.split(' ')[0] || 'User'}</span>
                 </Link>
 
                 {/* Exit / Logout */}
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-red-500/25 bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:border-red-500/40 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-red-500/25 bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:border-red-500/40 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
                   title="Sign Out"
                 >
-                  <LogOut size={13} />
-                  <span className="hidden xl:inline">Exit</span>
+                  <LogOut size={13} className="flex-shrink-0" />
+                  <span className="hidden xl:inline whitespace-nowrap">Exit</span>
                 </button>
               </div>
             ) : (
               <Link
                 to={ROUTES.LOGIN}
                 className={cn(
-                  'inline-flex items-center gap-1.5 text-[13px] font-medium tracking-wide px-3.5 py-2 rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 select-none',
+                  'inline-flex items-center gap-1.5 text-[13px] font-medium tracking-wide px-3 xl:px-3.5 py-2 rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 select-none',
                   isNight
                     ? 'text-white/85 hover:text-[#EAD29A] hover:bg-white/[0.06]'
                     : 'text-[#121214]/85 hover:text-[#B89047] hover:bg-black/[0.04]'
@@ -283,16 +366,16 @@ export const Navbar: React.FC = () => {
               </Link>
             )}
 
-            {/* Public/Member Reserve CTA (Hidden for Front Desk Staff) */}
-            {!isFrontDesk && (
+            {/* Public/Member Reserve CTA (Hidden for Staff & Managers) */}
+            {!isFrontDesk && !isManager && !isBarStaff && (
               <Link
                 to={ROUTES.COURTS}
-                className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden"
+                className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
               >
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/15 to-transparent ease-out" />
                 <Sparkles size={13} className="text-[#EAD29A] group-hover:text-white transition-colors flex-shrink-0" />
-                <span className="tracking-wide">Reserve Court</span>
-                <ChevronRight size={13} className="text-white/60 group-hover:translate-x-0.5 transition-transform" />
+                <span className="tracking-wide whitespace-nowrap">Reserve Court</span>
+                <ChevronRight size={13} className="text-white/60 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
               </Link>
             )}
           </div>
@@ -329,11 +412,11 @@ export const Navbar: React.FC = () => {
               </Link>
             ) : (
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214] flex-shrink-0">
-                {user?.name ? user.name.charAt(0).toUpperCase() : (isFrontDesk ? 'S' : 'M')}
+                {user?.name ? user.name.charAt(0).toUpperCase() : (isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
               </div>
             )}
 
-            {!isFrontDesk && (
+            {!isFrontDesk && !isManager && !isBarStaff && (
               <Link
                 to={ROUTES.COURTS}
                 className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] font-semibold text-white bg-[#121214] border border-[#B89047]/40 shadow-sm"
@@ -387,7 +470,11 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-full bg-[#121214] border border-[#B89047]/40 flex items-center justify-center">
-                  {isFrontDesk ? (
+                  {isBarStaff && !isManager ? (
+                    <Coffee size={13} className="text-[#EAD29A]" />
+                  ) : isManager ? (
+                    <Briefcase size={13} className="text-[#EAD29A]" />
+                  ) : isFrontDesk ? (
                     <ShieldCheck size={13} className="text-[#EAD29A]" />
                   ) : (
                     <Trophy size={13} className="text-[#EAD29A]" />
@@ -430,7 +517,7 @@ export const Navbar: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-black/5 dark:border-white/10 mt-4 space-y-2.5">
-                {!isFrontDesk && (
+                {!isFrontDesk && !isManager && !isBarStaff && (
                   <Link
                     to={ROUTES.COURTS}
                     className="flex items-center justify-center gap-2 w-full h-12 text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] rounded-full shadow-md border border-[#B89047]/40"
@@ -447,13 +534,13 @@ export const Navbar: React.FC = () => {
                   )}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center font-bold text-xs text-[#121214] flex-shrink-0">
-                        {user.name ? user.name.charAt(0).toUpperCase() : (isFrontDesk ? 'S' : 'M')}
+                        {user.name ? user.name.charAt(0).toUpperCase() : (isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="text-xs font-semibold truncate text-[#1D1D1F] dark:text-white">{user.name}</p>
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#B89047]/20 text-[#B89047]">
-                            {isFrontDesk ? 'Front Desk' : 'Member'}
+                            {isBarStaff ? 'Bar & Cafe' : isManager ? 'Manager' : isFrontDesk ? 'Front Desk' : 'Member'}
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-400 truncate">{user.email}</p>

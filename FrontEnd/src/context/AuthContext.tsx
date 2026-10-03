@@ -13,6 +13,8 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isFrontDesk: boolean;
+  isManager: boolean;
+  isBarStaff: boolean;
   isMember: boolean;
   hasRole: (role: string) => boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
@@ -105,6 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return user.roles.includes(role);
   };
 
+  const isManager = Boolean(user?.roles?.includes('MANAGER') || user?.roles?.includes('OWNER'));
+  const isBarStaff = hasRole('BAR_STAFF');
   const isFrontDesk = hasRole('FRONT_DESK');
   const isMember = hasRole('MEMBER');
 
@@ -115,6 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAuthenticated: !!user,
         isFrontDesk,
+        isManager,
+        isBarStaff,
         isMember,
         hasRole,
         login,

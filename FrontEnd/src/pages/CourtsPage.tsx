@@ -114,7 +114,16 @@ export const CourtsPage = () => {
           </div>
 
           {/* The interactive weekly slot calendar */}
-          <SlotCalendar slots={slots} onWeekChange={() => {}} />
+          <SlotCalendar
+            slots={slots}
+            court={courts.find((c) => c.id === selectedCourtId)}
+            onWeekChange={() => {}}
+            onSlotBooked={(slotId) => {
+              setSlots((prev) =>
+                prev.map((s) => (s.id === slotId ? { ...s, status: 'booked' } : s))
+              );
+            }}
+          />
 
           {/* Booking rules info box */}
           <div className="mt-8 bg-white dark:bg-[#0A0A0D] border border-[#B89047]/30 rounded-[28px] p-7 sm:p-8 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">

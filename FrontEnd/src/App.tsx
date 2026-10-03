@@ -14,12 +14,65 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ReceptionistPage } from './pages/ReceptionistPage';
 import { MemberPortalPage } from './pages/MemberPortalPage';
+import { ManagerPage } from './pages/ManagerPage';
+import { BarStaffPage } from './pages/BarStaffPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPromptModal } from './components/common/LoginPromptModal';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { SmoothScroll } from './components/common/SmoothScroll';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { Navbar } from './components/layout/Navbar';
+import { AmbientBackground } from './components/layout/AmbientBackground';
+
+function AnimatedRoutes() {
+  return (
+    <Routes>
+      <Route path={ROUTES.HOME} element={<HomePage />} />
+      <Route path={ROUTES.COURTS} element={<CourtsPage />} />
+      <Route path={ROUTES.CAFE} element={<CafePage />} />
+      <Route path={ROUTES.SHOP} element={<ShopPage />} />
+      <Route path={ROUTES.MEMBERSHIPS} element={<MembershipsPage />} />
+      <Route path={ROUTES.ABOUT} element={<AboutPage />} />
+      <Route path={ROUTES.CONTACT} element={<ContactPage />} />
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+      <Route
+        path={ROUTES.RECEPTIONIST}
+        element={
+          <ProtectedRoute allowedRoles={['FRONT_DESK']}>
+            <ReceptionistPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.MEMBER_PORTAL}
+        element={
+          <ProtectedRoute allowedRoles={['MEMBER']}>
+            <MemberPortalPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.MANAGER}
+        element={
+          <ProtectedRoute allowedRoles={['MANAGER', 'OWNER']}>
+            <ManagerPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.BAR}
+        element={
+          <ProtectedRoute allowedRoles={['BAR_STAFF', 'MANAGER', 'OWNER']}>
+            <BarStaffPage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}
 
 function App() {
   return (
@@ -28,34 +81,9 @@ function App() {
         <BrowserRouter>
           <SmoothScroll />
           <ScrollToTop />
-          <Routes>
-            <Route path={ROUTES.HOME} element={<HomePage />} />
-            <Route path={ROUTES.COURTS} element={<CourtsPage />} />
-            <Route path={ROUTES.CAFE} element={<CafePage />} />
-            <Route path={ROUTES.SHOP} element={<ShopPage />} />
-            <Route path={ROUTES.MEMBERSHIPS} element={<MembershipsPage />} />
-            <Route path={ROUTES.ABOUT} element={<AboutPage />} />
-            <Route path={ROUTES.CONTACT} element={<ContactPage />} />
-            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-            <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-            <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
-            <Route
-              path={ROUTES.RECEPTIONIST}
-              element={
-                <ProtectedRoute allowedRoles={['FRONT_DESK']}>
-                  <ReceptionistPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path={ROUTES.MEMBER_PORTAL}
-              element={
-                <ProtectedRoute allowedRoles={['MEMBER']}>
-                  <MemberPortalPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <AmbientBackground />
+          <Navbar />
+          <AnimatedRoutes />
           <LoginPromptModal />
           <Toaster
             position="top-right"

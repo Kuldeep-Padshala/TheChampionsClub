@@ -36,10 +36,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuy }) => {
           className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(184,144,71,0.12)_0%,transparent_70%)] pointer-events-none"
         />
 
-        {/* Product Image with Hover Spring Zoom */}
+        {/* Product Image with Hover Spring Zoom & Fallback */}
         <img
           src={product.imageUrl}
           alt={product.name}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
+          }}
           className={cn(
             'max-h-48 max-w-full object-contain transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:scale-110 drop-shadow-md',
             isOutOfStock && 'opacity-40 grayscale'

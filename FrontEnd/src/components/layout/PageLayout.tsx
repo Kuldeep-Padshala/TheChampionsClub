@@ -1,9 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Navbar } from './Navbar';
+import { motion } from 'framer-motion';
 import { Footer } from './Footer';
-import { AmbientBackground } from './AmbientBackground';
 import { ROUTES } from '../../constants/routes';
 
 interface PageLayoutProps {
@@ -12,29 +10,22 @@ interface PageLayoutProps {
   hideFooter?: boolean;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({ children, hideNav, hideFooter }) => {
+export const PageLayout: React.FC<PageLayoutProps> = ({ children, hideFooter }) => {
   const location = useLocation();
   const isStaffRoute = location.pathname.startsWith(ROUTES.RECEPTIONIST);
-
-  const shouldHideNav = hideNav || isStaffRoute;
   const shouldHideFooter = hideFooter || isStaffRoute;
 
   return (
     <div className="flex min-h-screen flex-col bg-transparent relative">
-      <AmbientBackground />
-      {!shouldHideNav && <Navbar />}
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={location.pathname}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 w-full"
-        >
-          {children}
-        </motion.main>
-      </AnimatePresence>
+      <motion.main
+        key={location.pathname}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        className="flex-1 w-full"
+      >
+        {children}
+      </motion.main>
       {!shouldHideFooter && <Footer />}
     </div>
   );

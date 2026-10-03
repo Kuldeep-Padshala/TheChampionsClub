@@ -18,12 +18,18 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const getRoleDestination = (roles?: string[]) => {
+    if (roles?.includes('MANAGER') || roles?.includes('OWNER')) return ROUTES.MANAGER;
+    if (roles?.includes('BAR_STAFF')) return ROUTES.BAR;
+    if (roles?.includes('FRONT_DESK')) return ROUTES.RECEPTIONIST;
+    return ROUTES.MEMBER_PORTAL;
+  };
+
   // If already authenticated, redirect to respective role portal
   useEffect(() => {
     if (isAuthenticated && user) {
-      const isStaff = user.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL);
+      const destination = state?.from?.pathname || getRoleDestination(user.roles);
       navigate(destination, { replace: true });
     }
   }, [isAuthenticated, user, navigate, location.state]);
@@ -50,10 +56,9 @@ export const LoginPage: React.FC = () => {
     try {
       const loggedUser = await login(email.trim(), password);
       toast.success(`Welcome back, ${loggedUser.name}!`);
-      const isStaff = loggedUser.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
       // Check if there was a redirected location state
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL);
+      const destination = state?.from?.pathname || getRoleDestination(loggedUser.roles);
       navigate(destination, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid email, phone, or password. Please verify your credentials.';
@@ -157,8 +162,65 @@ export const LoginPage: React.FC = () => {
               </button>
             </form>
 
+            {/* Quick Demo Access Bar */}
+            <div className="mt-6 pt-5 border-t border-black/5 dark:border-white/10">
+              <p className="text-[10px] uppercase tracking-wider text-center text-gray-400 font-semibold mb-3">
+                Quick Demo Switcher
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('sunita.rao@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-[#B89047] bg-[#B89047]/10 hover:bg-[#B89047]/20 border border-[#B89047]/30 transition-all text-center cursor-pointer"
+                  title="Sunita Rao — General Manager"
+                >
+                  <span className="block font-bold">Manager</span>
+                  <span className="text-[9px] opacity-75">Sunita Rao</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('priya.nair@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all text-center cursor-pointer"
+                  title="Priya Nair — Front Desk Lead"
+                >
+                  <span className="block font-bold">Front Desk</span>
+                  <span className="text-[9px] opacity-75">Priya Nair</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('imran.shaikh@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-center cursor-pointer"
+                  title="Imran Shaikh — Bar & Cafe"
+                >
+                  <span className="block font-bold">Bar & Cafe</span>
+                  <span className="text-[9px] opacity-75">Imran Shaikh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('ananya.singh@example.com');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all text-center cursor-pointer"
+                  title="Ananya Singh — Member"
+                >
+                  <span className="block font-bold">Member</span>
+                  <span className="text-[9px] opacity-75">Ananya Singh</span>
+                </button>
+              </div>
+            </div>
+
             {/* Sign up link */}
-            <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-6 pt-5 border-t border-black/5 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400">
               Not yet a member?{' '}
               <Link to={ROUTES.REGISTER} className="text-[#B89047] dark:text-[#EAD29A] font-bold hover:underline ml-1">
                 Apply for Membership

@@ -11,4 +11,6 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RECEPTIONIST: '/frontdesk',
   MEMBER_PORTAL: '/member',
+  MANAGER: '/manager',
+  BAR: '/bar',
 };

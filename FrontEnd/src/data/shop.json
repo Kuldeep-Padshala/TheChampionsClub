@@ -7,7 +7,7 @@
     "sport": "tennis",
     "price": 18500,
     "memberPrice": 14800,
-    "imageUrl": "https://images.unsplash.com/photo-1617625802912-cde586faf331?q=80&w=400&auto=format&fit=crop",
+    "imageUrl": "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop",
     "stock": "in-stock"
   },
   {
@@ -18,7 +18,7 @@
     "sport": "tennis",
     "price": 16000,
     "memberPrice": 12800,
-    "imageUrl": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop",
+    "imageUrl": "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=600&auto=format&fit=crop",
     "stock": "in-stock"
   },
   {
@@ -29,7 +29,7 @@
     "sport": "tennis",
     "price": 14500,
     "memberPrice": 11600,
-    "imageUrl": "https://images.unsplash.com/photo-1620660998208-8db78e8e1f58?q=80&w=400&auto=format&fit=crop",
+    "imageUrl": "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?q=80&w=600&auto=format&fit=crop",
     "stock": "low-stock"
   },
   {
@@ -73,7 +73,7 @@
     "sport": "badminton",
     "price": 420,
     "memberPrice": 378,
-    "imageUrl": "https://images.unsplash.com/photo-1600087626128-ea00d59da4d2?q=80&w=400&auto=format&fit=crop",
+    "imageUrl": "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop",
     "stock": "in-stock"
   },
   {

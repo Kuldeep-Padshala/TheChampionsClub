@@ -34,8 +34,29 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
     const isAuthorized = allowedRoles.some((r) => hasRole(r));
     if (!isAuthorized) {
       const isMemberRequired = allowedRoles.includes('MEMBER');
-      const title = isMemberRequired ? 'Member Access Required' : 'Staff Access Restricted';
-      const roleText = isMemberRequired ? 'MEMBER' : 'FRONT_DESK';
+      const isManagerRequired = allowedRoles.includes('MANAGER');
+      const isBarRequired = allowedRoles.includes('BAR_STAFF');
+      const title = isManagerRequired
+        ? 'Executive Access Restricted'
+        : isBarRequired
+        ? 'Cafe & Bar Access Restricted'
+        : isMemberRequired
+        ? 'Member Access Required'
+        : 'Staff Access Restricted';
+      const roleText = isManagerRequired
+        ? 'MANAGER'
+        : isBarRequired
+        ? 'BAR_STAFF'
+        : isMemberRequired
+        ? 'MEMBER'
+        : 'FRONT_DESK';
+      const switchLabel = isManagerRequired
+        ? 'Manager'
+        : isBarRequired
+        ? 'Bar & Cafe'
+        : isMemberRequired
+        ? 'Member'
+        : 'Front Desk';
 
       return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 pt-28 pb-16">
@@ -55,7 +76,7 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
                 className="w-full h-11 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold bg-[#121214] text-white hover:bg-[#B89047] dark:bg-[#B89047] dark:hover:bg-[#A67C38] dark:text-black transition-colors"
               >
                 <LogIn size={15} />
-                <span>Switch to {isMemberRequired ? 'Member' : 'Front Desk'} Account</span>
+                <span>Switch to {switchLabel} Account</span>
               </Link>
               <Link
                 to={ROUTES.HOME}

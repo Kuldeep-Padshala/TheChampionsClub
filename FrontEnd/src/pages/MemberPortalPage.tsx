@@ -5,6 +5,7 @@ import {
   memberService,
   MemberProfile,
   ActiveMembership,
+  MembershipPlan,
   MemberCourtBooking,
   MemberInvoice,
   MemberShopProduct,
@@ -31,21 +32,39 @@ import {
   Sparkles,
   ChevronRight,
   Smartphone,
+  Maximize2,
+  Settings,
+  Crown,
+  Zap,
+  Check,
+  ArrowUpRight,
+  RefreshCw,
+  HelpCircle,
+  ExternalLink,
 } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
 
 export const MemberPortalPage: React.FC = () => {
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'pass' | 'courts' | 'billing' | 'shop'>('pass');
+  const [activeTab, setActiveTab] = useState<'pass' | 'courts' | 'billing' | 'shop' | 'settings'>('pass');
   const [isLoading, setIsLoading] = useState(true);
 
   // Member Dashboard Data
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [membership, setMembership] = useState<ActiveMembership | null>(null);
+  const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [totalDues, setTotalDues] = useState(0);
   const [invoices, setInvoices] = useState<MemberInvoice[]>([]);
   const [recentCheckins, setRecentCheckins] = useState<Array<{ id: number; method: string; checked_in_at: string }>>([]);
+
+  // QR Modal Zoom State
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+  // Plan Activation Loading State
+  const [isSubscribingPlan, setIsSubscribingPlan] = useState<number | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   // Court Bookings Data
   const [myBookings, setMyBookings] = useState<MemberCourtBooking[]>([]);
@@ -80,10 +99,14 @@ export const MemberPortalPage: React.FC = () => {
   const loadMemberData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await memberService.getProfile();
+      const [data, plansData] = await Promise.all([
+        memberService.getProfile(),
+        memberService.getMembershipPlans().catch(() => []),
+      ]);
       setProfile(data.profile);
       setMembership(data.active_membership);
-      setTotalDues(data.total_dues);
+      setPlans(plansData || []);
+      setTotalDues(data.total_dues || 0);
       setInvoices(data.unpaid_invoices || []);
       setRecentCheckins(data.recent_checkins || []);
 
@@ -97,8 +120,8 @@ export const MemberPortalPage: React.FC = () => {
 
       // Load bookings & invoices
       const [bookingsData, invData] = await Promise.all([
-        memberService.getMyBookings(),
-        memberService.getMyInvoices(),
+        memberService.getMyBookings().catch(() => []),
+        memberService.getMyInvoices().catch(() => []),
       ]);
       setMyBookings(bookingsData);
       setInvoices(invData);
@@ -134,6 +157,52 @@ export const MemberPortalPage: React.FC = () => {
     }
   }, [activeTab]);
 
+  // ─── Membership Calculations ───────────────────────────────
+  const hasActiveMembership = !!membership && membership.status === 'active';
+  const memberPlan = hasActiveMembership ? (membership.plan_name || 'Active Member') : 'No Active Pass';
+  const isGoldMember = hasActiveMembership && (
+    (membership.plan_code || '').toLowerCase() === 'gold' ||
+    (membership.plan_name || '').toLowerCase().includes('gold')
+  );
+
+  let daysUntilExpiry: number | null = null;
+  if (membership?.end_date) {
+    const expDate = new Date(membership.end_date).getTime();
+    const now = Date.now();
+    daysUntilExpiry = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+  }
+
+  const isExpiringSoon = hasActiveMembership && daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 5;
+  const isExpired = !!membership && daysUntilExpiry !== null && daysUntilExpiry < 0;
+
+  // ─── Subscribe / Activate Plan ──────────────────────────────
+  const handleSubscribePlan = async (planId: number) => {
+    setIsSubscribingPlan(planId);
+    try {
+      const res = await memberService.subscribeMembershipPlan({ plan_id: planId });
+      toast.success(res.message || 'Membership plan activated successfully!');
+      await loadMemberData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to activate plan');
+    } finally {
+      setIsSubscribingPlan(null);
+    }
+  };
+
+  // ─── Test Simulation Helper ─────────────────────────────────
+  const handleSimulateStatus = async (status: 'gold' | 'expiring_soon' | 'inactive') => {
+    setIsSimulating(true);
+    try {
+      const res = await memberService.simulateStatus(status);
+      toast.success(res.message);
+      await loadMemberData();
+    } catch (err: any) {
+      toast.error('Simulation error: ' + (err?.message || ''));
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   // ─── Profile Update ─────────────────────────────────────────
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +216,7 @@ export const MemberPortalPage: React.FC = () => {
         emergency_contact_phone: editEmergencyPhone,
       });
       setProfile(res.profile);
-      toast.success('Your sanctuary profile has been updated!');
+      toast.success('Your sanctuary profile & emergency records have been updated!');
     } catch (err: any) {
       toast.error('Failed to update profile');
     } finally {
@@ -177,7 +246,6 @@ export const MemberPortalPage: React.FC = () => {
       });
       toast.success(res.message || 'Court booked successfully!');
       setIsBookingModalOpen(false);
-      // Reload bookings and schedule
       const [bookings, avail] = await Promise.all([
         memberService.getMyBookings(),
         memberService.getCourtAvailability(selectedDate, selectedSportId),
@@ -217,7 +285,6 @@ export const MemberPortalPage: React.FC = () => {
       });
       toast.success(`Payment verified! Receipt: ${res.receipt_no}`);
       setSelectedInvoice(null);
-      // Refresh member billing
       const [data, invData] = await Promise.all([
         memberService.getProfile(),
         memberService.getMyInvoices(),
@@ -271,10 +338,7 @@ export const MemberPortalPage: React.FC = () => {
   }
 
   const memberName = profile?.full_name || user?.name || 'Club Member';
-  const memberPlan = membership?.plan_name || 'Gold Member';
   const memberCode = profile?.member_code || 'CC-2026-VIP';
-
-  // Hours for court grid: 06:00 to 22:00
   const OPERATING_HOURS = Array.from({ length: 16 }, (_, i) => i + 6);
 
   return (
@@ -282,33 +346,42 @@ export const MemberPortalPage: React.FC = () => {
       <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         
         {/* ─── Hero Sanctuary Header ───────────────────────────────── */}
-        <div className="relative rounded-3xl p-6 sm:p-10 mb-8 overflow-hidden bg-gradient-to-br from-[#121216] via-[#1C1C24] to-[#0E0E12] border border-[#B89047]/30 shadow-2xl">
+        <div className="relative rounded-3xl p-6 sm:p-10 mb-6 overflow-hidden bg-gradient-to-br from-[#121216] via-[#1C1C24] to-[#0E0E12] border border-[#B89047]/30 shadow-2xl">
           {/* Subtle Golden Glow Background */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#B89047]/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-[#B89047]/20 text-[#EAD29A] border border-[#B89047]/30 flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-[#EAD29A]" />
-                  {memberPlan} Tier
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <span className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase border flex items-center gap-1.5 ${
+                  hasActiveMembership
+                    ? 'bg-[#B89047]/20 text-[#EAD29A] border-[#B89047]/40'
+                    : 'bg-white/10 text-gray-300 border-white/20'
+                }`}>
+                  <Sparkles size={13} className={hasActiveMembership ? 'text-[#EAD29A]' : 'text-gray-400'} />
+                  {hasActiveMembership ? `${memberPlan} Tier` : 'Pass Inactive'}
                 </span>
                 <span className="text-xs text-gray-400 font-mono tracking-wider">
                   Member ID: <strong className="text-white">{memberCode}</strong>
                 </span>
+                {hasActiveMembership && membership?.end_date && (
+                  <span className="text-xs text-gray-400">
+                    • Valid until: <strong className="text-gray-200">{new Date(membership.end_date).toLocaleDateString()}</strong>
+                  </span>
+                )}
               </div>
               <h1 className="font-display text-2xl sm:text-4xl font-bold text-white tracking-tight">
                 Sanctuary Portal • {memberName}
               </h1>
               <p className="text-xs sm:text-sm text-gray-400 mt-1 max-w-xl">
-                Self-service privilege hub for court reservations, contactless digital QR check-in, pro shop ordering, and balance management.
+                Executive member lounge for court reservations, contactless QR turnstile clearance, pro shop orders, and billing.
               </p>
             </div>
 
-            {/* Quick Status Cards */}
+            {/* Quick Status Cards in Header */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[110px]">
-                <div className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Active Plan</div>
-                <div className="text-sm font-bold text-[#EAD29A] mt-0.5">{memberPlan}</div>
+                <div className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Active Tier</div>
+                <div className="text-sm font-bold text-[#EAD29A] mt-0.5 truncate max-w-[130px]">{memberPlan}</div>
               </div>
               <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[110px]">
                 <div className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Total Dues</div>
@@ -322,41 +395,159 @@ export const MemberPortalPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Tab Navigation */}
-          <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
-            {[
-              { id: 'pass', label: 'Digital VIP Pass', icon: QrCode },
-              { id: 'courts', label: 'Court Reservations', icon: Calendar },
-              { id: 'billing', label: 'Dues & Invoices', icon: CreditCard },
-              { id: 'shop', label: 'Club Pro Shop', icon: ShoppingBag },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                    isActive
-                      ? 'bg-gradient-to-r from-[#B89047] to-[#D4AF37] text-black shadow-lg shadow-[#B89047]/20 font-bold'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        {/* ─── TAB 1: DIGITAL VIP PASS & PROFILE ─────────────────────── */}
+        {/* ─── EXPIRY / STATUS WARNING BANNER (1 to 5 days) ─────────── */}
+        {isExpiringSoon && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#B89047]/20 to-amber-600/10 border-2 border-amber-500/50 shadow-lg shadow-amber-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 text-amber-400">
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Membership Expiration Warning</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500 text-black">
+                    {daysUntilExpiry === 0 ? 'Expires Today' : `${daysUntilExpiry} ${daysUntilExpiry === 1 ? 'Day' : 'Days'} Remaining`}
+                  </span>
+                </div>
+                <p className="text-xs text-amber-200/90 mt-0.5 leading-relaxed">
+                  Your <strong>{membership?.plan_name}</strong> pass expires on <strong>{new Date(membership!.end_date).toLocaleDateString()}</strong>. Renew your plan now to prevent interruption of contactless gate clearance and priority booking access.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab('pass')}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] to-[#B89047] hover:brightness-110 shadow-md cursor-pointer whitespace-nowrap self-start sm:self-center"
+            >
+              Renew Membership
+            </button>
+          </div>
+        )}
+
+        {isExpired && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-red-500/15 border-2 border-red-500/50 shadow-lg shadow-red-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center flex-shrink-0 text-red-400">
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Sanctuary Membership Expired</span>
+                </div>
+                <p className="text-xs text-red-200/90 mt-0.5">
+                  Your membership expired on {new Date(membership!.end_date).toLocaleDateString()}. Please select an active plan below to restore your court reservations and gate privileges.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab('pass')}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-black bg-red-400 hover:bg-red-300 shadow-md cursor-pointer whitespace-nowrap self-start sm:self-center"
+            >
+              Select Active Plan
+            </button>
+          </div>
+        )}
+
+        {/* ─── EXECUTIVE DASHBOARD NAVIGATION CARDS GRID ─────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-8">
+          {[
+            {
+              id: 'pass',
+              title: 'Digital VIP Pass',
+              desc: 'Gate token & credentials',
+              icon: QrCode,
+              badge: hasActiveMembership ? `${membership.plan_name} Pass` : 'Pass Inactive',
+              badgeColor: hasActiveMembership ? 'text-[#EAD29A] bg-[#B89047]/20 border-[#B89047]/30' : 'text-gray-400 bg-white/5 border-white/10',
+            },
+            {
+              id: 'courts',
+              title: 'Court Bookings',
+              desc: 'Reserve indoor & outdoor slots',
+              icon: Calendar,
+              badge: `${myBookings.length} Active`,
+              badgeColor: 'text-sky-300 bg-sky-500/15 border-sky-500/30',
+            },
+            {
+              id: 'billing',
+              title: 'Dues & Invoices',
+              desc: 'Statements & online checkout',
+              badge: totalDues > 0 ? `₹${totalDues} Due` : 'Settled',
+              icon: CreditCard,
+              badgeColor: totalDues > 0 ? 'text-amber-400 bg-amber-500/15 border-amber-500/30' : 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+            },
+            {
+              id: 'shop',
+              title: 'Club Pro Shop',
+              desc: 'Exclusive equipment & apparel',
+              icon: ShoppingBag,
+              badge: `${products.length || 8} Items`,
+              badgeColor: 'text-[#EAD29A] bg-[#B89047]/20 border-[#B89047]/30',
+            },
+            {
+              id: 'settings',
+              title: 'Profile Settings',
+              desc: 'Contact records & emergency',
+              icon: ShieldCheck,
+              badge: 'Security',
+              badgeColor: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
+            },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`group relative p-4 sm:p-5 rounded-2xl text-left transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden border ${
+                  isActive
+                    ? 'bg-gradient-to-b from-[#221F1A] via-[#1A1815] to-[#121214] border-[#B89047] shadow-[0_12px_28px_-6px_rgba(184,144,71,0.35)] scale-[1.02]'
+                    : 'bg-white dark:bg-[#121216] border-black/10 dark:border-white/10 hover:border-[#B89047]/50 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] shadow-sm'
+                }`}
+              >
+                {/* Active Gold Indicator Bar on Top */}
+                {isActive && (
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B89047] via-[#EAD29A] to-[#8C6826]" />
+                )}
+
+                <div className="flex items-start justify-between w-full mb-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    isActive
+                      ? 'bg-[#B89047] text-black shadow-md shadow-[#B89047]/30'
+                      : 'bg-black/5 dark:bg-white/5 text-[#B89047] group-hover:bg-[#B89047]/10'
+                  }`}>
+                    <Icon size={18} />
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tab.badgeColor}`}>
+                    {tab.badge}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className={`font-display text-sm font-bold transition-colors ${
+                    isActive ? 'text-[#EAD29A]' : 'text-[#1D1D1F] dark:text-white group-hover:text-[#B89047]'
+                  }`}>
+                    {tab.title}
+                  </h3>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                    {tab.desc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ─── TAB 1: DIGITAL VIP PASS ──────────────────────────────── */}
         {activeTab === 'pass' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left: Luxury Digital Membership Card */}
+            {/* Left: Luxury Digital Membership Card (CLICK TO ZOOM QR) */}
             <div className="lg:col-span-5 flex flex-col gap-6">
-              <div className="relative rounded-3xl p-7 text-white overflow-hidden bg-gradient-to-br from-[#1B1917] via-[#2A241C] to-[#121214] border border-[#B89047]/40 shadow-2xl group hover:border-[#B89047] transition-all duration-300">
+              <div
+                onClick={() => setIsQrModalOpen(true)}
+                className="relative rounded-3xl p-7 text-white overflow-hidden bg-gradient-to-br from-[#1B1917] via-[#2A241C] to-[#121214] border border-[#B89047]/40 shadow-2xl group hover:border-[#B89047] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 cursor-pointer"
+                title="Click card to zoom high-resolution QR pass"
+              >
                 {/* Gold Card Accents */}
                 <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-[#EAD29A]/20 via-[#B89047]/10 to-transparent rounded-full blur-2xl" />
                 <div className="flex items-center justify-between mb-8">
@@ -371,19 +562,32 @@ export const MemberPortalPage: React.FC = () => {
                       <div className="text-[10px] tracking-widest uppercase text-gray-400">Exclusive Sanctuary Member</div>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#B89047] text-black shadow-md">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-md ${
+                    hasActiveMembership ? 'bg-[#B89047] text-black' : 'bg-gray-700 text-gray-200'
+                  }`}>
                     {memberPlan}
                   </span>
                 </div>
 
                 {/* Simulated Chip & QR Scan */}
-                <div className="flex items-center justify-between my-4 px-2">
-                  <div className="w-12 h-9 rounded-lg bg-gradient-to-tr from-[#D4AF37] to-[#FFF3B0] border border-[#7D5A1E]/50 shadow-inner flex items-center justify-center opacity-85">
+                <div className="flex items-start justify-between my-4 px-2">
+                  <div className="w-12 h-9 rounded-lg bg-gradient-to-tr from-[#D4AF37] to-[#FFF3B0] border border-[#7D5A1E]/50 shadow-inner flex items-center justify-center opacity-85 mt-2">
                     <div className="w-8 h-5 border border-[#8C6826]/40 rounded-sm" />
                   </div>
-                  {/* Contactless Icon */}
-                  <div className="flex items-center gap-1 text-[#EAD29A]/80">
-                    <span className="text-[10px] uppercase font-mono tracking-widest">NFC / QR ACTIVE</span>
+                  {/* Real QR Code */}
+                  <div className="flex flex-col items-end gap-1.5 text-[#EAD29A]/80">
+                    <div className="bg-white p-1 rounded-md shadow-sm group-hover:ring-2 group-hover:ring-[#B89047] transition-all">
+                      <QRCode
+                        value={profile?.qr_token || memberCode}
+                        size={56}
+                        bgColor="#ffffff"
+                        fgColor="#1D1D1F"
+                        level="L"
+                      />
+                    </div>
+                    <span className="text-[9px] uppercase font-mono tracking-widest flex items-center gap-1">
+                      <Maximize2 size={9} /> TAP TO ENLARGE
+                    </span>
                   </div>
                 </div>
 
@@ -401,189 +605,335 @@ export const MemberPortalPage: React.FC = () => {
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-gray-400">Valid Through</div>
                       <div className="font-mono text-sm text-gray-200">
-                        {membership?.end_date ? new Date(membership.end_date).toLocaleDateString() : 'Active Member'}
+                        {membership?.end_date ? new Date(membership.end_date).toLocaleDateString() : (hasActiveMembership ? 'Active' : 'Unactivated')}
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Clickable Card Footer Hint */}
+                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-center gap-2 text-xs text-[#EAD29A] font-semibold bg-white/5 py-2.5 rounded-xl group-hover:bg-[#B89047]/20 transition-all">
+                  <Maximize2 size={13} />
+                  <span>Click card to zoom high-resolution QR pass</span>
+                </div>
               </div>
 
-              {/* Hardware Scanner QR Code Box */}
-              <div className="rounded-3xl p-6 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <QrCode size={18} className="text-[#B89047]" />
-                  <span className="text-xs uppercase font-bold tracking-wider text-[#1D1D1F] dark:text-white font-display">
-                    Contactless Reception Check-In Token
-                  </span>
+              {/* Quick Sanctuary Action Shortcuts */}
+              <div className="rounded-3xl p-6 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm space-y-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-400 font-display">
+                  Sanctuary Hub Quick Actions
                 </div>
-                <div className="w-48 h-48 mx-auto p-3 bg-white rounded-2xl border-2 border-[#B89047]/40 shadow-inner flex flex-col items-center justify-center gap-2">
-                  {/* High visual fidelity QR simulation */}
-                  <div className="font-mono text-xs text-gray-800 break-all p-2 bg-gray-50 rounded-lg border border-gray-200 text-center font-bold">
-                    {profile?.qr_token || memberCode}
-                  </div>
-                  <div className="text-[10px] text-gray-400 tracking-widest font-mono uppercase">
-                    Scan At Front Desk
-                  </div>
+                <div className="grid grid-cols-1 gap-2.5">
+                  <button
+                    onClick={() => setActiveTab('courts')}
+                    className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Calendar size={16} className="text-[#B89047]" />
+                      <span>Reserve Court Slot (Badminton, Tennis, Squash)</span>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-400 group-hover:text-[#B89047] group-hover:translate-x-0.5 transition-all" />
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('billing')}
+                    className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <CreditCard size={16} className="text-[#B89047]" />
+                      <span>Review Dues & Pay Online</span>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-400 group-hover:text-[#B89047] group-hover:translate-x-0.5 transition-all" />
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck size={16} className="text-[#B89047]" />
+                      <span>Update Sanctuary Profile & Emergency Records</span>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-400 group-hover:text-[#B89047] group-hover:translate-x-0.5 transition-all" />
+                  </button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 max-w-xs mx-auto leading-relaxed">
-                  Present this QR token to the concierge laser scanner or physical reception station for immediate gate clearance.
-                </p>
               </div>
             </div>
 
-            {/* Right: Profile Details Form */}
-            <div className="lg:col-span-7">
-              <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-black/5 dark:border-white/10">
-                  <div>
-                    <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
-                      Sanctuary Profile & Contact Records
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Keep your records up-to-date for court booking confirmations and concierge emergency notifications.
-                    </p>
-                  </div>
-                  <ShieldCheck className="w-6 h-6 text-[#B89047]" />
-                </div>
+            {/* Right: Dynamic Membership Content */}
+            <div className="lg:col-span-7 space-y-6">
 
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* ────────────────────────────────────────────────────────
+                  SCENARIO 1: MEMBER HAS NO ACTIVE PASS OR EXPIRED
+                  Prominently show "Choose Your Membership Tier"
+                  ──────────────────────────────────────────────────────── */}
+              {(!hasActiveMembership || isExpired) && (
+                <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm">
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-black/5 dark:border-white/10">
                     <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                        Registered Full Name
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={memberName}
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-400 text-sm cursor-not-allowed outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        disabled
-                        value={profile?.email || user?.email || ''}
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-400 text-sm cursor-not-allowed outline-none"
-                      />
+                      <span className="text-[11px] font-bold text-[#B89047] uppercase tracking-wider flex items-center gap-1.5">
+                        <Crown size={14} /> Pass Activation Required
+                      </span>
+                      <h3 className="font-display text-xl font-bold text-[#1D1D1F] dark:text-white mt-1">
+                        Select Your Sanctuary Membership Plan
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Choose your membership tier to activate unlimited court access, Pro Shop member pricing, and 24/7 gate token clearance.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-                        Contact Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={editPhone}
-                        onChange={(e) => setEditPhone(e.target.value)}
-                        placeholder="+91 98765 43210"
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-                        City of Residence
-                      </label>
-                      <input
-                        type="text"
-                        value={editCity}
-                        onChange={(e) => setEditCity(e.target.value)}
-                        placeholder="Bengaluru"
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
-                      />
-                    </div>
-                  </div>
+                  {/* Plan Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {plans.map((p) => {
+                      const isGold = p.code === 'gold' || p.name.toLowerCase().includes('gold');
+                      return (
+                        <div
+                          key={p.id}
+                          className={`relative rounded-2xl p-5 flex flex-col justify-between transition-all border ${
+                            isGold
+                              ? 'bg-gradient-to-b from-[#1F1B14] to-[#121214] border-[#B89047] text-white shadow-xl shadow-[#B89047]/10'
+                              : 'bg-black/[0.02] dark:bg-white/[0.02] border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white'
+                          }`}
+                        >
+                          {isGold && (
+                            <span className="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-gradient-to-r from-[#B89047] to-[#EAD29A] text-black shadow-md">
+                              Recommended
+                            </span>
+                          )}
 
-                  <div>
-                    <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-                      Address Details
-                    </label>
-                    <input
-                      type="text"
-                      value={editAddress}
-                      onChange={(e) => setEditAddress(e.target.value)}
-                      placeholder="Flat 402, Royal Palms, Koramangala"
-                      className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
-                    />
-                  </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-display font-bold text-base">{p.name}</h4>
+                              {isGold && <Crown size={16} className="text-[#EAD29A]" />}
+                            </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-                        Emergency Contact Name
-                      </label>
-                      <input
-                        type="text"
-                        value={editEmergencyName}
-                        onChange={(e) => setEditEmergencyName(e.target.value)}
-                        placeholder="Family Member / Guardian"
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-                        Emergency Contact Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={editEmergencyPhone}
-                        onChange={(e) => setEditEmergencyPhone(e.target.value)}
-                        placeholder="+91 98765 00000"
-                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
-                      />
-                    </div>
-                  </div>
+                            <div className="mb-4">
+                              <span className="font-mono text-2xl font-bold">
+                                ₹{Number(p.fee).toLocaleString('en-IN')}
+                              </span>
+                              <span className="text-xs text-gray-400 ml-1">/ {p.duration_months} mos</span>
+                            </div>
 
-                  <div className="pt-4 flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isSavingProfile}
-                      className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#141416] to-[#24242A] dark:from-[#B89047] dark:to-[#8C6826] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isSavingProfile ? (
-                        <>
-                          <RotateCw size={14} className="animate-spin" />
-                          <span>Saving Changes...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle size={15} />
-                          <span>Update Profile Records</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                            <p className="text-xs text-gray-400 line-clamp-3 mb-4 leading-relaxed">
+                              {p.description}
+                            </p>
 
-                {/* Recent Check-In History */}
-                <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10">
-                  <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider mb-3">
-                    Recent Check-Ins at Sanctuary Gate
-                  </h4>
-                  {recentCheckins.length === 0 ? (
-                    <div className="text-xs text-gray-400 italic">No recent gate check-ins recorded yet.</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {recentCheckins.map((ci) => (
-                        <div key={ci.id} className="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/[0.02] text-xs">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle size={14} className="text-emerald-500" />
-                            <span className="font-medium text-[#1D1D1F] dark:text-white">Method: {ci.method}</span>
+                            <ul className="space-y-2 text-[11px] text-gray-300 mb-6">
+                              <li className="flex items-center gap-2">
+                                <Check size={13} className="text-[#B89047]" />
+                                <span>{isGold ? 'Unlimited 100% Free Court Access' : 'Discounted Court Booking Rates'}</span>
+                              </li>
+                              <li className="flex items-center gap-2">
+                                <Check size={13} className="text-[#B89047]" />
+                                <span>{Number(p.shop_discount_pct)}% Pro Shop Member Discount</span>
+                              </li>
+                              <li className="flex items-center gap-2">
+                                <Check size={13} className="text-[#B89047]" />
+                                <span>{Number(p.bar_discount_pct)}% Cafe Lounge Hospitality</span>
+                              </li>
+                              <li className="flex items-center gap-2">
+                                <Check size={13} className="text-[#B89047]" />
+                                <span>Contactless Turnstile QR Access</span>
+                              </li>
+                            </ul>
                           </div>
-                          <span className="text-gray-400 font-mono">
-                            {new Date(ci.checked_in_at).toLocaleString()}
+
+                          <button
+                            onClick={() => handleSubscribePlan(p.id)}
+                            disabled={isSubscribingPlan === p.id}
+                            className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50 ${
+                              isGold
+                                ? 'bg-gradient-to-r from-[#B89047] to-[#EAD29A] text-black hover:opacity-95 shadow-md shadow-[#B89047]/30'
+                                : 'bg-black/10 dark:bg-white/10 hover:bg-[#B89047] hover:text-black text-inherit'
+                            }`}
+                          >
+                            {isSubscribingPlan === p.id ? 'Activating...' : `Activate ${p.name} Pass`}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ────────────────────────────────────────────────────────
+                  SCENARIO 2: MEMBER HAS ACTIVE GOLD PASS
+                  Hide redundant membership plans!
+                  Show executive privileges, perks, and check-in history.
+                  ──────────────────────────────────────────────────────── */}
+              {hasActiveMembership && isGoldMember && !isExpiringSoon && (
+                <>
+                  <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-black/5 dark:border-white/10">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[11px] font-bold text-[#B89047] uppercase tracking-wider">
+                            Pinnacle VIP Status Active
                           </span>
                         </div>
-                      ))}
+                        <h3 className="font-display text-xl font-bold text-[#1D1D1F] dark:text-white mt-1">
+                          Gold Sanctuary Tier Privileges
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          You are currently enjoying the highest privilege tier at The Champions Club.
+                        </p>
+                      </div>
+                      <Crown className="w-8 h-8 text-[#B89047]" />
                     </div>
-                  )}
+
+                    {/* Privilege Badges */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+                      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check size={16} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#1D1D1F] dark:text-white">Zero Court Booking Fees</h4>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Unlimited complimentary access to badminton, tennis, and squash courts.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#B89047]/10 border border-[#B89047]/20 text-[#B89047] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <ShoppingBag size={16} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#1D1D1F] dark:text-white">15% Pro Shop Discount</h4>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Applied automatically across all competition racquets, apparel, and shuttlecocks.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#B89047]/10 border border-[#B89047]/20 text-[#B89047] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Sparkles size={16} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#1D1D1F] dark:text-white">10% Lounge Hospitality</h4>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Priority seating and member rates at the Sanctuary Cafe & Espresso Bar.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <QrCode size={16} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#1D1D1F] dark:text-white">Contactless 24/7 Gate Access</h4>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Present your VIP QR pass at reception turnstiles for 1-second optical clearance.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gate Check-In History */}
+                  <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-display text-base font-bold text-[#1D1D1F] dark:text-white">
+                        Recent Sanctuary Gate Check-Ins
+                      </h4>
+                      <span className="text-[10px] text-gray-400 font-mono">Live Turnstile Records</span>
+                    </div>
+
+                    {recentCheckins.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic py-4 text-center">
+                        No recent gate check-ins recorded yet. Tap your digital QR pass at reception on your next visit!
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {recentCheckins.map((ci) => (
+                          <div key={ci.id} className="flex items-center justify-between p-3.5 rounded-xl bg-black/5 dark:bg-white/[0.02] text-xs">
+                            <div className="flex items-center gap-2.5">
+                              <CheckCircle size={15} className="text-emerald-500" />
+                              <span className="font-medium text-[#1D1D1F] dark:text-white">
+                                Reception Verification ({ci.method})
+                              </span>
+                            </div>
+                            <span className="text-gray-400 font-mono text-[11px]">
+                              {new Date(ci.checked_in_at).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* ────────────────────────────────────────────────────────
+                  SCENARIO 3: MEMBER HAS LOWER TIER (SILVER / JUNIOR)
+                  Offer upgrade to Gold!
+                  ──────────────────────────────────────────────────────── */}
+              {hasActiveMembership && !isGoldMember && !isExpiringSoon && (
+                <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#1F1B14] via-[#2A241C] to-[#141416] border border-[#B89047]/50 shadow-xl text-white">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#B89047] text-black">
+                      Tier Upgrade Available
+                    </span>
+                    <Crown size={22} className="text-[#EAD29A]" />
+                  </div>
+                  <h3 className="font-display text-xl font-bold text-white">
+                    Upgrade to Gold Sanctuary Tier
+                  </h3>
+                  <p className="text-xs text-gray-300 mt-1 max-w-lg leading-relaxed">
+                    Level up to Gold to unlock 100% complimentary zero-fee court bookings, 15% Pro Shop discounts, and 7-day advance booking priority.
+                  </p>
+                  <div className="mt-5 flex items-center gap-4">
+                    <button
+                      onClick={() => {
+                        const goldPlan = plans.find((p) => p.code === 'gold' || p.name.toLowerCase().includes('gold'));
+                        if (goldPlan) handleSubscribePlan(goldPlan.id);
+                      }}
+                      className="px-6 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#EAD29A] hover:opacity-95 shadow-md cursor-pointer"
+                    >
+                      Upgrade to Gold Pass
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* ────────────────────────────────────────────────────────
+                  SCENARIO 4: EXPIRING IN 1-5 DAYS
+                  Show quick 1-click renewal!
+                  ──────────────────────────────────────────────────────── */}
+              {isExpiringSoon && (
+                <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border-2 border-amber-500/50 shadow-sm">
+                  <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white mb-2">
+                    Renew Your Sanctuary Membership
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                    Extend your membership validity for another full term to preserve your current member rates, VIP privileges, and gate clearance.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {plans.map((p) => (
+                      <div key={p.id} className="p-4 rounded-2xl border border-black/10 dark:border-white/10 flex flex-col justify-between">
+                        <div>
+                          <div className="font-bold text-sm text-[#1D1D1F] dark:text-white">{p.name} Pass</div>
+                          <div className="font-mono text-base font-bold text-[#B89047] mt-1">₹{Number(p.fee).toLocaleString('en-IN')}</div>
+                          <div className="text-[11px] text-gray-400 mt-1">{p.duration_months} Months Extension</div>
+                        </div>
+                        <button
+                          onClick={() => handleSubscribePlan(p.id)}
+                          disabled={isSubscribingPlan === p.id}
+                          className="mt-4 w-full py-2 rounded-xl text-xs font-bold bg-[#B89047] text-black hover:opacity-95 cursor-pointer disabled:opacity-50"
+                        >
+                          {isSubscribingPlan === p.id ? 'Renewing...' : `Renew with ${p.name}`}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         )}
@@ -591,7 +941,6 @@ export const MemberPortalPage: React.FC = () => {
         {/* ─── TAB 2: COURT RESERVATIONS & CALENDAR ─────────────────── */}
         {activeTab === 'courts' && (
           <div className="space-y-8">
-            {/* Filter Bar */}
             <div className="p-6 rounded-3xl bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
@@ -649,7 +998,6 @@ export const MemberPortalPage: React.FC = () => {
                         const slotStart = `${selectedDate} ${pad(hr)}:00:00`;
                         const slotEnd = `${selectedDate} ${pad(hr + 1)}:00:00`;
 
-                        // Check if occupied
                         const isOccupied = courtReservations.some((r) => {
                           if (r.court_id !== court.id) return false;
                           const rStart = r.starts_at.replace('T', ' ').split('.')[0];
@@ -874,6 +1222,278 @@ export const MemberPortalPage: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 5: PROFILE & SETTINGS (MOVED FROM MAIN PASS TAB) ───── */}
+        {activeTab === 'settings' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8">
+              <div className="rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-black/5 dark:border-white/10">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
+                      Sanctuary Profile & Contact Records
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Keep your records up-to-date for court booking confirmations and concierge emergency notifications.
+                    </p>
+                  </div>
+                  <ShieldCheck className="w-6 h-6 text-[#B89047]" />
+                </div>
+
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+                        Registered Full Name
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={memberName}
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-400 text-sm cursor-not-allowed outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        disabled
+                        value={profile?.email || user?.email || ''}
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-gray-400 text-sm cursor-not-allowed outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                        City of Residence
+                      </label>
+                      <input
+                        type="text"
+                        value={editCity}
+                        onChange={(e) => setEditCity(e.target.value)}
+                        placeholder="Bengaluru"
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                      Address Details
+                    </label>
+                    <input
+                      type="text"
+                      value={editAddress}
+                      onChange={(e) => setEditAddress(e.target.value)}
+                      placeholder="Flat 402, Royal Palms, Koramangala"
+                      className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                        Emergency Contact Name
+                      </label>
+                      <input
+                        type="text"
+                        value={editEmergencyName}
+                        onChange={(e) => setEditEmergencyName(e.target.value)}
+                        placeholder="Family Member / Guardian"
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                        Emergency Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={editEmergencyPhone}
+                        onChange={(e) => setEditEmergencyPhone(e.target.value)}
+                        placeholder="+91 98765 00000"
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white text-sm outline-none focus:border-[#B89047]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSavingProfile}
+                      className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-black bg-gradient-to-r from-[#B89047] to-[#EAD29A] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSavingProfile ? (
+                        <>
+                          <RotateCw size={14} className="animate-spin" />
+                          <span>Saving Changes...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={15} />
+                          <span>Update Profile Records</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Right: Security & Test Simulation Controls */}
+            <div className="lg:col-span-4 space-y-6">
+              <div className="rounded-3xl p-6 bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm space-y-4">
+                <h4 className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+                  Sanctuary Account Security
+                </h4>
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                    <span className="text-gray-400">Account Type:</span>
+                    <strong className="text-[#1D1D1F] dark:text-white">Registered Member</strong>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                    <span className="text-gray-400">Member ID:</span>
+                    <span className="font-mono text-[#EAD29A] font-bold">{memberCode}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                    <span className="text-gray-400">Gate QR Token:</span>
+                    <span className="font-mono text-gray-400 truncate max-w-[120px]">{profile?.qr_token || 'Generated'}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-gray-400">Status:</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-500">
+                      {profile?.status || 'Active'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Developer / Evaluation Status Simulation Bar */}
+              <div className="rounded-3xl p-6 bg-[#B89047]/10 border border-[#B89047]/30 space-y-3">
+                <div className="flex items-center gap-2 text-[#EAD29A]">
+                  <Zap size={16} />
+                  <span className="text-xs uppercase font-bold tracking-wider">
+                    Member Tier Simulation Tools
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed">
+                  Test portal states with 1-click simulations:
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleSimulateStatus('expiring_soon')}
+                    disabled={isSimulating}
+                    className="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <span>Simulate: Expiring in 3 Days</span>
+                    <AlertTriangle size={13} className="text-amber-400" />
+                  </button>
+                  <button
+                    onClick={() => handleSimulateStatus('inactive')}
+                    disabled={isSimulating}
+                    className="w-full py-2 px-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <span>Simulate: No Active Pass (Unactivated)</span>
+                    <X size={13} className="text-red-400" />
+                  </button>
+                  <button
+                    onClick={() => handleSimulateStatus('gold')}
+                    disabled={isSimulating}
+                    className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <span>Simulate: Active Gold Pass (1 Year)</span>
+                    <Crown size={13} className="text-emerald-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── FULL-SCREEN HIGH-RES QR PASS MODAL (ZOOM ON CARD CLICK) ── */}
+        {isQrModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+            <div className="relative w-full max-w-sm bg-gradient-to-br from-[#1C1A17] via-[#24201A] to-[#121214] border-2 border-[#B89047] rounded-3xl p-6 sm:p-8 shadow-2xl text-center text-white">
+              {/* Close Button */}
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Club Monogram Header */}
+              <div className="flex flex-col items-center mb-5">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#8C6826] p-[2px] mb-2 shadow-lg shadow-[#B89047]/30">
+                  <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
+                    <Trophy className="w-6 h-6 text-[#EAD29A]" />
+                  </div>
+                </div>
+                <h3 className="font-display font-bold text-lg text-[#EAD29A] tracking-wider uppercase">
+                  The Champions Club
+                </h3>
+                <span className="text-[10px] text-gray-400 uppercase tracking-widest">
+                  VIP Sanctuary Pass • Gate Clearance Token
+                </span>
+              </div>
+
+              {/* Member Details Pill */}
+              <div className="py-2 px-4 rounded-xl bg-white/5 border border-white/10 mb-5 flex items-center justify-between text-xs">
+                <div className="text-left">
+                  <div className="font-display font-bold text-sm text-white">{memberName}</div>
+                  <div className="text-[10px] text-gray-400">ID: {memberCode}</div>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  hasActiveMembership ? 'bg-[#B89047] text-black' : 'bg-gray-700 text-gray-200'
+                }`}>
+                  {memberPlan}
+                </span>
+              </div>
+
+              {/* Large High-Contrast Scannable QR Code */}
+              <div className="w-64 h-64 mx-auto p-4 bg-white rounded-2xl border-4 border-[#B89047]/60 shadow-[0_0_40px_rgba(184,144,71,0.25)] flex flex-col items-center justify-center">
+                <QRCode
+                  value={profile?.qr_token || memberCode}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="H"
+                />
+              </div>
+
+              <div className="mt-3 font-mono text-sm font-bold tracking-widest text-[#EAD29A]">
+                {memberCode}
+              </div>
+
+              <p className="text-xs text-gray-300 mt-4 leading-relaxed max-w-xs mx-auto">
+                Present this screen under the gate optical scanner or to the concierge reception desk for 1-second contactless verification.
+              </p>
+
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="mt-6 w-full py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#EAD29A] hover:brightness-110 shadow-md cursor-pointer"
+              >
+                Dismiss QR Pass
+              </button>
             </div>
           </div>
         )}

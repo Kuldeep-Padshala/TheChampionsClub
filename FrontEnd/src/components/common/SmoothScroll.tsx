@@ -58,6 +58,10 @@ export const SmoothScroll = () => {
       syncTouch: false, // Preserves hardware 120Hz touch physics on mobile/touchpads
       autoResize: true,
       stopInertiaOnNavigate: true,
+      prevent: (node) =>
+        node.hasAttribute?.('data-lenis-prevent') ||
+        !!node.closest?.('[data-lenis-prevent]') ||
+        !!node.closest?.('.lenis-prevent'),
     });
 
     lenisRef.current = lenis;
@@ -97,11 +101,14 @@ export const SmoothScroll = () => {
   useEffect(() => {
     const lenis = lenisRef.current || (window as any).lenis;
 
+    let hashTimer: ReturnType<typeof setTimeout>;
+
     if (!hash) {
-      // 1. Immediately reset momentum inertia & scroll target
+      // 1. Immediately reset scroll to (0,0) with ZERO latency
       if (lenis) {
-        lenis.reset();
+        lenis.stop();
         lenis.scrollTo(0, { immediate: true });
+        lenis.start();
       }
       window.scrollTo({
         top: 0,
@@ -111,11 +118,10 @@ export const SmoothScroll = () => {
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
 
-      // 2. Immediate resize
       if (lenis) lenis.resize();
     } else {
       // Target hash anchor with luxury momentum
-      const timer = setTimeout(() => {
+      hashTimer = setTimeout(() => {
         const id = hash.replace('#', '');
         const element = document.getElementById(id);
         if (element) {
@@ -126,7 +132,6 @@ export const SmoothScroll = () => {
           }
         }
       }, 80);
-      return () => clearTimeout(timer);
     }
 
     // 3. Staggered dimension sync to catch Framer Motion 0.5s page transitions
@@ -135,12 +140,15 @@ export const SmoothScroll = () => {
     const t2 = setTimeout(() => lenis?.resize(), 160);
     const t3 = setTimeout(() => lenis?.resize(), 320);
     const t4 = setTimeout(() => lenis?.resize(), 550);
+    const t5 = setTimeout(() => lenis?.resize(), 800); // extra check after transition
 
     return () => {
+      if (hashTimer) clearTimeout(hashTimer);
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
+      clearTimeout(t5);
     };
   }, [pathname, hash]);
 

@@ -18,6 +18,23 @@ export interface MemberProfile {
   joined_on: string;
 }
 
+export interface MembershipPlan {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  fee: string;
+  duration_months: number;
+  joining_fee: string;
+  min_age: number | null;
+  max_age: number | null;
+  shop_discount_pct: string;
+  bar_discount_pct: string;
+  can_join_social_play: number;
+  is_active: number;
+  sort_order: number;
+}
+
 export interface ActiveMembership {
   id: number;
   plan_id: number;
@@ -106,6 +123,26 @@ export const memberService = {
 
   updateProfile: async (data: Partial<MemberProfile>): Promise<{ profile: MemberProfile; message: string }> => {
     const res = await api.patch('/members/me', data);
+    return res.data;
+  },
+
+  // Plans & Upgrades
+  getMembershipPlans: async (): Promise<MembershipPlan[]> => {
+    const res = await api.get('/members/plans');
+    return res.data.data;
+  },
+
+  subscribeMembershipPlan: async (payload: { plan_id?: number; plan_code?: string }): Promise<{
+    success: boolean;
+    message: string;
+    active_membership: ActiveMembership;
+  }> => {
+    const res = await api.post('/members/plans/subscribe', payload);
+    return res.data;
+  },
+
+  simulateStatus: async (status: 'gold' | 'expiring_soon' | 'inactive') => {
+    const res = await api.post('/members/simulate-status', { status });
     return res.data;
   },
 

@@ -44,10 +44,12 @@ import {
   Moon,
   Sun,
   LogOut,
+  Camera,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '../utils/cn';
 import { useTheme } from '../context/ThemeContext';
+import { CameraQrScannerModal } from '../components/common/CameraQrScannerModal';
 
 export const ReceptionistPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -86,6 +88,7 @@ export const ReceptionistPage: React.FC = () => {
   const [scannerInput, setScannerInput] = useState('');
   const [lastCheckInResult, setLastCheckInResult] = useState<CheckInResult | null>(null);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
   const scannerInputRef = useRef<HTMLInputElement>(null);
 
   // ── Tab 2: Court Calendar state ───────────────────────────────────
@@ -744,20 +747,30 @@ export const ReceptionistPage: React.FC = () => {
               {/* Left Column: QR / Barcode Scanner Target */}
               <div className="lg:col-span-6 space-y-6">
                 <div className="rounded-3xl p-6 sm:p-8 bg-white/80 dark:bg-[#0A0A0D]/85 backdrop-blur-2xl border border-black/10 dark:border-white/10 shadow-xl">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <Zap className="w-5 h-5 text-[#B89047]" />
                       <h2 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
-                        QR / Barcode Hardware Scanner
+                        QR Check-In Station
                       </h2>
                     </div>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold border border-emerald-500/20">
-                      Scanner Ready
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCameraScannerOpen(true)}
+                        className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#B89047] to-[#A67C38] text-white hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-[#B89047]/20 transition-all cursor-pointer"
+                      >
+                        <Camera size={13} />
+                        <span>Open Camera</span>
+                      </button>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold border border-emerald-500/20 hidden sm:inline-block">
+                        Hardware Ready
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                    Point any physical USB barcode/QR scanner at the member card or app. Keystrokes are captured automatically.
+                    Scan via physical USB barcode gun or click <strong className="text-[#B89047]">"Open Camera"</strong> to scan the member card using your webcam or phone camera.
                   </p>
 
                   <form
@@ -774,28 +787,50 @@ export const ReceptionistPage: React.FC = () => {
                         value={scannerInput}
                         onChange={(e) => setScannerInput(e.target.value)}
                         placeholder="Scan QR token, enter CC-Code, or phone number..."
-                        className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-[#B89047]/40 bg-white/90 dark:bg-white/[0.05] text-sm font-mono font-medium text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-4 focus:ring-[#B89047]/20 outline-none transition-all shadow-inner"
+                        className="w-full h-14 pl-12 pr-28 rounded-2xl border-2 border-[#B89047]/40 bg-white/90 dark:bg-white/[0.05] text-sm font-mono font-medium text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-4 focus:ring-[#B89047]/20 outline-none transition-all shadow-inner"
                       />
                       <QrCode size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#B89047]" />
+
+                      {/* Camera Trigger inside Input */}
+                      <button
+                        type="button"
+                        onClick={() => setIsCameraScannerOpen(true)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-3 rounded-xl bg-[#B89047]/15 hover:bg-[#B89047] text-[#B89047] hover:text-white border border-[#B89047]/30 transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm"
+                        title="Open Camera Scanner"
+                      >
+                        <Camera size={14} />
+                        <span className="hidden sm:inline">Camera</span>
+                      </button>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={isCheckingIn || !scannerInput.trim()}
-                      className="w-full h-12 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] dark:from-[#B89047] dark:via-[#A67C38] dark:to-[#8C6826] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
-                    >
-                      {isCheckingIn ? (
-                        <>
-                          <RotateCw size={16} className="animate-spin" />
-                          <span>Verifying Member...</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck size={16} />
-                          <span>Submit &amp; Check In Member</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsCameraScannerOpen(true)}
+                        className="h-12 rounded-xl text-xs sm:text-sm font-bold border-2 border-[#B89047] bg-[#B89047]/10 hover:bg-[#B89047]/20 text-[#B89047] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                      >
+                        <Camera size={16} />
+                        <span>Live Camera Scan</span>
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isCheckingIn || !scannerInput.trim()}
+                        className="h-12 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] dark:from-[#B89047] dark:via-[#A67C38] dark:to-[#8C6826] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                      >
+                        {isCheckingIn ? (
+                          <>
+                            <RotateCw size={16} className="animate-spin" />
+                            <span>Verifying...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck size={16} />
+                            <span>Submit Code</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </form>
 
                   {/* Quick Member Search & Check-in helper */}
@@ -2168,6 +2203,17 @@ export const ReceptionistPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Camera QR Scanner Modal */}
+          <CameraQrScannerModal
+            isOpen={isCameraScannerOpen}
+            onClose={() => setIsCameraScannerOpen(false)}
+            onScan={(decodedCode) => {
+              setScannerInput(decodedCode);
+              handleCheckInSubmit(decodedCode);
+            }}
+            title="Front Desk Member Verification"
+          />
 
         </div>
       </PageLayout>

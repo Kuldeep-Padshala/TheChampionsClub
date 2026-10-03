@@ -34,7 +34,7 @@ export const CafePage = () => {
         }}
       >
         {/* Dark overlay to keep text readable */}
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-navy-primary/80 backdrop-blur-sm" />
         <div className="container mx-auto px-4 md:px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-gold-primary/20 border border-gold-primary/30 text-gold-light rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <Star size={14} />

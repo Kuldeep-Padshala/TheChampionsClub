@@ -38,18 +38,6 @@ async function getOrCreateMember(userId, userEmail, userName) {
   );
 
   const memberId = result.insertId;
-
-  // Auto assign Gold membership plan
-  try {
-    await pool.query(
-      `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
-       VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH), 'active', 'new', 7999, 1000, NOW(), NOW())`,
-      [memberId]
-    );
-  } catch (e) {
-    console.error('[getOrCreateMember] Plan assignment note:', e.message);
-  }
-
   const [newMembers] = await pool.query('SELECT * FROM members WHERE id = ?', [memberId]);
   return newMembers[0];
 }
@@ -568,9 +556,147 @@ async function placeMyOrder(req, res) {
   }
 }
 
+// ============================================
+// 5. MEMBERSHIP PLANS & ACTIVATION
+// ============================================
+
+async function getMembershipPlans(req, res) {
+  try {
+    const [plans] = await pool.query(
+      `SELECT id, code, name, description, fee, duration_months, joining_fee, min_age, max_age, 
+              shop_discount_pct, bar_discount_pct, can_join_social_play, is_active, sort_order 
+       FROM membership_plans 
+       WHERE is_active = 1 
+       ORDER BY sort_order ASC`
+    );
+    res.json({ success: true, data: plans });
+  } catch (error) {
+    console.error('[getMembershipPlans]', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch membership plans' });
+  }
+}
+
+async function subscribeMembershipPlan(req, res) {
+  try {
+    const userId = req.user.id;
+    const member = await getOrCreateMember(userId, req.user.email, req.user.name);
+    const { plan_id, plan_code } = req.body;
+
+    if (!plan_id && !plan_code) {
+      res.status(400).json({ success: false, message: 'Membership plan is required' });
+      return;
+    }
+
+    let planQuery = 'SELECT * FROM membership_plans WHERE is_active = 1 AND (id = ? OR code = ?) LIMIT 1';
+    const [planRows] = await pool.query(planQuery, [plan_id || 0, plan_code || '']);
+
+    if (planRows.length === 0) {
+      res.status(404).json({ success: false, message: 'Selected membership plan not found or inactive' });
+      return;
+    }
+
+    const plan = planRows[0];
+
+    // Mark previous active memberships as expired/upgraded
+    await pool.query(
+      `UPDATE memberships SET status = 'expired', updated_at = NOW() WHERE member_id = ? AND status = 'active'`,
+      [member.id]
+    );
+
+    // Create the new active membership
+    const durationMonths = Number(plan.duration_months) || 12;
+    const feeCharged = Number(plan.fee) || 0;
+    const joiningFeeCharged = Number(plan.joining_fee) || 0;
+
+    const [memResult] = await pool.query(
+      `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
+       VALUES (?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? MONTH), 'active', 'new', ?, ?, NOW(), NOW())`,
+      [member.id, plan.id, durationMonths, feeCharged, joiningFeeCharged]
+    );
+
+    // Fetch the updated active membership
+    const [activeRows] = await pool.query(
+      `SELECT m.*, p.name as plan_name, p.code as plan_code, p.description as plan_description, p.fee as plan_fee 
+       FROM memberships m 
+       JOIN membership_plans p ON m.plan_id = p.id 
+       WHERE m.id = ? LIMIT 1`,
+      [memResult.insertId]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `Congratulations! Your ${plan.name} Sanctuary Pass is now active.`,
+      active_membership: activeRows[0],
+    });
+  } catch (error) {
+    console.error('[subscribeMembershipPlan]', error);
+    res.status(500).json({ success: false, message: 'Failed to activate membership plan' });
+  }
+}
+
+async function simulateMemberStatus(req, res) {
+  try {
+    const userId = req.user.id;
+    const member = await getOrCreateMember(userId, req.user.email, req.user.name);
+    const { status } = req.body;
+
+    if (status === 'inactive') {
+      await pool.query(
+        `UPDATE memberships SET status = 'expired', updated_at = NOW() WHERE member_id = ? AND status = 'active'`,
+        [member.id]
+      );
+      res.json({ success: true, message: 'Simulated: Member has no active pass' });
+      return;
+    }
+
+    if (status === 'expiring_soon') {
+      const [actives] = await pool.query(
+        `SELECT id FROM memberships WHERE member_id = ? AND status = 'active' LIMIT 1`,
+        [member.id]
+      );
+      if (actives.length > 0) {
+        await pool.query(
+          `UPDATE memberships SET end_date = DATE_ADD(CURDATE(), INTERVAL 3 DAY), updated_at = NOW() WHERE id = ?`,
+          [actives[0].id]
+        );
+      } else {
+        await pool.query(
+          `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
+           VALUES (?, 1, DATE_SUB(CURDATE(), INTERVAL 362 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'active', 'new', 7999, 1000, NOW(), NOW())`,
+          [member.id]
+        );
+      }
+      res.json({ success: true, message: 'Simulated: Gold pass expires in 3 days' });
+      return;
+    }
+
+    if (status === 'gold') {
+      await pool.query(
+        `UPDATE memberships SET status = 'expired', updated_at = NOW() WHERE member_id = ? AND status = 'active'`,
+        [member.id]
+      );
+      await pool.query(
+        `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
+         VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH), 'active', 'new', 7999, 1000, NOW(), NOW())`,
+        [member.id]
+      );
+      res.json({ success: true, message: 'Simulated: Active Gold pass (1 year)' });
+      return;
+    }
+
+    res.status(400).json({ success: false, message: 'Unknown status simulation' });
+  } catch (error) {
+    console.error('[simulateMemberStatus]', error);
+    res.status(500).json({ success: false, message: 'Simulation error' });
+  }
+}
+
 module.exports = {
   getMe,
   updateMe,
+  getMembershipPlans,
+  subscribeMembershipPlan,
+  simulateMemberStatus,
   getCourtAvailability,
   getMyBookings,
   createMyBooking,

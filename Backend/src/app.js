@@ -8,6 +8,8 @@ const { testConnection } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const receptionistRoutes = require('./routes/receptionist.routes');
 const memberRoutes = require('./routes/member.routes');
+const managerRoutes = require('./routes/manager.routes');
+const barRoutes = require('./routes/bar.routes');
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/receptionist', receptionistRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/manager', managerRoutes);
+app.use('/api/bar', barRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

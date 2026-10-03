@@ -11,6 +11,9 @@ router.use(requireRole('MEMBER'));
 // 1. Authentication & Profile
 router.get('/me', member.getMe);
 router.patch('/me', member.updateMe);
+router.get('/plans', member.getMembershipPlans);
+router.post('/plans/subscribe', member.subscribeMembershipPlan);
+router.post('/simulate-status', member.simulateMemberStatus);
 
 // 2. Court Calendar & Bookings
 router.get('/courts/availability', member.getCourtAvailability);

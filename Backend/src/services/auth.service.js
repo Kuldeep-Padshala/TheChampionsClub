@@ -127,13 +127,6 @@ async function registerUser(input) {
       );
 
       const newMemberId = memberResult.insertId;
-
-      // Assign Gold membership plan with 1 year validity
-      await pool.query(
-        `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
-         VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH), 'active', 'new', 7999, 1000, NOW(), NOW())`,
-        [newMemberId]
-      );
     } catch (memErr) {
       console.error('[AuthService] Error creating member profile on registration:', memErr.message);
     }
@@ -309,11 +302,6 @@ async function handleGoogleOAuth(googleUser) {
       `INSERT INTO members (user_id, member_code, qr_token, full_name, phone, email, date_of_birth, status, joined_on, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, '1995-01-01', 'active', CURDATE(), NOW(), NOW())`,
       [userId, memberCode, qrToken, googleUser.name, phone, googleUser.email]
-    );
-    await pool.query(
-      `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_at, updated_at)
-       VALUES (?, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 12 MONTH), 'active', 'new', 7999, 1000, NOW(), NOW())`,
-      [memResult.insertId]
     );
   } catch (err) {
     console.error('[Google OAuth] Member profile creation note:', err.message);

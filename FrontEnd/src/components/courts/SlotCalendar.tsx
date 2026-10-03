@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
-import { TimeSlot } from '../../types/court.types';
+import { TimeSlot, Court } from '../../types/court.types';
 import { generateWeekDays, formatDate } from '../../utils/dateUtils';
 import { cn } from '../../utils/cn';
 import { useLoginPrompt } from '../../hooks/useLoginPrompt';
 import { useTheme } from '../../context/ThemeContext';
-
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../../constants/routes';
+import { CourtBookingModal } from './CourtBookingModal';
 
 interface SlotCalendarProps {
   slots: TimeSlot[];
+  court?: Court | null;
   onWeekChange: (date: Date) => void;
+  onSlotBooked?: (slotId: string) => void;
 }
 
-export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange }) => {
+export const SlotCalendar: React.FC<SlotCalendarProps> = ({
+  slots,
+  court,
+  onWeekChange,
+  onSlotBooked,
+}) => {
   const [currentDate, setCurrentDate] = useState(new Date('2026-10-05'));
   const { requireLogin } = useLoginPrompt();
   const { theme } = useTheme();
-  const navigate = useNavigate();
   const isNight = theme === 'night';
-  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Direct Booking Modal State
+  const [selectedSlotForBooking, setSelectedSlotForBooking] = useState<TimeSlot | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [localBookedSlotIds, setLocalBookedSlotIds] = useState<string[]>([]);
+
+  // Enable mouse wheel scrolling directly inside the booking table
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Prevent parent smooth-scroll from capturing mouse wheel
+      e.stopPropagation();
+      el.scrollTop += e.deltaY;
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: true });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
   const weekDays = generateWeekDays(currentDate);
   const timeHours = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM
 
@@ -41,13 +68,18 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
   const getSlot = (date: Date, hour: number) => {
     const dateStr = formatDate(date);
     const hourStr = `${hour.toString().padStart(2, '0')}:00`;
-    return slots.find(s => s.date === dateStr && s.startTime === hourStr);
+    const slot = slots.find((s) => s.date === dateStr && s.startTime === hourStr);
+    if (slot && localBookedSlotIds.includes(slot.id)) {
+      return { ...slot, status: 'booked' as const };
+    }
+    return slot;
   };
 
   const handleSlotClick = (slot: TimeSlot | undefined) => {
     if (slot && slot.status === 'available') {
       requireLogin('book this court slot', () => {
-        navigate(ROUTES.MEMBER_PORTAL);
+        setSelectedSlotForBooking(slot);
+        setIsBookingModalOpen(true);
       });
     }
   };
@@ -83,7 +115,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
       </div>
       
       {/* ── Calendar Matrix ── */}
-      <div className="overflow-x-auto">
+      <div data-lenis-prevent className="overflow-x-auto overscroll-contain">
         <div className="min-w-[760px]">
           {/* Day Headers */}
           <div className="grid grid-cols-8 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#F5F4F0] dark:bg-[#101014] text-xs font-semibold">
@@ -102,7 +134,11 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
           </div>
           
           {/* Time Rows */}
-          <div className="max-h-[520px] overflow-y-auto divide-y divide-black/[0.04] dark:divide-white/[0.05]">
+          <div
+            ref={scrollContainerRef}
+            data-lenis-prevent
+            className="max-h-[520px] overflow-y-auto overscroll-contain divide-y divide-black/[0.04] dark:divide-white/[0.05]"
+          >
             {timeHours.map((hour) => (
               <div
                 key={hour}
@@ -170,6 +206,18 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
           Instant reservation confirmed to your member profile
         </div>
       </div>
+
+      {/* Luxury Court Booking Confirmation Modal */}
+      <CourtBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        slot={selectedSlotForBooking}
+        court={court}
+        onConfirmSuccess={(slotId) => {
+          setLocalBookedSlotIds((prev) => [...prev, slotId]);
+          onSlotBooked?.(slotId);
+        }}
+      />
     </div>
   );
 };
