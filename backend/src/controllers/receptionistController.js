@@ -174,9 +174,11 @@ const checkIn = async (req, res) => {
   }
 };
 
+
 // ============================================
 // 5. BILLING & PAYMENTS
 // ============================================
+
 
 const getInvoices = async (req, res) => {
   try {
@@ -188,6 +190,8 @@ const getInvoices = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const createInvoice = async (req, res) => {
   try {
@@ -205,6 +209,8 @@ const createInvoice = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const recordPayment = async (req, res) => {
   try {
@@ -236,9 +242,11 @@ const recordPayment = async (req, res) => {
   }
 };
 
+
 // ============================================
 // 6. ENQUIRIES & LEADS
 // ============================================
+
 
 const getEnquiries = async (req, res) => {
   try {
@@ -249,6 +257,8 @@ const getEnquiries = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const createEnquiry = async (req, res) => {
   try {
@@ -265,6 +275,8 @@ const createEnquiry = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const updateEnquiry = async (req, res) => {
   try {
@@ -290,6 +302,8 @@ const updateEnquiry = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 module.exports = {
   // Member Management

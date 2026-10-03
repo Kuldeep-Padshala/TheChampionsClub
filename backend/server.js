@@ -3,6 +3,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 const receptionistRoutes = require('./src/routes/receptionistRoutes');
+const authRoutes = require('./src/routes/auth.routes').default || require('./src/routes/auth.routes');
+const memberRoutes = require('./src/routes/member.routes').default || require('./src/routes/member.routes');
 
 const app = express();
 
@@ -11,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/members', memberRoutes);
 app.use('/api/receptionist', receptionistRoutes);
 
 // Health check
