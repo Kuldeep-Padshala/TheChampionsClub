@@ -5,6 +5,7 @@ require('dotenv').config();
 const receptionistRoutes = require('./src/routes/receptionistRoutes');
 const authRoutes = require('./src/routes/auth.routes').default || require('./src/routes/auth.routes');
 const memberRoutes = require('./src/routes/member.routes').default || require('./src/routes/member.routes');
+const managerRoutes = require('./src/routes/manager.routes');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/receptionist', receptionistRoutes);
+app.use('/api/manager', managerRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
