@@ -7,6 +7,7 @@ import { getMenuItems } from '../services/menuService';
 import { MenuItem } from '../types/menu.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { Clock, Star, Percent } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const CafePage = () => {
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -67,7 +68,11 @@ export const CafePage = () => {
               <MenuCard
                 key={item.id}
                 item={item}
-                onOrder={() => requireLogin('place an order')}
+                onOrder={() =>
+                  requireLogin('place an order', () => {
+                    toast.success(`Table order noted for "${item.name}"! Show your Member Pass to the waitstaff.`, { duration: 4000 });
+                  })
+                }
               />
             ))}
           </div>

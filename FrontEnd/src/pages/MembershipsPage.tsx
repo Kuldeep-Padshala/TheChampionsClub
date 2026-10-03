@@ -7,9 +7,13 @@ import { MembershipPlan } from '../types/membership.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { Check, X } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
+
 export const MembershipsPage = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const { requireLogin } = useLoginPrompt();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getPlans().then(setPlans);
@@ -80,7 +84,11 @@ export const MembershipsPage = () => {
               index={index}
               key={plan.id}
               plan={plan}
-              onJoin={() => requireLogin('choose a membership plan')}
+              onJoin={() =>
+                requireLogin('choose a membership plan', () => {
+                  navigate(ROUTES.MEMBER_PORTAL);
+                })
+              }
             />
           ))}
         </div>

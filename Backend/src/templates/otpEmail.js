@@ -1,4 +1,4 @@
-export function otpEmailTemplate(otp: string): { subject: string; html: string } {
+function otpEmailTemplate(otp) {
   return {
     subject: 'Your Password Reset Code — TheChampionsClub',
     html: `
@@ -52,3 +52,5 @@ export function otpEmailTemplate(otp: string): { subject: string; html: string }
 </html>`,
   };
 }
+
+module.exports = { otpEmailTemplate };

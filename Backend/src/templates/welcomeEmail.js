@@ -1,4 +1,4 @@
-export function welcomeEmailTemplate(name: string): { subject: string; html: string } {
+function welcomeEmailTemplate(name) {
   return {
     subject: `Welcome to TheChampionsClub, ${name}! 🎉`,
     html: `
@@ -44,3 +44,5 @@ export function welcomeEmailTemplate(name: string): { subject: string; html: str
 </html>`,
   };
 }
+
+module.exports = { welcomeEmailTemplate };

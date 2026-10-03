@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { ROUTES } from '../constants/routes';
 import { CLUB_INFO } from '../constants/club';
-import { Trophy, RotateCw, ArrowLeft, Mail, User, ShieldCheck } from 'lucide-react';
+import { Trophy, RotateCw, ArrowLeft, Mail, User, ShieldCheck, Phone, Calendar, BadgeCheck, Briefcase } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { PasswordStrength } from '../components/auth/PasswordStrength';
@@ -11,23 +11,27 @@ import { GoogleButton } from '../components/auth/GoogleButton';
 import toast from 'react-hot-toast';
 
 export const RegisterPage: React.FC = () => {
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [role, setRole] = useState<'MEMBER' | 'FRONT_DESK'>('MEMBER');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated, redirect to home
+  // If already authenticated, redirect to appropriate portal
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate(ROUTES.HOME);
+    if (isAuthenticated && user) {
+      const isStaff = user.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
+      navigate(isStaff ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +44,11 @@ export const RegisterPage: React.FC = () => {
 
     if (!email.trim()) {
       toast.error('Please enter your email address');
+      return;
+    }
+
+    if (!phone.trim()) {
+      toast.error('Please enter your contact phone number');
       return;
     }
 
@@ -66,11 +75,24 @@ export const RegisterPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await register(fullName, email.trim().toLowerCase(), password);
-      toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Your account has been created.`);
-      navigate(ROUTES.HOME, { replace: true });
+      const newUser = await register(
+        fullName,
+        email.trim().toLowerCase(),
+        password,
+        role,
+        phone.trim(),
+        dateOfBirth || undefined
+      );
+
+      toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Account established.`);
+
+      if (role === 'FRONT_DESK') {
+        navigate(ROUTES.RECEPTIONIST, { replace: true });
+      } else {
+        navigate(ROUTES.MEMBER_PORTAL, { replace: true });
+      }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Registration failed. Email may already be registered.';
+      const msg = err?.response?.data?.message || 'Registration failed. Email or phone may already be registered.';
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
@@ -80,7 +102,7 @@ export const RegisterPage: React.FC = () => {
   return (
     <PageLayout>
       <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4">
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-xl">
           {/* Bespoke Luxury Card */}
           <div className="bg-white/80 dark:bg-[#0A0A0D]/85 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
             
@@ -92,11 +114,71 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1D1D1F] dark:text-white tracking-tight mb-1">
-                Join The Club
+                Establish Your Credentials
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Unlock world-class courts, private coaching, and sanctuary privileges
+                Select your account tier to configure privileges, sanctuary access, and staff roles
               </p>
+            </div>
+
+            {/* Role Selection Switcher */}
+            <div className="mb-6 space-y-2">
+              <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                Account Type & Role Assignment
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Member Role Card */}
+                <button
+                  type="button"
+                  onClick={() => setRole('MEMBER')}
+                  className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden ${
+                    role === 'MEMBER'
+                      ? 'border-[#B89047] bg-[#B89047]/10 shadow-[0_0_20px_rgba(184,144,71,0.15)] ring-1 ring-[#B89047]'
+                      : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      role === 'MEMBER' ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
+                    }`}>
+                      <BadgeCheck size={18} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-[#1D1D1F] dark:text-white">Club Member</div>
+                      <span className="text-[10px] text-[#B89047] font-semibold uppercase tracking-wider">Sanctuary Access</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
+                    Personal digital card, member court rates, pro shop privileges & invoices.
+                  </p>
+                </button>
+
+                {/* Front Desk Staff Card */}
+                <button
+                  type="button"
+                  onClick={() => setRole('FRONT_DESK')}
+                  className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden ${
+                    role === 'FRONT_DESK'
+                      ? 'border-[#B89047] bg-[#B89047]/10 shadow-[0_0_20px_rgba(184,144,71,0.15)] ring-1 ring-[#B89047]'
+                      : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      role === 'FRONT_DESK' ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
+                    }`}>
+                      <Briefcase size={18} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-[#1D1D1F] dark:text-white">Front Desk Staff</div>
+                      <span className="text-[10px] text-[#B89047] font-semibold uppercase tracking-wider">Operational Station</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
+                    Hardware check-in station, court timeline manager, POS billing & leads.
+                  </p>
+                </button>
+              </div>
             </div>
 
             {/* Google OAuth Button */}
@@ -107,7 +189,7 @@ export const RegisterPage: React.FC = () => {
                   <div className="w-full border-t border-black/10 dark:border-white/10" />
                 </div>
                 <span className="relative px-3 text-[11px] font-semibold tracking-wider text-gray-400 bg-white/80 dark:bg-[#0A0A0D] uppercase">
-                  Or register with email
+                  Or register with credentials
                 </span>
               </div>
             </div>
@@ -148,21 +230,56 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Email */}
+              {/* Email & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="rohit.sharma@example.com"
+                      className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
+                    />
+                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                    Contact Phone
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
+                    />
+                    <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Date of Birth */}
               <div className="space-y-1.5">
                 <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
-                  Email Address
+                  Date of Birth (Optional)
                 </label>
                 <div className="relative">
                   <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="rohit.sharma@example.com"
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
                     className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
                   />
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Calendar size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
 
@@ -218,18 +335,18 @@ export const RegisterPage: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <RotateCw size={16} className="animate-spin" />
-                    <span>Establishing Membership...</span>
+                    <span>Registering Account & Role...</span>
                   </>
                 ) : (
                   <>
                     <ShieldCheck size={16} />
-                    <span>Create My Membership</span>
+                    <span>Create {role === 'FRONT_DESK' ? 'Staff' : 'Member'} Account</span>
                   </>
                 )}
               </button>
             </form>
 
-            {/* Existing member */}
+            {/* Existing user */}
             <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400">
               Already a distinguished member?{' '}
               <Link to={ROUTES.LOGIN} className="text-[#B89047] dark:text-[#EAD29A] font-bold hover:underline ml-1">

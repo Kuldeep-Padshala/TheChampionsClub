@@ -33,6 +33,10 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
   if (allowedRoles && allowedRoles.length > 0) {
     const isAuthorized = allowedRoles.some((r) => hasRole(r));
     if (!isAuthorized) {
+      const isMemberRequired = allowedRoles.includes('MEMBER');
+      const title = isMemberRequired ? 'Member Access Required' : 'Staff Access Restricted';
+      const roleText = isMemberRequired ? 'MEMBER' : 'FRONT_DESK';
+
       return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 pt-28 pb-16">
           <div className="max-w-md w-full p-8 sm:p-10 rounded-3xl bg-white/80 dark:bg-[#0A0A0D]/90 backdrop-blur-2xl border border-red-500/20 shadow-2xl text-center">
@@ -40,10 +44,10 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
               <ShieldAlert size={28} />
             </div>
             <h2 className="font-display text-2xl font-bold text-[#1D1D1F] dark:text-white mb-2">
-              Staff Access Restricted
+              {title}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-              Your current account (<span className="text-[#1D1D1F] dark:text-gray-200 font-medium">{user.email}</span>) does not have the required <strong>FRONT_DESK</strong> or managerial role.
+              Your current account (<span className="text-[#1D1D1F] dark:text-gray-200 font-medium">{user.email}</span>) does not have the required <strong>{roleText}</strong> role.
             </p>
             <div className="flex flex-col gap-3">
               <Link
@@ -51,14 +55,14 @@ export const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
                 className="w-full h-11 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold bg-[#121214] text-white hover:bg-[#B89047] dark:bg-[#B89047] dark:hover:bg-[#A67C38] dark:text-black transition-colors"
               >
                 <LogIn size={15} />
-                <span>Switch to Front Desk Account</span>
+                <span>Switch to {isMemberRequired ? 'Member' : 'Front Desk'} Account</span>
               </Link>
               <Link
                 to={ROUTES.HOME}
                 className="w-full h-11 flex items-center justify-center gap-2 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
               >
                 <ArrowLeft size={14} />
-                <span>Return to Sanctuary</span>
+                <span>Return to Home</span>
               </Link>
             </div>
           </div>

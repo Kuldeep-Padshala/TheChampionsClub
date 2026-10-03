@@ -13,6 +13,8 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ReceptionistPage } from './pages/ReceptionistPage';
+import { MemberPortalPage } from './pages/MemberPortalPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPromptModal } from './components/common/LoginPromptModal';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { SmoothScroll } from './components/common/SmoothScroll';
@@ -37,7 +39,22 @@ function App() {
             <Route path={ROUTES.LOGIN} element={<LoginPage />} />
             <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
-            <Route path={ROUTES.RECEPTIONIST} element={<ReceptionistPage />} />
+            <Route
+              path={ROUTES.RECEPTIONIST}
+              element={
+                <ProtectedRoute allowedRoles={['FRONT_DESK']}>
+                  <ReceptionistPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.MEMBER_PORTAL}
+              element={
+                <ProtectedRoute allowedRoles={['MEMBER']}>
+                  <MemberPortalPage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
           <LoginPromptModal />
           <Toaster

@@ -1,7 +1,7 @@
-import mysql from 'mysql2/promise';
-import { env } from './env';
+const mysql = require('mysql2/promise');
+const { env } = require('./env');
 
-export const pool = mysql.createPool({
+const pool = mysql.createPool({
   host: env.db.host,
   port: env.db.port,
   user: env.db.user,
@@ -16,8 +16,10 @@ export const pool = mysql.createPool({
   keepAliveInitialDelay: 10000,
 });
 
-export async function testConnection(): Promise<void> {
+async function testConnection() {
   const conn = await pool.getConnection();
   console.log('[DB] Aiven MySQL connected successfully on port ' + env.db.port);
   conn.release();
 }
+
+module.exports = { pool, testConnection };

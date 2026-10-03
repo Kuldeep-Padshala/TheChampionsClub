@@ -1,8 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../services/token.service';
-import { getUserRoles } from '../services/auth.service';
+const { verifyAccessToken } = require('../services/token.service');
+const { getUserRoles } = require('../services/auth.service');
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : undefined;
   const token = req.cookies?.['__access_token'] || bearerToken;
@@ -19,8 +18,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 }
 
-export function requireRole(...allowedRoles: string[]) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+function requireRole(...allowedRoles) {
+  return async (req, res, next) => {
     if (!req.user) {
       res.status(401).json({ success: false, message: 'Unauthorized' });
       return;
@@ -42,3 +41,5 @@ export function requireRole(...allowedRoles: string[]) {
     }
   };
 }
+
+module.exports = { requireAuth, requireRole };

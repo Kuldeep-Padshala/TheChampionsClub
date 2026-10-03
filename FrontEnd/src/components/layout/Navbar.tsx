@@ -23,10 +23,11 @@ const PUBLIC_NAV_LINKS: NavItem[] = [
 ];
 
 const MEMBER_NAV_LINKS: NavItem[] = [
-  { name: 'Courts',        path: ROUTES.COURTS      },
-  { name: 'Pro Shop',      path: ROUTES.SHOP        },
-  { name: 'Cafe & Lounge', path: ROUTES.CAFE        },
-  { name: 'Memberships',   path: ROUTES.MEMBERSHIPS },
+  { name: 'Member Sanctuary', path: ROUTES.MEMBER_PORTAL },
+  { name: 'Courts',           path: ROUTES.COURTS },
+  { name: 'Pro Shop',         path: ROUTES.SHOP },
+  { name: 'Cafe & Lounge',    path: ROUTES.CAFE },
+  { name: 'Memberships',      path: ROUTES.MEMBERSHIPS },
 ];
 
 const FRONT_DESK_NAV_LINKS: NavItem[] = [
@@ -229,26 +230,32 @@ export const Navbar: React.FC = () => {
                     <span>Front Desk</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-black/10 dark:border-white/10 select-none">
+                  <Link
+                    to={ROUTES.MEMBER_PORTAL}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 hover:bg-[#B89047]/25 transition-all select-none"
+                    title="Open Member Sanctuary Portal"
+                  >
                     <Trophy size={12} className="text-[#B89047] flex-shrink-0" />
-                    <span>Member</span>
-                  </div>
+                    <span>Member Pass</span>
+                  </Link>
                 )}
 
                 {/* User Name Pill */}
-                <div
+                <Link
+                  to={isFrontDesk ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL}
                   className={cn(
-                    'inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors',
+                    'inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50',
                     isNight
                       ? 'bg-[#16161A] text-white border-white/10'
                       : 'bg-[#F7F5F0] text-[#121214] border-black/5'
                   )}
+                  title="My Sanctuary Account"
                 >
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214]">
                     {user.name ? user.name.charAt(0).toUpperCase() : (isFrontDesk ? 'S' : 'M')}
                   </div>
                   <span className="max-w-[100px] truncate">{user.name?.split(' ')[0] || 'User'}</span>
-                </div>
+                </Link>
 
                 {/* Exit / Logout */}
                 <button

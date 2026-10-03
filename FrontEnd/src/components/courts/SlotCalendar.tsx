@@ -6,6 +6,9 @@ import { cn } from '../../utils/cn';
 import { useLoginPrompt } from '../../hooks/useLoginPrompt';
 import { useTheme } from '../../context/ThemeContext';
 
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../constants/routes';
+
 interface SlotCalendarProps {
   slots: TimeSlot[];
   onWeekChange: (date: Date) => void;
@@ -15,6 +18,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
   const [currentDate, setCurrentDate] = useState(new Date('2026-10-05'));
   const { requireLogin } = useLoginPrompt();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const isNight = theme === 'night';
   
   const weekDays = generateWeekDays(currentDate);
@@ -42,7 +46,9 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
 
   const handleSlotClick = (slot: TimeSlot | undefined) => {
     if (slot && slot.status === 'available') {
-      requireLogin('book this court slot');
+      requireLogin('book this court slot', () => {
+        navigate(ROUTES.MEMBER_PORTAL);
+      });
     }
   };
 

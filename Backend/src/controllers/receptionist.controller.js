@@ -1,11 +1,10 @@
-import { Request, Response } from 'express';
-import { pool } from '../config/db';
+const { pool } = require('../config/db');
 
 // ============================================
 // 1. MEMBER MANAGEMENT
 // ============================================
 
-export async function getMembers(req: Request, res: Response): Promise<void> {
+async function getMembers(req, res) {
   try {
     const { search } = req.query;
     let query = `
@@ -38,7 +37,7 @@ export async function getMembers(req: Request, res: Response): Promise<void> {
         ) as total_dues
       FROM members m
     `;
-    const params: any[] = [];
+    const params = [];
 
     if (search) {
       query += ` WHERE m.full_name LIKE ? OR m.phone LIKE ? OR m.member_code LIKE ? OR m.email LIKE ? OR m.qr_token = ?`;
@@ -48,15 +47,15 @@ export async function getMembers(req: Request, res: Response): Promise<void> {
 
     query += ` ORDER BY m.id DESC LIMIT 100`;
 
-    const [members]: any = await pool.query(query, params);
+    const [members] = await pool.query(query, params);
     res.json({ success: true, data: members });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getMembers]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch members' });
   }
 }
 
-export async function registerMember(req: Request, res: Response): Promise<void> {
+async function registerMember(req, res) {
   try {
     const { full_name, email, phone, date_of_birth, address_line1, plan_id } = req.body;
     if (!full_name || !phone) {
@@ -67,9 +66,9 @@ export async function registerMember(req: Request, res: Response): Promise<void>
     const member_code = 'CC-2026-' + Math.floor(1000 + Math.random() * 9000);
     const qr_token = 'QR-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
     const finalDob = date_of_birth || '1995-01-01';
-    const staffId = (req as any).user?.id ? Number((req as any).user.id) : null;
+    const staffId = req.user?.id ? Number(req.user.id) : null;
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO members (member_code, qr_token, full_name, email, phone, date_of_birth, address_line1, status, joined_on, registered_by, created_at, updated_at) 
        VALUES (?, ?, ?, ?, ?, ?, ?, 'active', CURDATE(), ?, NOW(), NOW())`,
       [member_code, qr_token, full_name, email || null, phone, finalDob, address_line1 || null, staffId]
@@ -79,7 +78,7 @@ export async function registerMember(req: Request, res: Response): Promise<void>
 
     // If an initial membership plan is selected, assign it
     if (plan_id) {
-      const [planRows]: any = await pool.query('SELECT * FROM membership_plans WHERE id = ?', [plan_id]);
+      const [planRows] = await pool.query('SELECT * FROM membership_plans WHERE id = ?', [plan_id]);
       if (planRows.length > 0) {
         const plan = planRows[0];
         const durationMonths = plan.duration_months || 12;
@@ -111,24 +110,24 @@ export async function registerMember(req: Request, res: Response): Promise<void>
       member_code,
       qr_token,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[registerMember]', error);
     res.status(500).json({ success: false, message: 'Failed to register member' });
   }
 }
 
-export async function getMemberById(req: Request, res: Response): Promise<void> {
+async function getMemberById(req, res) {
   try {
     const { id } = req.params;
 
-    const [members]: any = await pool.query('SELECT * FROM members WHERE id = ?', [id]);
+    const [members] = await pool.query('SELECT * FROM members WHERE id = ?', [id]);
     if (members.length === 0) {
       res.status(404).json({ success: false, message: 'Member not found' });
       return;
     }
 
     // Active memberships with plan details
-    const [memberships]: any = await pool.query(
+    const [memberships] = await pool.query(
       `SELECT m.*, p.name as plan_name, p.fee as plan_fee, p.code as plan_code 
        FROM memberships m 
        JOIN membership_plans p ON m.plan_id = p.id 
@@ -138,7 +137,7 @@ export async function getMemberById(req: Request, res: Response): Promise<void> 
     );
 
     // Past bookings
-    const [bookings]: any = await pool.query(
+    const [bookings] = await pool.query(
       `SELECT b.*, c.name as court_name, r.starts_at, r.ends_at, r.reservation_type 
        FROM bookings b 
        JOIN court_reservations r ON b.reservation_id = r.id 
@@ -149,7 +148,7 @@ export async function getMemberById(req: Request, res: Response): Promise<void> 
     );
 
     // Check-in history
-    const [checkIns]: any = await pool.query(
+    const [checkIns] = await pool.query(
       `SELECT id, method, checked_in_at, notes 
        FROM check_ins 
        WHERE member_id = ? 
@@ -158,7 +157,7 @@ export async function getMemberById(req: Request, res: Response): Promise<void> 
     );
 
     // Unpaid invoices
-    const [invoices]: any = await pool.query(
+    const [invoices] = await pool.query(
       `SELECT id, invoice_no, total_amount, balance_due, due_date, status, issue_date 
        FROM invoices 
        WHERE member_id = ? AND (balance_due > 0 OR status != 'paid') 
@@ -174,13 +173,13 @@ export async function getMemberById(req: Request, res: Response): Promise<void> 
       checkIns,
       unpaid_invoices: invoices,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getMemberById]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch member details' });
   }
 }
 
-export async function sellMembership(req: Request, res: Response): Promise<void> {
+async function sellMembership(req, res) {
   try {
     const { member_id, plan_id, start_date, end_date, fee_charged, joining_fee_charged } = req.body;
     if (!member_id || !plan_id) {
@@ -188,7 +187,7 @@ export async function sellMembership(req: Request, res: Response): Promise<void>
       return;
     }
 
-    const [planRows]: any = await pool.query('SELECT * FROM membership_plans WHERE id = ?', [plan_id]);
+    const [planRows] = await pool.query('SELECT * FROM membership_plans WHERE id = ?', [plan_id]);
     if (planRows.length === 0) {
       res.status(404).json({ success: false, message: 'Plan not found' });
       return;
@@ -199,21 +198,21 @@ export async function sellMembership(req: Request, res: Response): Promise<void>
     const fee = Number(fee_charged ?? plan.fee);
     const joiningFee = Number(joining_fee_charged ?? plan.joining_fee ?? 0);
     const total = fee + joiningFee;
-    const staffId = (req as any).user?.id ? Number((req as any).user.id) : null;
+    const staffId = req.user?.id ? Number(req.user.id) : null;
 
-    const [membershipResult]: any = await pool.query(
+    const [membershipResult] = await pool.query(
       `INSERT INTO memberships (member_id, plan_id, start_date, end_date, status, started_as, fee_charged, joining_fee_charged, created_by, created_at, updated_at) 
        VALUES (?, ?, ?, COALESCE(?, DATE_ADD(?, INTERVAL ? MONTH)), 'active', 'renewal', ?, ?, ?, NOW(), NOW())`,
       [member_id, plan_id, finalStartDate, end_date || null, finalStartDate, duration, fee, joiningFee, staffId]
     );
 
     // Get member name for invoice
-    const [memberRows]: any = await pool.query('SELECT full_name FROM members WHERE id = ?', [member_id]);
+    const [memberRows] = await pool.query('SELECT full_name FROM members WHERE id = ?', [member_id]);
     const billTo = memberRows[0]?.full_name || 'Member';
 
     // Auto-generate invoice
     const invoice_no = 'INV-' + Date.now();
-    const [invResult]: any = await pool.query(
+    const [invResult] = await pool.query(
       `INSERT INTO invoices (invoice_no, member_id, bill_to_name, status, issue_date, due_date, subtotal, tax_total, total_amount, balance_due, issued_by, created_at, updated_at) 
        VALUES (?, ?, ?, 'issued', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY), ?, 0, ?, ?, ?, NOW(), NOW())`,
       [invoice_no, member_id, billTo, total, total, total, staffId]
@@ -226,7 +225,7 @@ export async function sellMembership(req: Request, res: Response): Promise<void>
       invoiceId: invResult.insertId,
       invoice_no,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[sellMembership]', error);
     res.status(500).json({ success: false, message: 'Failed to assign membership' });
   }
@@ -236,7 +235,7 @@ export async function sellMembership(req: Request, res: Response): Promise<void>
 // 2. CHECK-IN SYSTEM (HIGH PRIORITY)
 // ============================================
 
-export async function checkIn(req: Request, res: Response): Promise<void> {
+async function checkIn(req, res) {
   try {
     const { member_id, code, booking_id, method } = req.body;
     let targetMemberId = member_id;
@@ -244,7 +243,7 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
     // If QR code / barcode / text code was scanned or entered:
     if (!targetMemberId && code) {
       const cleanCode = String(code).trim();
-      const [rows]: any = await pool.query(
+      const [rows] = await pool.query(
         `SELECT id FROM members WHERE qr_token = ? OR member_code = ? OR phone = ? OR id = ? LIMIT 1`,
         [cleanCode, cleanCode, cleanCode, cleanCode]
       );
@@ -261,7 +260,7 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
     }
 
     // 1. Fetch Member
-    const [memberRows]: any = await pool.query(
+    const [memberRows] = await pool.query(
       'SELECT id, member_code, qr_token, full_name, phone, email, status FROM members WHERE id = ?',
       [targetMemberId]
     );
@@ -272,7 +271,7 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
     const member = memberRows[0];
 
     // 2. Check Active Membership
-    const [membershipRows]: any = await pool.query(
+    const [membershipRows] = await pool.query(
       `SELECT m.*, p.name as plan_name 
        FROM memberships m 
        JOIN membership_plans p ON m.plan_id = p.id 
@@ -299,14 +298,14 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
     }
 
     // 3. Check Unpaid Invoices
-    const [unpaidInvoices]: any = await pool.query(
+    const [unpaidInvoices] = await pool.query(
       `SELECT id, invoice_no, total_amount, balance_due, due_date 
        FROM invoices 
        WHERE member_id = ? AND (balance_due > 0 OR status NOT IN ('paid', 'Paid'))`,
       [targetMemberId]
     );
 
-    const totalUnpaid = unpaidInvoices.reduce((acc: number, inv: any) => acc + Number(inv.balance_due || 0), 0);
+    const totalUnpaid = unpaidInvoices.reduce((acc, inv) => acc + Number(inv.balance_due || 0), 0);
     const hasUnpaidBills = totalUnpaid > 0;
 
     // Normalize method for check_ins_chk_1 constraint: ('qr', 'member_code', 'name_search', 'phone')
@@ -323,9 +322,9 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
     }
 
     // 4. Record Check-In
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO check_ins (member_id, booking_id, method, recorded_by, checked_in_at) VALUES (?, ?, ?, ?, NOW())`,
-      [targetMemberId, booking_id || null, dbMethod, (req as any).user?.id || null]
+      [targetMemberId, booking_id || null, dbMethod, req.user?.id || null]
     );
 
     // If there is an active booking, mark it checked-in
@@ -377,7 +376,7 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
           }
         : null,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[checkIn]', error);
     res.status(500).json({ success: false, message: 'Failed to record check-in' });
   }
@@ -387,7 +386,7 @@ export async function checkIn(req: Request, res: Response): Promise<void> {
 // 3. COURT CALENDAR & BOOKINGS
 // ============================================
 
-export async function getCourtAvailability(req: Request, res: Response): Promise<void> {
+async function getCourtAvailability(req, res) {
   try {
     const { date, sport_id } = req.query;
     const queryDate = date ? String(date) : new Date().toISOString().split('T')[0];
@@ -398,17 +397,17 @@ export async function getCourtAvailability(req: Request, res: Response): Promise
       LEFT JOIN sports s ON c.sport_id = s.id 
       WHERE c.status IN ('active', 'Available')
     `;
-    const courtParams: any[] = [];
+    const courtParams = [];
     if (sport_id) {
       courtQuery += ' AND c.sport_id = ?';
       courtParams.push(sport_id);
     }
     courtQuery += ' ORDER BY c.sport_id ASC, c.id ASC';
 
-    const [courts]: any = await pool.query(courtQuery, courtParams);
+    const [courts] = await pool.query(courtQuery, courtParams);
 
     // Fetch reservations on that date
-    const [reservations]: any = await pool.query(
+    const [reservations] = await pool.query(
       `SELECT 
         r.id as reservation_id, 
         r.court_id, 
@@ -433,13 +432,13 @@ export async function getCourtAvailability(req: Request, res: Response): Promise
     );
 
     res.json({ success: true, date: queryDate, courts, reservations });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getCourtAvailability]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch court schedule' });
   }
 }
 
-export async function createBooking(req: Request, res: Response): Promise<void> {
+async function createBooking(req, res) {
   try {
     const {
       court_id,
@@ -459,7 +458,7 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
     }
 
     // Check conflict
-    const [conflicts]: any = await pool.query(
+    const [conflicts] = await pool.query(
       `SELECT id FROM court_reservations 
        WHERE court_id = ? AND status = 'active'
        AND ((starts_at < ? AND ends_at > ?) OR (starts_at < ? AND ends_at > ?))`,
@@ -475,19 +474,19 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
     const socialCapacity = resType === 'social' ? 8 : null;
 
     // Insert reservation
-    const [resResult]: any = await pool.query(
+    const [resResult] = await pool.query(
       `INSERT INTO court_reservations (court_id, starts_at, ends_at, reservation_type, status, social_capacity, created_by, created_at) 
        VALUES (?, ?, ?, ?, 'active', ?, ?, NOW())`,
-      [court_id, starts_at, ends_at, resType, socialCapacity, (req as any).user?.id || null]
+      [court_id, starts_at, ends_at, resType, socialCapacity, req.user?.id || null]
     );
 
     const bookingRef = 'BKNG-' + Date.now();
     
     // Manage walk-in guest vs member constraint: ((member_id is not null) + (guest_id is not null)) = 1
-    let guestId: number | null = null;
+    let guestId = null;
     const finalMemberId = member_id ? Number(member_id) : null;
     if (!finalMemberId) {
-      const [guestResult]: any = await pool.query(
+      const [guestResult] = await pool.query(
         `INSERT INTO guests (full_name, phone, source, notes, created_at) VALUES (?, ?, 'walk_in', ?, NOW())`,
         [guest_name || 'Walk-in Guest', guest_phone || null, notes || null]
       );
@@ -499,7 +498,7 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
     const priceBasis = finalMemberId ? 'member_rate' : 'walk_in_rate';
 
     // Insert booking
-    const [bookResult]: any = await pool.query(
+    const [bookResult] = await pool.query(
       `INSERT INTO bookings (booking_ref, reservation_id, reservation_type, member_id, guest_id, booked_via, price_basis, status, amount_charged, notes, created_at, updated_at) 
        VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, NOW(), NOW())`,
       [bookingRef, resResult.insertId, resType, finalMemberId, guestId, bookedVia, priceBasis, Number(amount_charged) || 0, combinedNotes]
@@ -512,18 +511,18 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
       bookingRef,
       reservationId: resResult.insertId,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[createBooking]', error);
     res.status(500).json({ success: false, message: 'Failed to create booking' });
   }
 }
 
-export async function cancelBooking(req: Request, res: Response): Promise<void> {
+async function cancelBooking(req, res) {
   try {
     const { id } = req.params;
     const { cancellation_reason } = req.body;
 
-    const [bookings]: any = await pool.query('SELECT reservation_id FROM bookings WHERE id = ?', [id]);
+    const [bookings] = await pool.query('SELECT reservation_id FROM bookings WHERE id = ?', [id]);
     if (bookings.length === 0) {
       res.status(404).json({ success: false, message: 'Booking not found' });
       return;
@@ -542,7 +541,7 @@ export async function cancelBooking(req: Request, res: Response): Promise<void> 
     }
 
     res.json({ success: true, message: 'Booking cancelled successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[cancelBooking]', error);
     res.status(500).json({ success: false, message: 'Failed to cancel booking' });
   }
@@ -552,9 +551,9 @@ export async function cancelBooking(req: Request, res: Response): Promise<void> 
 // 4. BILLING & PAYMENTS (POS)
 // ============================================
 
-export async function getInvoices(req: Request, res: Response): Promise<void> {
+async function getInvoices(req, res) {
   try {
-    const [invoices]: any = await pool.query(
+    const [invoices] = await pool.query(
       `SELECT 
         i.id, 
         i.invoice_no, 
@@ -575,19 +574,19 @@ export async function getInvoices(req: Request, res: Response): Promise<void> {
     );
 
     res.json({ success: true, data: invoices });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getInvoices]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch invoices' });
   }
 }
 
-export async function createInvoice(req: Request, res: Response): Promise<void> {
+async function createInvoice(req, res) {
   try {
     const { member_id, bill_to_name, subtotal, tax_total, total_amount, due_date, notes } = req.body;
     const invoice_no = 'INV-' + Date.now();
     const finalTotal = total_amount || subtotal || 0;
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO invoices (invoice_no, member_id, bill_to_name, status, issue_date, due_date, subtotal, tax_total, total_amount, balance_due, notes, created_at, updated_at) 
        VALUES (?, ?, ?, 'issued', CURDATE(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [invoice_no, member_id || null, bill_to_name, due_date || null, subtotal || finalTotal, tax_total || 0, finalTotal, finalTotal, notes || null]
@@ -599,13 +598,13 @@ export async function createInvoice(req: Request, res: Response): Promise<void> 
       invoiceId: result.insertId,
       invoice_no,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[createInvoice]', error);
     res.status(500).json({ success: false, message: 'Failed to create invoice' });
   }
 }
 
-export async function recordPayment(req: Request, res: Response): Promise<void> {
+async function recordPayment(req, res) {
   try {
     const { invoice_id, amount, method, transaction_ref, notes } = req.body;
     if (!invoice_id || !amount) {
@@ -627,10 +626,10 @@ export async function recordPayment(req: Request, res: Response): Promise<void> 
     else dbMethod = 'cash';
 
     // 1. Insert Payment (payments_chk_3: status in ('pending', 'success', 'failed'))
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO payments (receipt_no, invoice_id, amount, method, status, transaction_ref, notes, received_by, paid_at, created_at) 
        VALUES (?, ?, ?, ?, 'success', ?, ?, ?, NOW(), NOW())`,
-      [receipt_no, invoice_id, payAmount, dbMethod, transaction_ref || null, notes || null, (req as any).user?.id || null]
+      [receipt_no, invoice_id, payAmount, dbMethod, transaction_ref || null, notes || null, req.user?.id || null]
     );
 
     // 2. Update Invoice balance
@@ -642,7 +641,7 @@ export async function recordPayment(req: Request, res: Response): Promise<void> 
     );
 
     // 3. Mark paid if balance <= 0
-    const [invoiceRows]: any = await pool.query('SELECT balance_due, invoice_no, bill_to_name FROM invoices WHERE id = ?', [invoice_id]);
+    const [invoiceRows] = await pool.query('SELECT balance_due, invoice_no, bill_to_name FROM invoices WHERE id = ?', [invoice_id]);
     if (invoiceRows.length > 0 && Number(invoiceRows[0].balance_due) <= 0) {
       await pool.query(`UPDATE invoices SET status = 'paid', balance_due = 0 WHERE id = ?`, [invoice_id]);
     }
@@ -658,7 +657,7 @@ export async function recordPayment(req: Request, res: Response): Promise<void> 
       method: method || 'Cash',
       date: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[recordPayment]', error);
     res.status(500).json({ success: false, message: 'Failed to record payment' });
   }
@@ -668,9 +667,9 @@ export async function recordPayment(req: Request, res: Response): Promise<void> 
 // 5. ENQUIRIES & LEAD MANAGEMENT
 // ============================================
 
-export async function getEnquiries(req: Request, res: Response): Promise<void> {
+async function getEnquiries(req, res) {
   try {
-    const [enquiries]: any = await pool.query(
+    const [enquiries] = await pool.query(
       `SELECT 
         e.id, 
         e.full_name, 
@@ -695,13 +694,13 @@ export async function getEnquiries(req: Request, res: Response): Promise<void> {
     );
 
     res.json({ success: true, data: enquiries });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getEnquiries]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch enquiries' });
   }
 }
 
-export async function createEnquiry(req: Request, res: Response): Promise<void> {
+async function createEnquiry(req, res) {
   try {
     const { full_name, phone, email, source, enquiry_type, message, interested_plan_id, interested_sport_id } = req.body;
     if (!full_name || !phone) {
@@ -709,7 +708,7 @@ export async function createEnquiry(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `INSERT INTO enquiries (full_name, phone, email, source, enquiry_type, message, interested_plan_id, interested_sport_id, status, created_at, updated_at) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Open', NOW(), NOW())`,
       [full_name, phone, email || null, source || 'Walk-in', enquiry_type || 'Membership', message || null, interested_plan_id || null, interested_sport_id || null]
@@ -720,20 +719,20 @@ export async function createEnquiry(req: Request, res: Response): Promise<void> 
       message: 'Enquiry logged successfully',
       enquiryId: result.insertId,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[createEnquiry]', error);
     res.status(500).json({ success: false, message: 'Failed to create enquiry' });
   }
 }
 
-export async function updateEnquiry(req: Request, res: Response): Promise<void> {
+async function updateEnquiry(req, res) {
   try {
     const { id } = req.params;
     const { status, note_summary, next_follow_up_at } = req.body;
 
     if (status || next_follow_up_at) {
       let q = 'UPDATE enquiries SET updated_at = NOW()';
-      const p: any[] = [];
+      const p = [];
       if (status) {
         q += ', status = ?';
         p.push(status);
@@ -754,12 +753,12 @@ export async function updateEnquiry(req: Request, res: Response): Promise<void> 
       await pool.query(
         `INSERT INTO enquiry_activities (enquiry_id, activity_type, summary, performed_by, occurred_at) 
          VALUES (?, 'note', ?, ?, NOW())`,
-        [id, note_summary, (req as any).user?.id || null]
+        [id, note_summary, req.user?.id || null]
       );
     }
 
     res.json({ success: true, message: 'Enquiry updated successfully' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[updateEnquiry]', error);
     res.status(500).json({ success: false, message: 'Failed to update enquiry' });
   }
@@ -769,24 +768,43 @@ export async function updateEnquiry(req: Request, res: Response): Promise<void> 
 // 6. HELPER DROPDOWNS
 // ============================================
 
-export async function getSports(_req: Request, res: Response): Promise<void> {
+async function getSports(_req, res) {
   try {
-    const [sports]: any = await pool.query('SELECT id, name FROM sports WHERE is_active = 1');
+    const [sports] = await pool.query('SELECT id, name FROM sports WHERE is_active = 1');
     res.json({ success: true, data: sports });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getSports]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch sports' });
   }
 }
 
-export async function getMembershipPlans(_req: Request, res: Response): Promise<void> {
+async function getMembershipPlans(_req, res) {
   try {
-    const [plans]: any = await pool.query(
+    const [plans] = await pool.query(
       'SELECT id, code, name, fee, duration_months, joining_fee, description FROM membership_plans WHERE is_active = 1 ORDER BY fee ASC'
     );
     res.json({ success: true, data: plans });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[getMembershipPlans]', error);
     res.status(500).json({ success: false, message: 'Failed to fetch membership plans' });
   }
 }
+
+module.exports = {
+  getMembers,
+  registerMember,
+  getMemberById,
+  sellMembership,
+  checkIn,
+  getCourtAvailability,
+  createBooking,
+  cancelBooking,
+  getInvoices,
+  createInvoice,
+  recordPayment,
+  getEnquiries,
+  createEnquiry,
+  updateEnquiry,
+  getSports,
+  getMembershipPlans,
+};

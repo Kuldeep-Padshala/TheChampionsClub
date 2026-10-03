@@ -1,19 +1,19 @@
-﻿import { Router } from 'express';
-import {
+const { Router } = require('express');
+const {
   register, login, logout, refresh,
   googleRedirect, googleCallback,
   forgotPassword, resetPasswordHandler,
   getMe,
   registerValidators, loginValidators,
   forgotPasswordValidators, resetPasswordValidators,
-} from '../controllers/auth.controller';
-import { validate } from '../middleware/validate';
-import { requireAuth } from '../middleware/auth.middleware';
-import {
+} = require('../controllers/auth.controller');
+const { validate } = require('../middleware/validate');
+const { requireAuth } = require('../middleware/auth.middleware');
+const {
   registerLimiter, loginLimiter,
   forgotPasswordLimiter, resetPasswordLimiter,
   refreshLimiter,
-} from '../middleware/rateLimiter';
+} = require('../middleware/rateLimiter');
 
 const router = Router();
 
@@ -27,4 +27,4 @@ router.post('/forgot-password', forgotPasswordLimiter, forgotPasswordValidators,
 router.post('/reset-password', resetPasswordLimiter, resetPasswordValidators, validate, resetPasswordHandler);
 router.get('/me', requireAuth, getMe);
 
-export default router;
+module.exports = router;

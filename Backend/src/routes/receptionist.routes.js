@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
-import * as receptionist from '../controllers/receptionist.controller';
+const { Router } = require('express');
+const { requireAuth, requireRole } = require('../middleware/auth.middleware');
+const receptionist = require('../controllers/receptionist.controller');
 
 const router = Router();
 
@@ -36,4 +36,4 @@ router.patch('/enquiries/:id', receptionist.updateEnquiry);
 router.get('/sports', receptionist.getSports);
 router.get('/membership-plans', receptionist.getMembershipPlans);
 
-export default router;
+module.exports = router;

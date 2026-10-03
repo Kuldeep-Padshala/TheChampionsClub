@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
     if (isAuthenticated && user) {
       const isStaff = user.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.HOME);
+      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL);
       navigate(destination, { replace: true });
     }
   }, [isAuthenticated, user, navigate, location.state]);
@@ -53,7 +53,7 @@ export const LoginPage: React.FC = () => {
       const isStaff = loggedUser.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
       // Check if there was a redirected location state
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.HOME);
+      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL);
       navigate(destination, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid email, phone, or password. Please verify your credentials.';

@@ -1,15 +1,14 @@
-import { Request, Response } from 'express';
-import { body } from 'express-validator';
-import { google } from 'googleapis';
-import {
+const { body } = require('express-validator');
+const { google } = require('googleapis');
+const {
   registerUser,
   loginUser,
   requestPasswordReset,
   resetPassword,
   handleGoogleOAuth,
   getUserById,
-} from '../services/auth.service';
-import {
+} = require('../services/auth.service');
+const {
   issueTokens,
   clearTokenCookies,
   verifyRefreshToken,
@@ -19,8 +18,8 @@ import {
   signAccessToken,
   signRefreshToken,
   setTokenCookies,
-} from '../services/token.service';
-import { env } from '../config/env';
+} = require('../services/token.service');
+const { env } = require('../config/env');
 
 const oauthClient = new google.auth.OAuth2(
   env.google.clientId,
@@ -30,10 +29,12 @@ const oauthClient = new google.auth.OAuth2(
 
 // ─── Validators ───────────────────────────────────────────────
 
-export const registerValidators = [
+const registerValidators = [
   body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
   body('email').trim().isEmail().withMessage('Invalid email address').normalizeEmail(),
   body('phone').optional().trim(),
+  body('role').optional().trim(),
+  body('date_of_birth').optional().trim(),
   body('password')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
     .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
@@ -41,16 +42,16 @@ export const registerValidators = [
     .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/).withMessage('Password must contain at least one special character'),
 ];
 
-export const loginValidators = [
+const loginValidators = [
   body('email').trim().notEmpty().withMessage('Email or phone is required'),
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
-export const forgotPasswordValidators = [
+const forgotPasswordValidators = [
   body('email').trim().isEmail().normalizeEmail(),
 ];
 
-export const resetPasswordValidators = [
+const resetPasswordValidators = [
   body('email').trim().isEmail().normalizeEmail(),
   body('otp').trim().isLength({ min: 6, max: 6 }).isNumeric().withMessage('OTP must be a 6-digit number'),
   body('newPassword')
@@ -62,38 +63,38 @@ export const resetPasswordValidators = [
 
 // ─── Handlers ─────────────────────────────────────────────────
 
-export async function register(req: Request, res: Response): Promise<void> {
+async function register(req, res) {
   try {
     const user = await registerUser(req.body);
     const { accessToken, refreshToken } = await issueTokens(res, user.id, user.email);
     res.status(201).json({ success: true, user, token: accessToken, tokens: { accessToken, refreshToken } });
-  } catch (err: any) {
+  } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: err.message });
   }
 }
 
-export async function login(req: Request, res: Response): Promise<void> {
+async function login(req, res) {
   try {
     const user = await loginUser(req.body);
     const { accessToken, refreshToken } = await issueTokens(res, user.id, user.email);
     res.json({ success: true, user, token: accessToken, tokens: { accessToken, refreshToken } });
-  } catch (err: any) {
+  } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: err.message });
   }
 }
 
-export async function logout(req: Request, res: Response): Promise<void> {
+async function logout(req, res) {
   try {
     const refreshToken = req.cookies['__refresh_token'];
     if (refreshToken) await revokeRefreshToken(refreshToken);
     clearTokenCookies(res);
     res.json({ success: true, message: 'Logged out successfully' });
-  } catch (err: any) {
+  } catch (err) {
     res.status(500).json({ success: false, message: 'Logout failed' });
   }
 }
 
-export async function refresh(req: Request, res: Response): Promise<void> {
+async function refresh(req, res) {
   try {
     const refreshToken = req.cookies['__refresh_token'];
     if (!refreshToken) {
@@ -120,12 +121,21 @@ export async function refresh(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function googleRedirect(req: Request, res: Response): Promise<void> {
+function getOAuthClient() {
+  return new google.auth.OAuth2(
+    env.google.clientId,
+    env.google.clientSecret,
+    env.google.redirectUri
+  );
+}
+
+async function googleRedirect(req, res) {
   if (!env.google.clientId || !env.google.clientSecret) {
     res.redirect(`${env.clientUrl}/login?error=google_not_configured`);
     return;
   }
-  const url = oauthClient.generateAuthUrl({
+  const client = getOAuthClient();
+  const url = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['profile', 'email'],
     prompt: 'consent',
@@ -133,19 +143,20 @@ export async function googleRedirect(req: Request, res: Response): Promise<void>
   res.redirect(url);
 }
 
-export async function googleCallback(req: Request, res: Response): Promise<void> {
+async function googleCallback(req, res) {
   try {
-    const { code } = req.query as { code: string };
+    const { code } = req.query;
     if (!code) {
       res.redirect(`${env.clientUrl}/login?error=google_failed`);
       return;
     }
 
-    const { tokens } = await oauthClient.getToken(code);
-    oauthClient.setCredentials(tokens);
+    const client = getOAuthClient();
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
 
-    const ticket = await oauthClient.verifyIdToken({
-      idToken: tokens.id_token!,
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
       audience: env.google.clientId,
     });
     const googlePayload = ticket.getPayload();
@@ -161,37 +172,39 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
       picture: googlePayload.picture,
     });
 
-    await issueTokens(res, user.id, user.email);
-    res.redirect(`${env.clientUrl}/`);
-  } catch (err: any) {
+    const { accessToken } = await issueTokens(res, user.id, user.email);
+    const isStaff = user.roles && user.roles.some((r) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
+    const targetPath = isStaff ? '/frontdesk' : '/member';
+    res.redirect(`${env.clientUrl}${targetPath}?token=${accessToken}`);
+  } catch (err) {
     console.error('[Google OAuth] Error:', err.message);
     res.redirect(`${env.clientUrl}/login?error=google_failed`);
   }
 }
 
-export async function forgotPassword(req: Request, res: Response): Promise<void> {
+async function forgotPassword(req, res) {
   try {
     await requestPasswordReset(req.body.email);
     res.json({ success: true, message: 'A reset code has been sent to your email.' });
-  } catch (err: any) {
+  } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: err.message || 'An error occurred. Please try again.' });
   }
 }
 
-export async function resetPasswordHandler(req: Request, res: Response): Promise<void> {
+async function resetPasswordHandler(req, res) {
   try {
     const { email, otp, newPassword } = req.body;
     await resetPassword(email, otp, newPassword);
     clearTokenCookies(res);
     res.json({ success: true, message: 'Password reset successfully. Please sign in.' });
-  } catch (err: any) {
+  } catch (err) {
     res.status(err.statusCode || 500).json({ success: false, message: err.message });
   }
 }
 
-export async function getMe(req: Request, res: Response): Promise<void> {
+async function getMe(req, res) {
   try {
-    const user = await getUserById(req.user!.id);
+    const user = await getUserById(req.user.id);
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
@@ -201,3 +214,19 @@ export async function getMe(req: Request, res: Response): Promise<void> {
     res.status(500).json({ success: false, message: 'Failed to fetch user' });
   }
 }
+
+module.exports = {
+  registerValidators,
+  loginValidators,
+  forgotPasswordValidators,
+  resetPasswordValidators,
+  register,
+  login,
+  logout,
+  refresh,
+  googleRedirect,
+  googleCallback,
+  forgotPassword,
+  resetPasswordHandler,
+  getMe,
+};

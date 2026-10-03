@@ -1,9 +1,9 @@
-import nodemailer from 'nodemailer';
-import { env } from '../config/env';
-import { welcomeEmailTemplate } from '../templates/welcomeEmail';
-import { otpEmailTemplate } from '../templates/otpEmail';
+const nodemailer = require('nodemailer');
+const { env } = require('../config/env');
+const { welcomeEmailTemplate } = require('../templates/welcomeEmail');
+const { otpEmailTemplate } = require('../templates/otpEmail');
 
-let transporter: any = null;
+let transporter = null;
 
 if (env.gmail.user && env.gmail.appPassword) {
   transporter = nodemailer.createTransport({
@@ -15,7 +15,7 @@ if (env.gmail.user && env.gmail.appPassword) {
   });
 }
 
-export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
+async function sendWelcomeEmail(to, name) {
   if (!transporter || !env.gmail.user) {
     console.log(`[Email] Gmail not configured. Skipping welcome email to ${to}`);
     return;
@@ -24,7 +24,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<void> 
   await transporter.sendMail({ from: `"The Champions Club" <${env.gmail.user}>`, to, subject, html });
 }
 
-export async function sendOtpEmail(to: string, otp: string): Promise<void> {
+async function sendOtpEmail(to, otp) {
   if (!transporter || !env.gmail.user) {
     console.log(`\n======================================================`);
     console.log(`[PASSWORD RESET OTP FOR ${to}]: ${otp}`);
@@ -35,3 +35,5 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   const { subject, html } = otpEmailTemplate(otp);
   await transporter.sendMail({ from: `"The Champions Club" <${env.gmail.user}>`, to, subject, html });
 }
+
+module.exports = { sendWelcomeEmail, sendOtpEmail };

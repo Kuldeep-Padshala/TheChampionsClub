@@ -1,12 +1,13 @@
-import './config/env';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import { env } from './config/env';
-import { testConnection } from './config/db';
-import authRoutes from './routes/auth.routes';
-import receptionistRoutes from './routes/receptionist.routes';
+require('./config/env');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const { env } = require('./config/env');
+const { testConnection } = require('./config/db');
+const authRoutes = require('./routes/auth.routes');
+const receptionistRoutes = require('./routes/receptionist.routes');
+const memberRoutes = require('./routes/member.routes');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(cookieParser());
 // ─── Routes ───────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/receptionist', receptionistRoutes);
+app.use('/api/members', memberRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -41,7 +43,7 @@ app.use((_req, res) => {
 });
 
 // ─── Error Handler ────────────────────────────────────────────
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err, _req, res, _next) => {
   console.error('[Error]', err);
   res.status(err.statusCode || 500).json({ success: false, message: err.message || 'Internal server error' });
 });
@@ -54,11 +56,14 @@ async function bootstrap() {
 
   try {
     await testConnection();
-  } catch (err: any) {
+  } catch (err) {
     console.warn('[DB] Initial connection attempt:', err.message);
   }
 }
 
-bootstrap().catch(console.error);
+// Only bootstrap if run directly
+if (require.main === module) {
+  bootstrap().catch(console.error);
+}
 
-export default app;
+module.exports = { app, bootstrap };

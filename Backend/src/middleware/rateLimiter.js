@@ -1,10 +1,9 @@
-import rateLimit from 'express-rate-limit';
-import { env } from '../config/env';
+const rateLimit = require('express-rate-limit');
+const { env } = require('../config/env');
 
-// Skip or elevate rate limiting in development so local testing/development is never throttled
 const isDev = !env.isProduction;
 
-export const registerLimiter = rateLimit({
+const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 20,
   skip: () => isDev,
@@ -13,7 +12,7 @@ export const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const loginLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 50,
   skip: () => isDev,
@@ -22,7 +21,7 @@ export const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const forgotPasswordLimiter = rateLimit({
+const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 10,
   skip: () => isDev,
@@ -31,7 +30,7 @@ export const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const resetPasswordLimiter = rateLimit({
+const resetPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 20,
   skip: () => isDev,
@@ -40,7 +39,7 @@ export const resetPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const refreshLimiter = rateLimit({
+const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 10000 : 100,
   skip: () => isDev,
@@ -48,3 +47,11 @@ export const refreshLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+module.exports = {
+  registerLimiter,
+  loginLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+  refreshLimiter,
+};

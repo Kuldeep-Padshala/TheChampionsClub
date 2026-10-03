@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+require('dotenv').config();
 
 const required = [
   'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME',
@@ -13,20 +12,20 @@ for (const key of required) {
   }
 }
 
-export const env = {
+const env = {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   db: {
-    host: process.env.DB_HOST!,
+    host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306', 10),
-    user: process.env.DB_USER!,
-    password: process.env.DB_PASSWORD!,
-    name: process.env.DB_NAME!,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    name: process.env.DB_NAME,
     ssl: process.env.DB_SSL === 'true' || process.env.DB_PORT === '21561',
   },
   jwt: {
-    accessSecret: process.env.ACCESS_TOKEN_SECRET!,
-    refreshSecret: process.env.REFRESH_TOKEN_SECRET!,
+    accessSecret: process.env.ACCESS_TOKEN_SECRET,
+    refreshSecret: process.env.REFRESH_TOKEN_SECRET,
     accessExpiry: '15m',
     refreshExpiry: '7d',
   },
@@ -42,3 +41,5 @@ export const env = {
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   isProduction: process.env.NODE_ENV === 'production',
 };
+
+module.exports = { env };

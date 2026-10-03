@@ -10,4 +10,5 @@ export const ROUTES = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RECEPTIONIST: '/frontdesk',
+  MEMBER_PORTAL: '/member',
 };

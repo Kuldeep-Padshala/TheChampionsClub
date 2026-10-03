@@ -13,9 +13,17 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isFrontDesk: boolean;
+  isMember: boolean;
   hasRole: (role: string) => boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    role?: string,
+    phone?: string,
+    date_of_birth?: string
+  ) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -28,6 +36,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = useCallback(async () => {
     try {
+      // Check for OAuth token in URL query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      if (urlToken) {
+        localStorage.setItem('auth_token', urlToken);
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+
       const res = await api.get('/auth/me');
       setUser(res.data.user);
     } catch {
@@ -41,13 +58,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<AuthUser> => {
     const res = await api.post('/auth/login', { email, password });
+    if (res.data.token) {
+      localStorage.setItem('auth_token', res.data.token);
+    }
     setUser(res.data.user);
     return res.data.user;
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const res = await api.post('/auth/register', { name, email, password });
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    role?: string,
+    phone?: string,
+    date_of_birth?: string
+  ): Promise<AuthUser> => {
+    const res = await api.post('/auth/register', {
+      name,
+      email,
+      password,
+      role: role || 'MEMBER',
+      phone: phone || undefined,
+      date_of_birth: date_of_birth || undefined,
+    });
+    if (res.data.token) {
+      localStorage.setItem('auth_token', res.data.token);
+    }
     setUser(res.data.user);
+    return res.data.user;
   };
 
   const logout = async () => {
@@ -56,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Logout error:', e);
     } finally {
+      localStorage.removeItem('auth_token');
       setUser(null);
     }
   };
@@ -67,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isFrontDesk = hasRole('FRONT_DESK');
+  const isMember = hasRole('MEMBER');
 
   return (
     <AuthContext.Provider
@@ -75,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAuthenticated: !!user,
         isFrontDesk,
+        isMember,
         hasRole,
         login,
         register,
