@@ -97,58 +97,34 @@ export const SmoothScroll = () => {
     };
   }, []);
 
-  // Handle route navigation: reset scroll to top & re-measure dimensions
+  // Handle route navigation: instant scroll reset to top
   useEffect(() => {
     const lenis = lenisRef.current || (window as any).lenis;
-
     let hashTimer: ReturnType<typeof setTimeout>;
 
     if (!hash) {
-      // 1. Immediately reset scroll to (0,0) with ZERO latency
       if (lenis) {
-        lenis.stop();
         lenis.scrollTo(0, { immediate: true });
-        lenis.start();
       }
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: 'instant' as ScrollBehavior,
-      });
+      window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-
-      if (lenis) lenis.resize();
     } else {
-      // Target hash anchor with luxury momentum
       hashTimer = setTimeout(() => {
         const id = hash.replace('#', '');
         const element = document.getElementById(id);
         if (element) {
           if (lenis) {
-            lenis.scrollTo(element, { offset: -90, duration: 1.2 });
+            lenis.scrollTo(element, { offset: -90, duration: 0.8 });
           } else {
             element.scrollIntoView({ behavior: 'smooth' });
           }
         }
-      }, 80);
+      }, 50);
     }
-
-    // 3. Staggered dimension sync to catch Framer Motion 0.5s page transitions
-    // and async data loads (products, courts, menus)
-    const t1 = setTimeout(() => lenis?.resize(), 60);
-    const t2 = setTimeout(() => lenis?.resize(), 160);
-    const t3 = setTimeout(() => lenis?.resize(), 320);
-    const t4 = setTimeout(() => lenis?.resize(), 550);
-    const t5 = setTimeout(() => lenis?.resize(), 800); // extra check after transition
 
     return () => {
       if (hashTimer) clearTimeout(hashTimer);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-      clearTimeout(t5);
     };
   }, [pathname, hash]);
 

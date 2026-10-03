@@ -84,7 +84,7 @@ export const Navbar: React.FC = () => {
     } else {
       setMemberPlan(null);
     }
-  }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, location.pathname]);
+  }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, user?.id]);
 
   // Dynamic Navigation according to Role & Membership Status
   // If member already has Gold and is not expiring in 1-5 days, hide Memberships link
