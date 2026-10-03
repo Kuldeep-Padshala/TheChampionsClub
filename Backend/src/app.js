@@ -10,6 +10,10 @@ const receptionistRoutes = require('./routes/receptionist.routes');
 const memberRoutes = require('./routes/member.routes');
 const managerRoutes = require('./routes/manager.routes');
 const barRoutes = require('./routes/bar.routes');
+const shopRoutes = require('./routes/shop.routes');
+const accountantRoutes = require('./routes/accountant.routes');
+const adminRoutes = require('./routes/admin.routes');
+const ownerRoutes = require('./routes/owner.routes');
 
 const app = express();
 
@@ -36,6 +40,10 @@ app.use('/api/receptionist', receptionistRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/bar', barRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/accountant', accountantRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/owner', ownerRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

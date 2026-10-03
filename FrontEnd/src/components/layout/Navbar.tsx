@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut, Briefcase, Coffee } from 'lucide-react';
+import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut, Briefcase, Coffee, ShoppingBag, DollarSign, Crown, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '../../constants/routes';
 import { CLUB_INFO } from '../../constants/club';
@@ -54,17 +54,46 @@ const BAR_NAV_LINKS: NavItem[] = [
   { name: 'Menu 86 Board',        path: `${ROUTES.BAR}?tab=menu` },
 ];
 
+const SHOP_NAV_LINKS: NavItem[] = [
+  { name: 'Counter POS',          path: `${ROUTES.SHOP_STATION}?tab=pos` },
+  { name: 'Click & Collect',      path: `${ROUTES.SHOP_STATION}?tab=pickups` },
+  { name: 'Returns & Restock',    path: `${ROUTES.SHOP_STATION}?tab=returns` },
+  { name: 'Live Stock Levels',    path: `${ROUTES.SHOP_STATION}?tab=inventory` },
+];
+
+const ACCOUNTANT_NAV_LINKS: NavItem[] = [
+  { name: 'P&L Statement',        path: `${ROUTES.ACCOUNTANT}?tab=pnl` },
+  { name: 'Expense Ledger',       path: `${ROUTES.ACCOUNTANT}?tab=expenses` },
+  { name: 'Staff Payroll',        path: `${ROUTES.ACCOUNTANT}?tab=payroll` },
+  { name: 'GST & Compliance',     path: `${ROUTES.ACCOUNTANT}?tab=taxes` },
+];
+
+const OWNER_NAV_LINKS: NavItem[] = [
+  { name: 'Executive KPIs',       path: `${ROUTES.OWNER}?tab=overview` },
+  { name: 'Approvals',            path: `${ROUTES.OWNER}?tab=approvals` },
+  { name: 'Strategy',             path: `${ROUTES.OWNER}?tab=strategy` },
+  { name: 'Investors',            path: `${ROUTES.OWNER}?tab=investors` },
+];
+
+const ADMIN_NAV_LINKS: NavItem[] = [
+  { name: 'Users & Security',     path: `${ROUTES.ADMIN}?tab=users` },
+  { name: 'Roles Matrix',         path: `${ROUTES.ADMIN}?tab=roles` },
+  { name: 'Club Settings',        path: `${ROUTES.ADMIN}?tab=settings` },
+  { name: 'Tax Slabs',            path: `${ROUTES.ADMIN}?tab=taxes` },
+  { name: 'Audit Trail',          path: `${ROUTES.ADMIN}?tab=audit` },
+];
+
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { user, isAuthenticated, logout, isFrontDesk, isManager, isBarStaff } = useAuth();
+  const { user, isAuthenticated, logout, isFrontDesk, isManager, isBarStaff, isShopStaff, isAccountant, isOwner, isAdmin } = useAuth();
   const isNight = theme === 'night';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [memberPlan, setMemberPlan] = useState<{ planCode?: string; isExpiringSoon?: boolean } | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && !isFrontDesk && !isManager && !isBarStaff) {
+    if (isAuthenticated && !isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin) {
       memberService.getProfile().then((data) => {
         if (data?.active_membership) {
           const code = (data.active_membership.plan_code || data.active_membership.plan_name || '').toLowerCase();
@@ -84,7 +113,7 @@ export const Navbar: React.FC = () => {
     } else {
       setMemberPlan(null);
     }
-  }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, user?.id]);
+  }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, isShopStaff, isAccountant, isOwner, isAdmin, user?.id]);
 
   // Dynamic Navigation according to Role & Membership Status
   // If member already has Gold and is not expiring in 1-5 days, hide Memberships link
@@ -102,7 +131,15 @@ export const Navbar: React.FC = () => {
     return item;
   });
 
-  const currentNavLinks: NavItem[] = isBarStaff && !isManager
+  const currentNavLinks: NavItem[] = isOwner
+    ? OWNER_NAV_LINKS
+    : isAdmin
+    ? ADMIN_NAV_LINKS
+    : isShopStaff && !isManager
+    ? SHOP_NAV_LINKS
+    : isAccountant && !isManager
+    ? ACCOUNTANT_NAV_LINKS
+    : isBarStaff && !isManager
     ? BAR_NAV_LINKS
     : isManager
     ? MANAGER_NAV_LINKS
@@ -112,15 +149,33 @@ export const Navbar: React.FC = () => {
     ? filteredMemberLinks
     : PUBLIC_NAV_LINKS;
 
-  const brandHomeRoute = isBarStaff && !isManager
+  const brandHomeRoute = isOwner
+    ? ROUTES.OWNER
+    : isAdmin
+    ? ROUTES.ADMIN
+    : isShopStaff && !isManager
+    ? ROUTES.SHOP_STATION
+    : isAccountant && !isManager
+    ? ROUTES.ACCOUNTANT
+    : isBarStaff && !isManager
     ? ROUTES.BAR
     : isManager
     ? ROUTES.MANAGER
     : isFrontDesk
     ? ROUTES.RECEPTIONIST
+    : isAuthenticated
+    ? ROUTES.MEMBER_PORTAL
     : ROUTES.HOME;
 
-  const brandSubline = isBarStaff && !isManager
+  const brandSubline = isOwner
+    ? 'Executive Owner & Strategy Suite'
+    : isAdmin
+    ? 'System Administration & Security Suite'
+    : isShopStaff && !isManager
+    ? 'The Champions Pro Shop • POS & Fulfillment'
+    : isAccountant && !isManager
+    ? 'Financial Audit & Accounting Suite'
+    : isBarStaff && !isManager
     ? 'Champions Cafe & Bar Lounge • POS Station'
     : isManager
     ? 'Executive Operations • General Manager Suite'
@@ -136,7 +191,11 @@ export const Navbar: React.FC = () => {
       return fullPath === itemPath || 
         (location.pathname === ROUTES.RECEPTIONIST && itemPath.endsWith('checkin') && !location.search) ||
         (location.pathname === ROUTES.MANAGER && itemPath.endsWith('finance') && !location.search) ||
-        (location.pathname === ROUTES.BAR && itemPath.endsWith('pos') && !location.search);
+        (location.pathname === ROUTES.BAR && itemPath.endsWith('pos') && !location.search) ||
+        (location.pathname === ROUTES.SHOP_STATION && itemPath.endsWith('pos') && !location.search) ||
+        (location.pathname === ROUTES.ACCOUNTANT && itemPath.endsWith('pnl') && !location.search) ||
+        (location.pathname === ROUTES.OWNER && itemPath.endsWith('overview') && !location.search) ||
+        (location.pathname === ROUTES.ADMIN && itemPath.endsWith('users') && !location.search);
     }
     return location.pathname === itemPath;
   };
@@ -184,7 +243,11 @@ export const Navbar: React.FC = () => {
             {/* Multi-layered Champagne Gold & Obsidian Seal */}
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[1.5px] bg-gradient-to-br from-[#EAD29A] via-[#B89047] to-[#7D5A1E] shadow-sm transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
               <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
-                {isBarStaff && !isManager ? (
+                {isOwner ? (
+                  <Crown size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
+                ) : isAdmin ? (
+                  <Settings size={16} className="text-[#38BDF8] transition-transform duration-300 group-hover:rotate-6" />
+                ) : isBarStaff && !isManager ? (
                   <Coffee size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
                 ) : isManager ? (
                   <Briefcase size={16} className="text-[#EAD29A] transition-transform duration-300 group-hover:rotate-6" />
@@ -297,7 +360,27 @@ export const Navbar: React.FC = () => {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-1.5 xl:gap-2 flex-shrink-0 whitespace-nowrap">
                 {/* Role Badge */}
-                {isBarStaff && !isManager ? (
+                {isOwner ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/20 text-[#EAD29A] border-amber-500/40 select-none whitespace-nowrap flex-shrink-0 shadow-[0_0_12px_rgba(234,210,154,0.2)]">
+                    <Crown size={13} className="text-[#EAD29A] flex-shrink-0" />
+                    <span className="whitespace-nowrap">Club Owner</span>
+                  </div>
+                ) : isAdmin ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-sky-500/20 text-sky-300 border-sky-500/40 select-none whitespace-nowrap flex-shrink-0 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+                    <Settings size={13} className="text-sky-300 flex-shrink-0" />
+                    <span className="whitespace-nowrap">System Admin</span>
+                  </div>
+                ) : isShopStaff && !isManager ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-purple-500/15 text-purple-400 border-purple-500/30 select-none whitespace-nowrap flex-shrink-0">
+                    <ShoppingBag size={13} className="text-purple-400 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Shop Staff</span>
+                  </div>
+                ) : isAccountant && !isManager ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-emerald-500/15 text-emerald-400 border-emerald-500/30 select-none whitespace-nowrap flex-shrink-0">
+                    <DollarSign size={13} className="text-emerald-400 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Accountant</span>
+                  </div>
+                ) : isBarStaff && !isManager ? (
                   <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/15 text-amber-500 border-amber-500/30 select-none whitespace-nowrap flex-shrink-0">
                     <Coffee size={13} className="text-amber-500 flex-shrink-0" />
                     <span className="whitespace-nowrap">Bar & Cafe</span>
@@ -323,9 +406,8 @@ export const Navbar: React.FC = () => {
                   </Link>
                 )}
 
-                {/* User Name Pill */}
                 <Link
-                  to={isBarStaff && !isManager ? ROUTES.BAR : isManager ? ROUTES.MANAGER : isFrontDesk ? ROUTES.RECEPTIONIST : ROUTES.MEMBER_PORTAL}
+                  to={brandHomeRoute}
                   className={cn(
                     'inline-flex items-center gap-1.5 xl:gap-2 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50 whitespace-nowrap flex-shrink-0',
                     isNight
@@ -335,7 +417,7 @@ export const Navbar: React.FC = () => {
                   title="My Sanctuary Account"
                 >
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214] flex-shrink-0">
-                    {user.name ? user.name.charAt(0).toUpperCase() : (isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
+                    {user.name ? user.name.charAt(0).toUpperCase() : (isOwner ? 'O' : isAdmin ? 'A' : isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
                   </div>
                   <span className="max-w-[90px] xl:max-w-[120px] truncate whitespace-nowrap">{user.name?.split(' ')[0] || 'User'}</span>
                 </Link>
@@ -366,8 +448,8 @@ export const Navbar: React.FC = () => {
               </Link>
             )}
 
-            {/* Public/Member Reserve CTA (Hidden for Staff & Managers) */}
-            {!isFrontDesk && !isManager && !isBarStaff && (
+            {/* Public/Member Reserve CTA (Hidden for Staff & Managers & Owner & Admin) */}
+            {!isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin && (
               <Link
                 to={ROUTES.COURTS}
                 className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
@@ -470,7 +552,11 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-full bg-[#121214] border border-[#B89047]/40 flex items-center justify-center">
-                  {isBarStaff && !isManager ? (
+                  {isOwner ? (
+                    <Crown size={13} className="text-[#EAD29A]" />
+                  ) : isAdmin ? (
+                    <Settings size={13} className="text-[#38BDF8]" />
+                  ) : isBarStaff && !isManager ? (
                     <Coffee size={13} className="text-[#EAD29A]" />
                   ) : isManager ? (
                     <Briefcase size={13} className="text-[#EAD29A]" />
@@ -517,7 +603,7 @@ export const Navbar: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-black/5 dark:border-white/10 mt-4 space-y-2.5">
-                {!isFrontDesk && !isManager && !isBarStaff && (
+                {!isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin && (
                   <Link
                     to={ROUTES.COURTS}
                     className="flex items-center justify-center gap-2 w-full h-12 text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] rounded-full shadow-md border border-[#B89047]/40"
@@ -534,13 +620,13 @@ export const Navbar: React.FC = () => {
                   )}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center font-bold text-xs text-[#121214] flex-shrink-0">
-                        {user.name ? user.name.charAt(0).toUpperCase() : (isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
+                        {user.name ? user.name.charAt(0).toUpperCase() : (isOwner ? 'O' : isAdmin ? 'A' : isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="text-xs font-semibold truncate text-[#1D1D1F] dark:text-white">{user.name}</p>
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#B89047]/20 text-[#B89047]">
-                            {isBarStaff ? 'Bar & Cafe' : isManager ? 'Manager' : isFrontDesk ? 'Front Desk' : 'Member'}
+                            {isOwner ? 'Club Owner' : isAdmin ? 'System Admin' : isShopStaff ? 'Shop Staff' : isAccountant ? 'Accountant' : isBarStaff ? 'Bar & Cafe' : isManager ? 'Manager' : isFrontDesk ? 'Front Desk' : 'Member'}
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-400 truncate">{user.email}</p>

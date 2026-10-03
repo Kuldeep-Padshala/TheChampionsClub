@@ -13,4 +13,8 @@ export const ROUTES = {
   MEMBER_PORTAL: '/member',
   MANAGER: '/manager',
   BAR: '/bar',
+  SHOP_STATION: '/shop-station',
+  ACCOUNTANT: '/finance',
+  ADMIN: '/admin',
+  OWNER: '/owner',
 };

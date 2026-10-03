@@ -30,7 +30,7 @@ function requireRole(...allowedRoles) {
         (r) => allowedRoles.includes(r) || r === 'OWNER' || r === 'MANAGER'
       );
       if (!isAllowed) {
-        res.status(403).json({ success: false, message: 'Forbidden: Front desk staff role required' });
+        res.status(403).json({ success: false, message: 'Forbidden: Insufficient privileges' });
         return;
       }
       req.user.roles = userRoles;

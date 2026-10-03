@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Modal } from '../ui/Modal';
@@ -12,7 +12,7 @@ export const LoginPromptModal = () => {
 
   const handleNavigate = (path: string) => {
     closeLoginModal();
-    navigate(path);
+    navigate(path, { state: { from: { pathname: window.location.pathname } } });
   };
 
   return (

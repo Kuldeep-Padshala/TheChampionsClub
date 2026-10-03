@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { ROUTES } from './constants/routes';
 import { HomePage } from './pages/HomePage';
@@ -16,6 +17,10 @@ import { ReceptionistPage } from './pages/ReceptionistPage';
 import { MemberPortalPage } from './pages/MemberPortalPage';
 import { ManagerPage } from './pages/ManagerPage';
 import { BarStaffPage } from './pages/BarStaffPage';
+import { ShopStaffPage } from './pages/ShopStaffPage';
+import { AccountantPage } from './pages/AccountantPage';
+import { AdminPage } from './pages/AdminPage';
+import { OwnerPage } from './pages/OwnerPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoginPromptModal } from './components/common/LoginPromptModal';
 import { ScrollToTop } from './components/common/ScrollToTop';
@@ -26,8 +31,18 @@ import { Navbar } from './components/layout/Navbar';
 import { AmbientBackground } from './components/layout/AmbientBackground';
 
 function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <Routes>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full flex-1 flex flex-col"
+      >
+        <Routes location={location} key={location.pathname}>
       <Route path={ROUTES.HOME} element={<HomePage />} />
       <Route path={ROUTES.COURTS} element={<CourtsPage />} />
       <Route path={ROUTES.CAFE} element={<CafePage />} />
@@ -70,7 +85,41 @@ function AnimatedRoutes() {
           </ProtectedRoute>
         }
       />
-    </Routes>
+      <Route
+        path={ROUTES.SHOP_STATION}
+        element={
+          <ProtectedRoute allowedRoles={['SHOP_STAFF', 'GEAR_BOX_STAFF', 'MANAGER', 'OWNER']}>
+            <ShopStaffPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ACCOUNTANT}
+        element={
+          <ProtectedRoute allowedRoles={['ACCOUNTANT', 'MANAGER', 'OWNER']}>
+            <AccountantPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN}
+        element={
+          <ProtectedRoute allowedRoles={['SYSTEM_ADMIN', 'ADMIN']}>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.OWNER}
+        element={
+          <ProtectedRoute allowedRoles={['OWNER']}>
+            <OwnerPage />
+          </ProtectedRoute>
+        }
+      />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

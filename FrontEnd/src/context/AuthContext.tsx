@@ -14,7 +14,11 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isFrontDesk: boolean;
   isManager: boolean;
+  isOwner: boolean;
+  isAdmin: boolean;
   isBarStaff: boolean;
+  isShopStaff: boolean;
+  isAccountant: boolean;
   isMember: boolean;
   hasRole: (role: string) => boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
@@ -103,14 +107,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const hasRole = (role: string): boolean => {
     if (!user || !user.roles) return false;
-    if (user.roles.includes('OWNER') || user.roles.includes('MANAGER')) return true;
     return user.roles.includes(role);
   };
 
-  const isManager = Boolean(user?.roles?.includes('MANAGER') || user?.roles?.includes('OWNER'));
-  const isBarStaff = hasRole('BAR_STAFF');
-  const isFrontDesk = hasRole('FRONT_DESK');
-  const isMember = hasRole('MEMBER');
+  const isOwner = Boolean(user?.roles?.includes('OWNER'));
+  const isAdmin = Boolean(user?.roles?.includes('SYSTEM_ADMIN') || user?.roles?.includes('ADMIN'));
+  const isManager = Boolean(user?.roles?.includes('MANAGER'));
+  const isBarStaff = Boolean(user?.roles?.includes('BAR_STAFF'));
+  const isShopStaff = Boolean(user?.roles?.includes('SHOP_STAFF') || user?.roles?.includes('GEAR_BOX_STAFF'));
+  const isAccountant = Boolean(user?.roles?.includes('ACCOUNTANT'));
+  const isFrontDesk = Boolean(user?.roles?.includes('FRONT_DESK'));
+  const isMember = Boolean(user?.roles?.includes('MEMBER'));
 
   return (
     <AuthContext.Provider
@@ -120,7 +127,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isFrontDesk,
         isManager,
+        isOwner,
+        isAdmin,
         isBarStaff,
+        isShopStaff,
+        isAccountant,
         isMember,
         hasRole,
         login,

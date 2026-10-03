@@ -19,7 +19,11 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getRoleDestination = (roles?: string[]) => {
-    if (roles?.includes('MANAGER') || roles?.includes('OWNER')) return ROUTES.MANAGER;
+    if (roles?.includes('OWNER')) return ROUTES.OWNER;
+    if (roles?.includes('SYSTEM_ADMIN') || roles?.includes('ADMIN')) return ROUTES.ADMIN;
+    if (roles?.includes('MANAGER')) return ROUTES.MANAGER;
+    if (roles?.includes('ACCOUNTANT')) return ROUTES.ACCOUNTANT;
+    if (roles?.includes('SHOP_STAFF') || roles?.includes('GEAR_BOX_STAFF')) return ROUTES.SHOP_STATION;
     if (roles?.includes('BAR_STAFF')) return ROUTES.BAR;
     if (roles?.includes('FRONT_DESK')) return ROUTES.RECEPTIONIST;
     return ROUTES.MEMBER_PORTAL;
@@ -171,6 +175,30 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    setEmail('owner@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-center cursor-pointer shadow-sm"
+                  title="Rajesh Malhotra — Club Owner & Executive Suite"
+                >
+                  <span className="block font-bold">👑 Owner</span>
+                  <span className="text-[9px] opacity-75">Rajesh Malhotra</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-all text-center cursor-pointer shadow-sm"
+                  title="Vikram Batra — System Administrator & Security"
+                >
+                  <span className="block font-bold">⚙️ Admin</span>
+                  <span className="text-[9px] opacity-75">Vikram Batra</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setEmail('sunita.rao@championsclub.example');
                     setPassword('Password@123');
                   }}
@@ -198,7 +226,7 @@ export const LoginPage: React.FC = () => {
                     setEmail('imran.shaikh@championsclub.example');
                     setPassword('Password@123');
                   }}
-                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-center cursor-pointer"
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-amber-600 bg-amber-600/10 hover:bg-amber-600/20 border border-amber-600/30 transition-all text-center cursor-pointer"
                   title="Imran Shaikh — Bar & Cafe"
                 >
                   <span className="block font-bold">Bar & Cafe</span>
@@ -207,14 +235,50 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    setEmail('neha.kulkarni@championsclub.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all text-center cursor-pointer"
+                  title="Neha Kulkarni — Gear Shop Staff"
+                >
+                  <span className="block font-bold">Shop Staff</span>
+                  <span className="text-[9px] opacity-75">Neha Kulkarni</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('meera.bhatt@bhattassociates.example');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all text-center cursor-pointer"
+                  title="Meera Bhatt — Club Accountant"
+                >
+                  <span className="block font-bold">Accountant</span>
+                  <span className="text-[9px] opacity-75">Meera Bhatt</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setEmail('ananya.singh@example.com');
                     setPassword('Password@123');
                   }}
-                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all text-center cursor-pointer"
-                  title="Ananya Singh — Member"
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 transition-all text-center cursor-pointer"
+                  title="Ananya Singh — VIP Member"
                 >
                   <span className="block font-bold">Member</span>
                   <span className="text-[9px] opacity-75">Ananya Singh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('new.member@example.com');
+                    setPassword('Password@123');
+                  }}
+                  className="px-2 py-2 rounded-xl text-[11px] font-semibold text-gray-500 bg-gray-500/10 hover:bg-gray-500/20 border border-gray-500/30 transition-all text-center cursor-pointer"
+                  title="New Member — No Pass"
+                >
+                  <span className="block font-bold">New Member</span>
+                  <span className="text-[9px] opacity-75">No Pass</span>
                 </button>
               </div>
             </div>

@@ -574,19 +574,13 @@ export const MemberPortalPage: React.FC = () => {
                   <div className="w-12 h-9 rounded-lg bg-gradient-to-tr from-[#D4AF37] to-[#FFF3B0] border border-[#7D5A1E]/50 shadow-inner flex items-center justify-center opacity-85 mt-2">
                     <div className="w-8 h-5 border border-[#8C6826]/40 rounded-sm" />
                   </div>
-                  {/* Real QR Code */}
-                  <div className="flex flex-col items-end gap-1.5 text-[#EAD29A]/80">
-                    <div className="bg-white p-1 rounded-md shadow-sm group-hover:ring-2 group-hover:ring-[#B89047] transition-all">
-                      <QRCode
-                        value={profile?.qr_token || memberCode}
-                        size={56}
-                        bgColor="#ffffff"
-                        fgColor="#1D1D1F"
-                        level="L"
-                      />
+                  {/* View QR Code Action */}
+                  <div className="flex flex-col items-end gap-1.5 text-[#EAD29A]/80 pt-2">
+                    <div className="w-12 h-12 rounded-full bg-[#121214] border border-[#B89047]/30 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#B89047]/20 transition-all shadow-md">
+                      <QrCode size={20} className="text-[#EAD29A]" />
                     </div>
                     <span className="text-[9px] uppercase font-mono tracking-widest flex items-center gap-1">
-                      <Maximize2 size={9} /> TAP TO ENLARGE
+                      <Maximize2 size={9} /> VIEW QR PASS
                     </span>
                   </div>
                 </div>
