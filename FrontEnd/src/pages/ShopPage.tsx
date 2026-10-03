@@ -10,6 +10,7 @@ import { memberService } from '../services/memberService';
 import { Modal } from '../components/ui/Modal';
 import { formatPrice } from '../utils/priceUtils';
 import { ROUTES } from '../constants/routes';
+import { cn } from '../utils/cn';
 import toast from 'react-hot-toast';
 import {
   Percent,
@@ -35,6 +36,8 @@ export const ShopPage = () => {
   // Member Direct Checkout Modal state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [orderQuantity, setOrderQuantity] = useState(1);
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'counter' | 'locker'>('counter');
+  const [deliveryNotes, setDeliveryNotes] = useState('');
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -60,6 +63,8 @@ export const ShopPage = () => {
       // Member authenticated: open direct acquisition modal
       setSelectedProduct(product);
       setOrderQuantity(1);
+      setFulfillmentMethod('counter');
+      setDeliveryNotes('');
       setIsOrderModalOpen(true);
     });
   };
@@ -69,6 +74,9 @@ export const ShopPage = () => {
     setIsPlacingOrder(true);
     try {
       const unitPrice = selectedProduct.memberPrice || selectedProduct.price;
+      const fulfillmentText = fulfillmentMethod === 'locker' ? 'VIP Locker Delivery' : 'In-Club Counter Pickup';
+      const notesCombined = `${fulfillmentText}. ${deliveryNotes.trim() ? `Instructions: ${deliveryNotes.trim()}` : ''} (Item: ${selectedProduct.name}, Brand: ${selectedProduct.brand})`;
+      
       const res = await memberService.placeOrder({
         items: [
           {
@@ -77,11 +85,11 @@ export const ShopPage = () => {
             unit_price: unitPrice,
           },
         ],
-        notes: `Online Pro Shop order for ${selectedProduct.name} (${selectedProduct.brand})`,
+        notes: notesCombined,
       });
 
       toast.success(
-        `Order placed successfully! Order #${res.order_no} is ready for pickup at the Pro Counter.`,
+        `Order confirmed! Order #${res.order_no} logged for ${fulfillmentText.toLowerCase()}.`,
         { duration: 5000 }
       );
       setIsOrderModalOpen(false);
@@ -229,48 +237,111 @@ export const ShopPage = () => {
             </div>
 
             {/* Quantity Selector */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-[#121216] border border-black/[0.06] dark:border-white/10">
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50 dark:bg-[#121216] border border-black/[0.06] dark:border-white/10">
               <div>
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                <span className="text-xs font-semibold text-[#1D1D1F] dark:text-gray-300 block">
                   Order Quantity
                 </span>
-                <span className="text-[10px] text-gray-400">Select units to reserve</span>
+                <span className="text-[10px] text-gray-500">Select units to reserve</span>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setOrderQuantity(Math.max(1, orderQuantity - 1))}
-                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:border-[#B89047] active:scale-95 transition-all text-gray-700 dark:text-gray-300"
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:border-[#B89047] active:scale-95 transition-all text-gray-700 dark:text-gray-300 cursor-pointer"
                 >
                   <Minus size={14} />
                 </button>
-                <span className="text-sm font-bold w-5 text-center text-[#1D1D1F] dark:text-white">
+                <span className="text-sm font-bold w-5 text-center text-[#1D1D1F] dark:text-white font-mono">
                   {orderQuantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setOrderQuantity(orderQuantity + 1)}
-                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:border-[#B89047] active:scale-95 transition-all text-gray-700 dark:text-gray-300"
+                  className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:border-[#B89047] active:scale-95 transition-all text-gray-700 dark:text-gray-300 cursor-pointer"
                 >
                   <Plus size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Order Total */}
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold block">
-                  Total Member Cost
-                </span>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                  Ready for collection at the Pro Shop counter
-                </p>
+            {/* Fulfillment Channel Selection */}
+            <div>
+              <label className="block text-[11px] uppercase font-bold tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Collection &amp; Fulfillment Method
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFulfillmentMethod('counter')}
+                  className={cn(
+                    'p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1',
+                    fulfillmentMethod === 'counter'
+                      ? 'border-[#B89047] bg-[#B89047]/10 text-[#1D1D1F] dark:text-white font-semibold'
+                      : 'border-black/10 dark:border-white/10 text-gray-500 hover:border-black/20 dark:hover:border-white/20'
+                  )}
+                >
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Pro Desk Pickup
+                  </span>
+                  <span className="text-[10px] text-gray-400">Immediate touchless collection</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFulfillmentMethod('locker')}
+                  className={cn(
+                    'p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1',
+                    fulfillmentMethod === 'locker'
+                      ? 'border-[#B89047] bg-[#B89047]/10 text-[#1D1D1F] dark:text-white font-semibold'
+                      : 'border-black/10 dark:border-white/10 text-gray-500 hover:border-black/20 dark:hover:border-white/20'
+                  )}
+                >
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#B89047]" /> VIP Locker Delivery
+                  </span>
+                  <span className="text-[10px] text-gray-400">Assigned locker upon arrival</span>
+                </button>
               </div>
-              <span className="text-xl font-bold font-display text-emerald-700 dark:text-emerald-300">
-                {formatPrice((selectedProduct.memberPrice || selectedProduct.price) * orderQuantity)}
-              </span>
             </div>
+
+            {/* Special Instructions / Notes */}
+            <div>
+              <label className="block text-[11px] uppercase font-bold tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                Fulfillment Instructions (Optional)
+              </label>
+              <input
+                type="text"
+                value={deliveryNotes}
+                onChange={(e) => setDeliveryNotes(e.target.value)}
+                placeholder="e.g. Grip size preference, string tension, locker #..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-xs text-[#1D1D1F] dark:text-white outline-none focus:border-[#B89047]"
+              />
+            </div>
+
+            {/* Item Subtotal, Taxes & Grand Total Breakdown */}
+            {(() => {
+              const unitPrice = selectedProduct.memberPrice || selectedProduct.price;
+              const subtotal = unitPrice * orderQuantity;
+              const gst = Math.round(subtotal * 0.18);
+              const grandTotal = subtotal + gst;
+              return (
+                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#121216] border border-black/10 dark:border-white/10 space-y-2 text-xs">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <span>Equipment Subtotal ({orderQuantity} unit{orderQuantity > 1 ? 's' : ''}):</span>
+                    <span className="font-mono font-semibold text-[#1D1D1F] dark:text-white">{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <span>GST @ 18% (Sports Merchandise):</span>
+                    <span className="font-mono font-semibold text-[#1D1D1F] dark:text-white">{formatPrice(gst)}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-black/10 dark:border-white/10 font-bold text-sm">
+                    <span className="text-[#1D1D1F] dark:text-white">Total Amount Due:</span>
+                    <span className="font-display text-base text-[#B89047] dark:text-[#EAD29A]">{formatPrice(grandTotal)}</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Actions */}
             <div className="flex flex-col gap-2.5">

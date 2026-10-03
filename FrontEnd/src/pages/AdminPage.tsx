@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -280,10 +281,10 @@ export const AdminPage: React.FC = () => {
   }, [usersList, userSearch, userRoleFilter]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0D] text-[#FAF8F5] pt-24 pb-16 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#B89047]/30">
+    <div className="min-h-screen bg-[#F8F7F4] dark:bg-[#0A0A0D] text-[#1D1D1F] dark:text-[#FAF8F5] pt-24 pb-16 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#B89047]/30 transition-colors">
       {/* ── Top Header / Station Badge ────────────────────────────── */}
       <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-r from-[#14141A] via-[#1A1A24] to-[#121216] border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-gradient-to-r dark:from-[#14141A] dark:via-[#1A1A24] dark:to-[#121216] border border-black/10 dark:border-white/10 shadow-xl relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-4">
@@ -294,18 +295,18 @@ export const AdminPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
                   ⚙️ System Administrator
                 </span>
-                <span className="text-xs text-white/50 flex items-center gap-1">
-                  <ShieldCheck size={13} className="text-cyan-400" /> Infrastructure, Access & Security Governance
+                <span className="text-xs text-gray-500 dark:text-white/50 flex items-center gap-1">
+                  <ShieldCheck size={13} className="text-cyan-600 dark:text-cyan-400" /> Infrastructure, Access & Security Governance
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-white mt-1">
+              <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-[#1D1D1F] dark:text-white mt-1">
                 System Administration & Security Suite
               </h1>
-              <p className="text-xs sm:text-sm text-white/60">
-                Administrator: <strong className="text-white">{user?.name || 'Vikram Batra'}</strong> • User Security, Role Matrices, Audit Logs & Club Parameters
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-white/60">
+                Administrator: <strong className="text-[#1D1D1F] dark:text-white">{user?.name || 'Vikram Batra'}</strong> • User Security, Role Matrices, Audit Logs & Club Parameters
               </p>
             </div>
           </div>
@@ -314,7 +315,7 @@ export const AdminPage: React.FC = () => {
             <button
               onClick={loadData}
               disabled={isLoading}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/80 bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-white/80 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
             >
               <RefreshCw size={14} className={cn(isLoading && 'animate-spin')} />
               <span>Refresh Registry</span>
@@ -324,66 +325,66 @@ export const AdminPage: React.FC = () => {
 
         {/* ── KPI Metric Cards ─────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-            <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider block">
+          <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-gray-500 dark:text-white/50 uppercase tracking-wider block">
               Registered Accounts
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold font-display text-white">
+              <span className="text-2xl font-bold font-display text-[#1D1D1F] dark:text-white">
                 {stats?.totalUsers ?? usersList.length}
               </span>
-              <span className="text-xs text-emerald-400">
+              <span className="text-xs text-emerald-600 dark:text-emerald-400">
                 {stats?.activeUsers ?? usersList.filter(u => u.status === 'active').length} active
               </span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-            <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider block">
+          <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-gray-500 dark:text-white/50 uppercase tracking-wider block">
               Locked / Suspended
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold font-display text-red-400">
+              <span className="text-2xl font-bold font-display text-rose-600 dark:text-red-400">
                 {stats?.lockedUsers ?? usersList.filter(u => u.status === 'suspended').length}
               </span>
-              <span className="text-xs text-white/40">accounts</span>
+              <span className="text-xs text-gray-400 dark:text-white/40">accounts</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-            <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider block">
+          <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-gray-500 dark:text-white/50 uppercase tracking-wider block">
               Configured Roles
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold font-display text-white">
+              <span className="text-2xl font-bold font-display text-[#1D1D1F] dark:text-white">
                 {roles.length}
               </span>
-              <span className="text-xs text-cyan-400">48 Permissions</span>
+              <span className="text-xs text-cyan-600 dark:text-cyan-400">48 Permissions</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-            <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider block">
+          <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 shadow-sm">
+            <span className="text-[11px] font-medium text-gray-500 dark:text-white/50 uppercase tracking-wider block">
               System Audit Entries
             </span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold font-display text-white">
+              <span className="text-2xl font-bold font-display text-[#1D1D1F] dark:text-white">
                 {stats?.auditLogsCount ?? auditLogs.length}
               </span>
-              <span className="text-xs text-emerald-400">Verified</span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400">Verified</span>
             </div>
           </div>
         </div>
 
         {/* ── Sub Navigation Tabs ──────────────────────────────────── */}
-        <div className="flex items-center gap-2 mt-6 p-1.5 rounded-2xl bg-white/[0.04] border border-white/10 overflow-x-auto select-none">
+        <div className="flex items-center gap-2 mt-6 p-1.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-black/10 dark:border-white/10 shadow-sm overflow-x-auto select-none">
           <button
             onClick={() => setTab('users')}
             className={cn(
               'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
               activeTab === 'users'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 font-bold'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
             <Users size={16} />
@@ -395,8 +396,8 @@ export const AdminPage: React.FC = () => {
             className={cn(
               'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
               activeTab === 'roles'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 font-bold'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
             <KeyRound size={16} />
@@ -408,8 +409,8 @@ export const AdminPage: React.FC = () => {
             className={cn(
               'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
               activeTab === 'settings'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 font-bold'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
             <Settings size={16} />
@@ -421,8 +422,8 @@ export const AdminPage: React.FC = () => {
             className={cn(
               'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
               activeTab === 'taxes'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 font-bold'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
             <Percent size={16} />
@@ -434,8 +435,8 @@ export const AdminPage: React.FC = () => {
             className={cn(
               'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
               activeTab === 'audit'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 font-bold'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
             <History size={16} />
@@ -451,14 +452,14 @@ export const AdminPage: React.FC = () => {
             TAB 1: USER SECURITY & ACCESS
             ══════════════════════════════════════════════════════════ */}
         {activeTab === 'users' && (
-          <div className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+          <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/10 dark:border-white/10">
               <div>
-                <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                   Personnel & Member Registry ({filteredUsers.length} accounts)
                 </h3>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-gray-500 dark:text-white/50">
                   Global directory of athletes, front desk, coaching staff, and management
                 </p>
               </div>
@@ -471,34 +472,34 @@ export const AdminPage: React.FC = () => {
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
                     placeholder="Search user, email or phone..."
-                    className="w-56 sm:w-64 px-3 py-1.5 pl-8 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder:text-white/30 outline-none focus:border-cyan-400"
+                    className="w-56 sm:w-64 px-3 py-1.5 pl-8 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-xs text-[#1D1D1F] dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 outline-none focus:border-cyan-500"
                   />
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40" />
                 </div>
 
                 <select
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white outline-none focus:border-cyan-400 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-xs text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 cursor-pointer"
                 >
-                  <option value="ALL">All Roles</option>
-                  <option value="SYSTEM_ADMIN">System Admin</option>
-                  <option value="OWNER">Owner</option>
-                  <option value="MANAGER">Manager</option>
-                  <option value="FRONT_DESK">Front Desk</option>
-                  <option value="BAR_STAFF">Bar Staff</option>
-                  <option value="SHOP_STAFF">Shop Staff</option>
-                  <option value="ACCOUNTANT">Accountant</option>
-                  <option value="MEMBER">Member</option>
+                  <option value="ALL" className="bg-white dark:bg-[#14141A] text-black dark:text-white">All Roles</option>
+                  <option value="SYSTEM_ADMIN" className="bg-white dark:bg-[#14141A] text-black dark:text-white">System Admin</option>
+                  <option value="OWNER" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Owner</option>
+                  <option value="MANAGER" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Manager</option>
+                  <option value="FRONT_DESK" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Front Desk</option>
+                  <option value="BAR_STAFF" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Bar Staff</option>
+                  <option value="SHOP_STAFF" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Shop Staff</option>
+                  <option value="ACCOUNTANT" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Accountant</option>
+                  <option value="MEMBER" className="bg-white dark:bg-[#14141A] text-black dark:text-white">Member</option>
                 </select>
               </div>
             </div>
 
             {/* Users Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-2xl border border-black/5 dark:border-white/5">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 text-white/40 font-semibold uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-black/10 dark:border-white/10 text-gray-500 dark:text-white/40 font-semibold uppercase tracking-wider text-[10px] bg-stone-50 dark:bg-white/[0.02]">
                     <th className="py-3 px-3">Identity</th>
                     <th className="py-3 px-3">Contact</th>
                     <th className="py-3 px-3">Role Authority</th>
@@ -507,23 +508,23 @@ export const AdminPage: React.FC = () => {
                     <th className="py-3 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-black/5 dark:divide-white/5">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={u.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-xs text-black flex-shrink-0">
                             {u.full_name?.charAt(0) || 'U'}
                           </div>
                           <div>
-                            <p className="font-semibold text-white">{u.full_name}</p>
-                            <p className="text-[10px] text-white/40">ID #{u.id}</p>
+                            <p className="font-semibold text-[#1D1D1F] dark:text-white">{u.full_name}</p>
+                            <p className="text-[10px] text-gray-400 dark:text-white/40">ID #{u.id}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-3 px-3">
-                        <p className="text-white/80 font-mono text-[11px]">{u.email}</p>
-                        <p className="text-[10px] text-white/40">{u.phone || 'No phone recorded'}</p>
+                        <p className="text-gray-700 dark:text-white/80 font-mono text-[11px]">{u.email}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-white/40">{u.phone || 'No phone recorded'}</p>
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex flex-wrap gap-1">
@@ -532,14 +533,14 @@ export const AdminPage: React.FC = () => {
                               key={i}
                               className={cn(
                                 'px-2 py-0.5 rounded text-[10px] font-bold tracking-wider',
-                                r === 'SYSTEM_ADMIN' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' :
-                                r === 'OWNER' ? 'bg-amber-500/20 text-[#EAD29A] border border-amber-500/30' :
-                                r === 'MANAGER' ? 'bg-amber-500/10 text-amber-400' :
-                                r === 'ACCOUNTANT' ? 'bg-emerald-500/10 text-emerald-400' :
-                                r === 'SHOP_STAFF' ? 'bg-purple-500/10 text-purple-400' :
-                                r === 'BAR_STAFF' ? 'bg-amber-600/10 text-amber-500' :
-                                r === 'FRONT_DESK' ? 'bg-blue-500/10 text-blue-400' :
-                                'bg-white/10 text-white/70'
+                                r === 'SYSTEM_ADMIN' ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30' :
+                                r === 'OWNER' ? 'bg-amber-500/20 text-[#B89047] dark:text-[#EAD29A] border border-amber-500/30' :
+                                r === 'MANAGER' ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400' :
+                                r === 'ACCOUNTANT' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' :
+                                r === 'SHOP_STAFF' ? 'bg-purple-500/15 text-purple-700 dark:text-purple-400' :
+                                r === 'BAR_STAFF' ? 'bg-amber-600/15 text-amber-700 dark:text-amber-500' :
+                                r === 'FRONT_DESK' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400' :
+                                'bg-black/5 dark:bg-white/10 text-gray-600 dark:text-white/70'
                               )}
                             >
                               {r}
@@ -551,16 +552,16 @@ export const AdminPage: React.FC = () => {
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold',
-                            u.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' :
-                            u.status === 'suspended' ? 'bg-red-500/15 text-red-400' :
-                            'bg-yellow-500/15 text-yellow-400'
+                            u.status === 'active' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' :
+                            u.status === 'suspended' ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400' :
+                            'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400'
                           )}
                         >
-                          <span className={cn('w-1.5 h-1.5 rounded-full', u.status === 'active' ? 'bg-emerald-400' : 'bg-red-400')} />
+                          <span className={cn('w-1.5 h-1.5 rounded-full', u.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500')} />
                           {u.status}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-white/50 text-[11px]">
+                      <td className="py-3 px-3 text-gray-500 dark:text-white/50 text-[11px]">
                         {new Date(u.created_at).toLocaleDateString('en-IN')}
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -568,7 +569,7 @@ export const AdminPage: React.FC = () => {
                           {/* Force Password Reset */}
                           <button
                             onClick={() => setResetUser(u)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                             title="Force Password Reset"
                           >
                             <KeyRound size={14} />
@@ -580,8 +581,8 @@ export const AdminPage: React.FC = () => {
                             className={cn(
                               'p-1.5 rounded-lg transition-colors cursor-pointer',
                               u.status === 'suspended'
-                                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white'
+                                ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/30'
+                                : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white'
                             )}
                             title={u.status === 'suspended' ? 'Unlock Account' : 'Lock & Suspend Account'}
                           >
@@ -601,14 +602,14 @@ export const AdminPage: React.FC = () => {
             TAB 2: ROLES & PERMISSIONS MATRIX
             ══════════════════════════════════════════════════════════ */}
         {activeTab === 'roles' && (
-          <div className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+          <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/10 dark:border-white/10">
               <div>
-                <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-                  <KeyRound className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                  <KeyRound className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                   Granular Role & Permissions Matrix
                 </h3>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-gray-500 dark:text-white/50">
                   Select a club role and configure exact read/write capability flags across all subsystems
                 </p>
               </div>
@@ -633,7 +634,7 @@ export const AdminPage: React.FC = () => {
                     'px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer',
                     selectedRoleId === r.id
                       ? 'bg-cyan-500 text-black font-bold shadow-md'
-                      : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                      : 'bg-black/5 dark:bg-white/5 text-gray-700 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10'
                   )}
                 >
                   {r.name} ({r.permission_ids?.length || 0})
@@ -644,12 +645,12 @@ export const AdminPage: React.FC = () => {
             {/* Permissions Grouped By Module */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(permissionsByModule).map(([mod, perms]) => (
-                <div key={mod} className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                    <span className="font-display font-bold text-xs uppercase tracking-wider text-cyan-400">
+                <div key={mod} className="p-4 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/10 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-black/10 dark:border-white/10">
+                    <span className="font-display font-bold text-xs uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
                       {mod}
                     </span>
-                    <span className="text-[10px] text-white/40">{perms.length} perms</span>
+                    <span className="text-[10px] text-gray-400 dark:text-white/40">{perms.length} perms</span>
                   </div>
 
                   <div className="space-y-2">
@@ -658,19 +659,19 @@ export const AdminPage: React.FC = () => {
                       return (
                         <label
                           key={p.id}
-                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer text-xs select-none"
+                          className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/[0.04] transition-colors cursor-pointer text-xs select-none"
                         >
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => togglePermission(p.id)}
-                            className="mt-0.5 rounded accent-cyan-400 cursor-pointer"
+                            className="mt-0.5 rounded accent-cyan-500 cursor-pointer"
                           />
                           <div>
-                            <span className="font-mono text-[11px] text-white font-medium block">
+                            <span className="font-mono text-[11px] text-[#1D1D1F] dark:text-white font-medium block">
                               {p.code}
                             </span>
-                            <span className="text-[10px] text-white/50 leading-tight block">
+                            <span className="text-[10px] text-gray-500 dark:text-white/50 leading-tight block">
                               {p.description}
                             </span>
                           </div>
@@ -690,14 +691,14 @@ export const AdminPage: React.FC = () => {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             {/* Global Club Profile Form */}
-            <form onSubmit={handleSaveProfile} className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
+            <form onSubmit={handleSaveProfile} className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10">
                 <div>
-                  <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-cyan-400" />
+                  <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                     Club Master Profile & Legal Coordinates
                   </h3>
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-gray-500 dark:text-white/50">
                     Official establishment identity displayed across tax invoices and digital receipts
                   </p>
                 </div>
@@ -713,118 +714,118 @@ export const AdminPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Club Full Name
                   </label>
                   <input
                     type="text"
                     value={profileForm.name || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Tagline
                   </label>
                   <input
                     type="text"
                     value={profileForm.tagline || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, tagline: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     GSTIN / Tax ID
                   </label>
                   <input
                     type="text"
                     value={profileForm.tax_id || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, tax_id: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Official Phone
                   </label>
                   <input
                     type="text"
                     value={profileForm.phone || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Official Email
                   </label>
                   <input
                     type="email"
                     value={profileForm.email || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Base Currency & Timezone
                   </label>
                   <input
                     type="text"
                     disabled
                     value={`${profileForm.currency_code || 'INR'} • ${profileForm.timezone || 'Asia/Kolkata'}`}
-                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white/50 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-100 dark:bg-black/60 border border-black/10 dark:border-white/10 text-gray-500 dark:text-white/50 font-mono"
                   />
                 </div>
 
                 <div className="sm:col-span-2 lg:col-span-3">
-                  <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                  <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                     Address Line
                   </label>
                   <input
                     type="text"
                     value={profileForm.address_line1 || ''}
                     onChange={(e) => setProfileForm({ ...profileForm, address_line1: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                   />
                 </div>
               </div>
             </form>
 
             {/* Club Settings Key-Value Table */}
-            <div className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
                 <div>
-                  <h3 className="font-display font-bold text-base text-white flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-cyan-400" />
+                  <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                     Operational Runtime Parameters ({settings.length} keys)
                   </h3>
-                  <p className="text-xs text-white/50">Club business logic switches, booking cutoff horizons, and cash floats</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Club business logic switches, booking cutoff horizons, and cash floats</p>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-2xl border border-black/5 dark:border-white/5">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-white/40 font-semibold uppercase tracking-wider text-[10px]">
+                    <tr className="border-b border-black/10 dark:border-white/10 text-gray-500 dark:text-white/40 font-semibold uppercase tracking-wider text-[10px] bg-stone-50 dark:bg-white/[0.02]">
                       <th className="py-2.5 px-3">Parameter Key</th>
                       <th className="py-2.5 px-3">Configured Value</th>
                       <th className="py-2.5 px-3">Description</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
                     {settings.map((s) => (
-                      <tr key={s.key} className="hover:bg-white/[0.02]">
-                        <td className="py-2 px-3 font-mono text-[11px] text-cyan-400">{s.key}</td>
-                        <td className="py-2 px-3 font-mono text-white font-bold">{s.value}</td>
-                        <td className="py-2 px-3 text-white/50 text-[11px]">{s.description || 'System setting'}</td>
+                      <tr key={s.key} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                        <td className="py-2 px-3 font-mono text-[11px] text-cyan-600 dark:text-cyan-400">{s.key}</td>
+                        <td className="py-2 px-3 font-mono text-[#1D1D1F] dark:text-white font-bold">{s.value}</td>
+                        <td className="py-2 px-3 text-gray-500 dark:text-white/50 text-[11px]">{s.description || 'System setting'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -838,14 +839,14 @@ export const AdminPage: React.FC = () => {
             TAB 4: TAX RATES & GST SLABS
             ══════════════════════════════════════════════════════════ */}
         {activeTab === 'taxes' && (
-          <div className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+          <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10">
               <div>
-                <h3 className="font-display font-bold text-lg text-white flex items-center gap-2">
-                  <Percent className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                  <Percent className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                   Statutory Tax Slabs & GST Schedules
                 </h3>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-gray-500 dark:text-white/50">
                   Configure goods and services tax rates applied across invoice line items
                 </p>
               </div>
@@ -863,14 +864,14 @@ export const AdminPage: React.FC = () => {
               {taxRates.map((t) => (
                 <div
                   key={t.id}
-                  className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-between"
+                  className="p-5 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/10 dark:border-white/10 flex items-center justify-between"
                 >
                   <div>
-                    <span className="font-bold text-white text-base block">{t.name}</span>
-                    <span className="text-2xl font-bold font-mono text-cyan-400 mt-1 block">
+                    <span className="font-bold text-[#1D1D1F] dark:text-white text-base block">{t.name}</span>
+                    <span className="text-2xl font-bold font-mono text-cyan-600 dark:text-cyan-400 mt-1 block">
                       {parseFloat(String(t.rate_pct))}%
                     </span>
-                    <span className="text-[10px] text-white/40 mt-1 block">Slab ID #{t.id}</span>
+                    <span className="text-[10px] text-gray-400 dark:text-white/40 mt-1 block">Slab ID #{t.id}</span>
                   </div>
 
                   <button
@@ -878,8 +879,8 @@ export const AdminPage: React.FC = () => {
                     className={cn(
                       'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer',
                       t.is_active
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        : 'bg-white/5 text-white/40 border-white/10'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-black/5 dark:bg-white/5 text-gray-400 dark:text-white/40 border-black/10 dark:border-white/10'
                     )}
                   >
                     {t.is_active ? 'Active Slab' : 'Inactive'}
@@ -894,26 +895,26 @@ export const AdminPage: React.FC = () => {
             TAB 5: SYSTEM SECURITY AUDIT LOGS
             ══════════════════════════════════════════════════════════ */}
         {activeTab === 'audit' && (
-          <div className="rounded-3xl bg-white/[0.02] border border-white/10 p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
               <div>
-                <h3 className="font-display font-bold text-base text-white flex items-center gap-2">
-                  <History className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                  <History className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                   Cryptographic System Audit Trail
                 </h3>
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-gray-500 dark:text-white/50">
                   Tamper-evident chronological log of administrative and financial operations
                 </p>
               </div>
-              <span className="text-xs text-white/40 font-mono">
+              <span className="text-xs text-gray-400 dark:text-white/40 font-mono">
                 {auditLogs.length} Records Verified
               </span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-2xl border border-black/5 dark:border-white/5">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 text-white/40 font-semibold uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-black/10 dark:border-white/10 text-gray-500 dark:text-white/40 font-semibold uppercase tracking-wider text-[10px] bg-stone-50 dark:bg-white/[0.02]">
                     <th className="py-2.5 px-3">Timestamp</th>
                     <th className="py-2.5 px-3">Actor</th>
                     <th className="py-2.5 px-3">Action Signature</th>
@@ -921,24 +922,24 @@ export const AdminPage: React.FC = () => {
                     <th className="py-2.5 px-3">Data Diff Payload</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                <tbody className="divide-y divide-black/5 dark:divide-white/5 font-mono text-[11px]">
                   {auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-white/[0.02]">
-                      <td className="py-2.5 px-3 text-white/50">
+                    <tr key={log.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                      <td className="py-2.5 px-3 text-gray-500 dark:text-white/50">
                         {new Date(log.created_at).toLocaleString('en-IN')}
                       </td>
-                      <td className="py-2.5 px-3 text-white font-sans font-semibold">
+                      <td className="py-2.5 px-3 text-[#1D1D1F] dark:text-white font-sans font-semibold">
                         {log.user_name || 'System Agent'}
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 font-bold">
                           {log.action}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-white/60">
+                      <td className="py-2.5 px-3 text-gray-600 dark:text-white/60">
                         {log.entity_type} #{log.entity_id || 'Global'}
                       </td>
-                      <td className="py-2.5 px-3 text-white/40 max-w-xs truncate text-[10px]">
+                      <td className="py-2.5 px-3 text-gray-400 dark:text-white/40 max-w-xs truncate text-[10px]">
                         {log.new_values ? JSON.stringify(log.new_values) : '—'}
                       </td>
                     </tr>
@@ -952,14 +953,14 @@ export const AdminPage: React.FC = () => {
       </div>
 
       {/* ── MODAL: PASSWORD RESET ─────────────────────────────────── */}
-      {resetUser && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-[#14141A] border border-white/10 p-6 shadow-2xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="font-display font-bold text-base text-white">Force Reset User Password</h3>
+      {resetUser && typeof document !== 'undefined' && createPortal(
+        <div data-lenis-prevent="true" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#14141A] border border-black/10 dark:border-white/10 p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
+              <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">Force Reset User Password</h3>
               <button
                 onClick={() => setResetUser(null)}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60"
+                className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 transition-colors"
               >
                 <X size={16} />
               </button>
@@ -967,10 +968,10 @@ export const AdminPage: React.FC = () => {
 
             <form onSubmit={handleForcePasswordReset} className="space-y-4">
               <div>
-                <p className="text-white/60 mb-2">
-                  Target Account: <strong className="text-white">{resetUser.full_name}</strong> ({resetUser.email})
+                <p className="text-gray-600 dark:text-white/60 mb-2">
+                  Target Account: <strong className="text-[#1D1D1F] dark:text-white">{resetUser.full_name}</strong> ({resetUser.email})
                 </p>
-                <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                   Temporary Password *
                 </label>
                 <input
@@ -978,11 +979,11 @@ export const AdminPage: React.FC = () => {
                   required
                   value={tempPassword}
                   onChange={(e) => setTempPassword(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 font-mono"
                 />
               </div>
 
-              <p className="text-[11px] text-white/50">
+              <p className="text-[11px] text-gray-500 dark:text-white/50">
                 The user account will be unlocked, and they will be prompted to change their password on next login.
               </p>
 
@@ -995,18 +996,19 @@ export const AdminPage: React.FC = () => {
               </button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── MODAL: ADD TAX BRACKET ────────────────────────────────── */}
-      {isAddTaxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#14141A] border border-white/10 p-6 shadow-2xl space-y-4 text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="font-display font-bold text-base text-white">Create New Tax Slab</h3>
+      {isAddTaxOpen && typeof document !== 'undefined' && createPortal(
+        <div data-lenis-prevent="true" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#14141A] border border-black/10 dark:border-white/10 p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
+              <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">Create New Tax Slab</h3>
               <button
                 onClick={() => setIsAddTaxOpen(false)}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60"
+                className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 transition-colors"
               >
                 <X size={16} />
               </button>
@@ -1014,7 +1016,7 @@ export const AdminPage: React.FC = () => {
 
             <form onSubmit={handleAddTaxRate} className="space-y-3">
               <div>
-                <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                   Bracket Label *
                 </label>
                 <input
@@ -1023,12 +1025,12 @@ export const AdminPage: React.FC = () => {
                   value={newTaxName}
                   onChange={(e) => setNewTaxName(e.target.value)}
                   placeholder="e.g. GST 18% or Special Duty 2%"
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-white/60 block mb-1">
+                <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
                   Rate Percentage (%) *
                 </label>
                 <input
@@ -1038,7 +1040,7 @@ export const AdminPage: React.FC = () => {
                   value={newTaxRate}
                   onChange={(e) => setNewTaxRate(e.target.value)}
                   placeholder="18.00"
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white outline-none focus:border-cyan-400 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 font-mono"
                 />
               </div>
 
@@ -1051,7 +1053,8 @@ export const AdminPage: React.FC = () => {
               </button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

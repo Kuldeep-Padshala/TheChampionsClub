@@ -38,10 +38,9 @@
 }
 
 @theme {
-  /* Dynamic Theme Tokens */
-  --color-navy-primary:   var(--text-primary);
-  --color-navy-mid:       var(--text-secondary);
-  --color-navy-900:       var(--bg-main);
+  --color-navy-primary:   #0B0E14; /* Deep Obsidian Midnight Navy */
+  --color-navy-mid:       #181E29; /* Refined Slate Navy */
+  --color-navy-900:       #06080C; /* Pitch Obsidian Base */
 
   --color-gold-primary:   #B89047; /* Brushed Champagne Gold */
   --color-gold-light:     #EAD29A; /* Luminous Champagne highlight */
@@ -75,6 +74,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
+    overflow-anchor: none;
   }
 
   body {
@@ -84,6 +84,7 @@
     margin: 0;
     padding: 0;
     overflow-x: clip;
+    overflow-anchor: none;
     transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
   }
 

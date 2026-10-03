@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, Link } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { useAuth } from '../context/AuthContext';
@@ -1743,8 +1744,8 @@ export const ManagerPage: React.FC = () => {
         {/* ══════════════════════════════════════════════════════════════
             MODAL 1: DAY-END REGISTER CLOSING
             ══════════════════════════════════════════════════════════════ */}
-        {isClosingModalOpen && dailySummary && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {isClosingModalOpen && dailySummary && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-lg rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1858,14 +1859,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 2: UPDATE COURT OPERATIONAL STATUS
             ══════════════════════════════════════════════════════════════ */}
-        {selectedCourtForEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedCourtForEdit && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1932,14 +1934,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 3: ADJUST COURT TARIFF
             ══════════════════════════════════════════════════════════════ */}
-        {selectedRateForEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedRateForEdit && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2006,14 +2009,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 4: VIP FORCE COURT BOOKING
             ══════════════════════════════════════════════════════════════ */}
-        {isForceBookingModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {isForceBookingModalOpen && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-lg rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2127,14 +2131,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 5: VOID INVOICE
             ══════════════════════════════════════════════════════════════ */}
-        {selectedInvoiceForVoid && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedInvoiceForVoid && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2187,14 +2192,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 6: ADJUST INVENTORY STOCK
             ══════════════════════════════════════════════════════════════ */}
-        {selectedVariantForAdjust && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedVariantForAdjust && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2287,14 +2293,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 7: EDIT BAR ITEM
             ══════════════════════════════════════════════════════════════ */}
-        {selectedBarItemForEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedBarItemForEdit && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2360,14 +2367,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 8: ASSIGN STAFF SHIFT
             ══════════════════════════════════════════════════════════════ */}
-        {isCreateShiftModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {isCreateShiftModalOpen && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2477,14 +2485,15 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 9: LEAVE DECISION
             ══════════════════════════════════════════════════════════════ */}
-        {selectedLeaveForDecision && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedLeaveForDecision && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -2552,7 +2561,8 @@ export const ManagerPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </PageLayout>

@@ -3,6 +3,7 @@ import { Product } from '../../types/shop.types';
 import { SpotlightCard } from '../ui/SpotlightCard';
 import { formatPrice } from '../../utils/priceUtils';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { ShoppingBag, Package, Sparkles, ChevronRight, Check } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -17,6 +18,8 @@ interface ProductCardProps {
  */
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuy }) => {
   const { theme } = useTheme();
+  const { isAuthenticated, hasRole } = useAuth();
+  const isMember = isAuthenticated && hasRole('MEMBER');
   const isNight = theme === 'night';
   const isOutOfStock = product.stock === 'out-of-stock';
   const isLowStock = product.stock === 'low-stock';
@@ -93,11 +96,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuy }) => {
         <div>
           {/* ── Pricing Matrix ── */}
           <div className="rounded-xl p-3.5 bg-[#FAF9F6] dark:bg-[#121216] border border-black/[0.05] dark:border-white/[0.06] mb-5">
-            {product.memberPrice ? (
+            {isMember && product.memberPrice ? (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#86868B]">
-                    Regular Price
+                    Standard Rate
                   </span>
                   <span className="text-xs text-[#86868B] line-through font-mono">
                     {formatPrice(product.price)}
@@ -106,19 +109,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuy }) => {
 
                 <div className="flex items-center justify-between pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
                   <span className="text-xs font-bold text-[#B89047] flex items-center gap-1">
-                    <Sparkles size={12} /> Member Price
+                    <Sparkles size={12} /> Member Privilege
                   </span>
-                  <span className="text-lg font-bold text-[#1D1D1F] dark:text-white font-display">
-                    {formatPrice(product.memberPrice)}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-[#B89047] dark:text-[#EAD29A] font-display">
+                      {formatPrice(product.memberPrice)}
+                    </span>
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      Save {formatPrice(product.price - product.memberPrice)}
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#86868B]">Price</span>
-                <span className="text-lg font-bold text-[#1D1D1F] dark:text-white font-display">
-                  {formatPrice(product.price)}
-                </span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#86868B]">Retail Price</span>
+                  <span className="text-lg font-bold text-[#1D1D1F] dark:text-white font-display">
+                    {formatPrice(product.price)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
+                  <span>Member Privileges</span>
+                  <span className="text-[#B89047] font-medium">Log in for preferential rates</span>
+                </div>
               </div>
             )}
           </div>

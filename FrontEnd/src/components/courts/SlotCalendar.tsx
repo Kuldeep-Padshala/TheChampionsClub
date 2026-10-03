@@ -20,7 +20,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
   onWeekChange,
   onSlotBooked,
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date('2026-10-05'));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { requireLogin } = useLoginPrompt();
   const { theme } = useTheme();
   const isNight = theme === 'night';

@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
+
+const formatLocalDate = (d: Date = new Date()): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 import { ROUTES } from '../constants/routes';
 import { PageLayout } from '../components/layout/PageLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
@@ -92,7 +100,7 @@ export const ReceptionistPage: React.FC = () => {
   const scannerInputRef = useRef<HTMLInputElement>(null);
 
   // ── Tab 2: Court Calendar state ───────────────────────────────────
-  const [calendarDate, setCalendarDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [calendarDate, setCalendarDate] = useState<string>(() => formatLocalDate());
   const [selectedSportId, setSelectedSportId] = useState<number | undefined>(undefined);
   const [courts, setCourts] = useState<Court[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -215,6 +223,19 @@ export const ReceptionistPage: React.FC = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ── Preload Badges & Auto-Poll Leads ─────────────────────────────
+  useEffect(() => {
+    loadMembersData();
+    loadInvoicesData();
+    loadEnquiriesData();
+
+    // Auto-poll enquiries every 20 seconds so public leads show up without manual reload
+    const interval = setInterval(() => {
+      loadEnquiriesData();
+    }, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   // ── Load Active Tab Data ──────────────────────────────────────────
@@ -1007,23 +1028,34 @@ export const ReceptionistPage: React.FC = () => {
                     onChange={(e) => setCalendarDate(e.target.value)}
                     className="px-3.5 py-1.5 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs font-semibold outline-none focus:border-[#B89047]"
                   />
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setCalendarDate(new Date().toISOString().split('T')[0])}
-                      className="px-3 py-1 rounded-lg text-xs font-medium border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      Today
-                    </button>
-                    <button
-                      onClick={() => {
-                        const d = new Date();
-                        d.setDate(d.getDate() + 1);
-                        setCalendarDate(d.toISOString().split('T')[0]);
-                      }}
-                      className="px-3 py-1 rounded-lg text-xs font-medium border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      Tomorrow
-                    </button>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                    {Array.from({ length: 14 }, (_, i) => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + i);
+                      const dStr = formatLocalDate(d);
+                      const isSelected = calendarDate === dStr;
+                      const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
+                      const dateNum = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                      return (
+                        <button
+                          key={dStr}
+                          type="button"
+                          onClick={() => setCalendarDate(dStr)}
+                          className={cn(
+                            'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap flex flex-col items-center leading-tight cursor-pointer active:scale-95',
+                            isSelected
+                              ? 'bg-gradient-to-r from-[#B89047] to-[#D4AF37] text-black border-[#B89047] shadow-md font-bold ring-2 ring-[#B89047]/40'
+                              : 'bg-white/70 dark:bg-white/[0.04] border-black/10 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-[#B89047]/40 hover:text-black dark:hover:text-white'
+                          )}
+                        >
+                          <span className="text-[11px] uppercase tracking-wider">{dayName}</span>
+                          <span className={cn('text-[9.5px] font-normal opacity-80', isSelected && 'font-semibold text-black/90')}>
+                            {dateNum}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1329,13 +1361,23 @@ export const ReceptionistPage: React.FC = () => {
                     Capture interested visitors, schedule trials, and log follow-up notes.
                   </p>
                 </div>
-                <button
-                  onClick={() => setIsNewEnquiryModalOpen(true)}
-                  className="h-10 px-5 rounded-xl text-xs font-semibold bg-[#121214] text-white dark:bg-[#B89047] dark:text-black flex items-center gap-1.5 hover:opacity-90 shadow-md cursor-pointer"
-                >
-                  <Plus size={15} />
-                  <span>Log New Enquiry</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={loadEnquiriesData}
+                    disabled={isEnquiriesLoading}
+                    className="h-10 px-4 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/70 dark:bg-white/[0.04] text-gray-700 dark:text-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <RotateCw size={14} className={cn(isEnquiriesLoading && 'animate-spin')} />
+                    <span>Refresh</span>
+                  </button>
+                  <button
+                    onClick={() => setIsNewEnquiryModalOpen(true)}
+                    className="h-10 px-5 rounded-xl text-xs font-semibold bg-[#121214] text-white dark:bg-[#B89047] dark:text-black flex items-center gap-1.5 hover:opacity-90 shadow-md cursor-pointer"
+                  >
+                    <Plus size={15} />
+                    <span>Log New Enquiry</span>
+                  </button>
+                </div>
               </div>
 
               {/* Enquiries Table */}
@@ -1411,8 +1453,8 @@ export const ReceptionistPage: React.FC = () => {
           {/* ══════════════════════════════════════════════════
               MODAL: CREATE COURT BOOKING
           ══════════════════════════════════════════════════ */}
-          {isBookingModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {isBookingModalOpen && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10 mb-4">
                   <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
@@ -1544,14 +1586,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: VIEW / CANCEL ACTIVE RESERVATION
           ══════════════════════════════════════════════════ */}
-          {selectedReservation && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {selectedReservation && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10">
                   <h3 className="font-display text-base font-bold text-[#1D1D1F] dark:text-white">
@@ -1596,14 +1639,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: REGISTER NEW MEMBER
           ══════════════════════════════════════════════════ */}
-          {isRegisterModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {isRegisterModalOpen && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10 mb-4">
                   <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
@@ -1696,14 +1740,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: MEMBER PROFILE & HISTORY DRAWER
           ══════════════════════════════════════════════════ */}
-          {memberDetail && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {memberDetail && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl space-y-6">
                 
                 {/* Header */}
@@ -1819,14 +1864,15 @@ export const ReceptionistPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: ASSIGN / RENEW PLAN
           ══════════════════════════════════════════════════ */}
-          {isAssignPlanModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {isAssignPlanModalOpen && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10 mb-4">
                   <h3 className="font-display text-base font-bold text-[#1D1D1F] dark:text-white">
@@ -1881,14 +1927,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: COLLECT PAYMENT (POS)
           ══════════════════════════════════════════════════ */}
-          {selectedInvoice && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {selectedInvoice && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10 mb-4">
                   <div>
@@ -1970,14 +2017,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: RECEIPT ACTION (PRINT / EMAIL)
           ══════════════════════════════════════════════════ */}
-          {receiptData && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {receiptData && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
                   <CheckCircle2 size={28} />
@@ -2030,14 +2078,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: LOG NEW ENQUIRY (LEAD)
           ══════════════════════════════════════════════════ */}
-          {isNewEnquiryModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {isNewEnquiryModalOpen && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10 mb-4">
                   <h3 className="font-display text-lg font-bold text-[#1D1D1F] dark:text-white">
@@ -2134,14 +2183,15 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* ══════════════════════════════════════════════════
               MODAL: FOLLOW-UP LEAD ACTION
           ══════════════════════════════════════════════════ */}
-          {selectedEnquiry && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          {selectedEnquiry && createPortal(
+            <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
               <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10 mb-4">
                   <div>
@@ -2201,7 +2251,8 @@ export const ReceptionistPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* Camera QR Scanner Modal */}

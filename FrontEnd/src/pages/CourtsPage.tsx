@@ -29,7 +29,7 @@ export const CourtsPage = () => {
   // Reload slots when selected court changes
   useEffect(() => {
     if (selectedCourtId) {
-      getSlotsForWeek(selectedCourtId, formatDate(new Date('2026-10-05'))).then(setSlots);
+      getSlotsForWeek(selectedCourtId, formatDate(new Date())).then(setSlots);
     }
   }, [selectedCourtId]);
 

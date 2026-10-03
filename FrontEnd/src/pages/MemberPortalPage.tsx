@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -40,8 +41,11 @@ import {
   ArrowUpRight,
   RefreshCw,
   HelpCircle,
-  ExternalLink,
+  Minus,
+  CheckCircle2,
+  ZoomIn,
 } from 'lucide-react';
+import { cn } from '../utils/cn';
 import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
 
@@ -90,10 +94,17 @@ export const MemberPortalPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'online'>('upi');
   const [isPaying, setIsPaying] = useState(false);
 
-  // Shop Data
+  // Shop Data & Checkout Modal
   const [products, setProducts] = useState<MemberShopProduct[]>([]);
   const [myOrders, setMyOrders] = useState<MemberShopOrder[]>([]);
   const [isPlacingOrder, setIsPlacingOrder] = useState<number | null>(null);
+  const [checkoutProduct, setCheckoutProduct] = useState<MemberShopProduct | null>(null);
+  const [checkoutQuantity, setCheckoutQuantity] = useState<number>(1);
+  const [checkoutFulfillment, setCheckoutFulfillment] = useState<'Counter Pickup' | 'Locker Delivery'>('Counter Pickup');
+  const [checkoutAddress, setCheckoutAddress] = useState<string>('');
+  const [checkoutNotes, setCheckoutNotes] = useState<string>('');
+  const [isSubmittingCheckout, setIsSubmittingCheckout] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState<MemberShopProduct | null>(null);
 
   // ─── Fetch Member Data ─────────────────────────────────────
   const loadMemberData = useCallback(async () => {
@@ -298,27 +309,46 @@ export const MemberPortalPage: React.FC = () => {
     }
   };
 
-  // ─── Place Shop Order ───────────────────────────────────────
-  const handleOrderProduct = async (product: MemberShopProduct) => {
-    setIsPlacingOrder(product.id);
+  // ─── Pro Shop Checkout Modal Handlers ─────────────────────────
+  const handleOpenCheckout = (product: MemberShopProduct) => {
+    setCheckoutProduct(product);
+    setCheckoutQuantity(1);
+    setCheckoutAddress(editAddress || profile?.address_line1 || 'Club Sanctuary Residence, Koramangala');
+    setCheckoutNotes('');
+  };
+
+  const handleConfirmCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkoutProduct) return;
+
+    setIsSubmittingCheckout(true);
     try {
+      const isGold = (membership?.plan_code || '').toLowerCase().includes('gold') || (membership?.plan_name || '').toLowerCase().includes('gold');
+      const discountMult = isGold ? 0.85 : 0.90;
+      const unitPrice = Math.round(Number(checkoutProduct.base_price) * discountMult);
+      const subtotal = unitPrice * checkoutQuantity;
+      const gst = Math.round(subtotal * 0.18);
+      const totalAmount = subtotal + gst;
+
       const res = await memberService.placeOrder({
         items: [
           {
-            product_name: product.name,
-            quantity: 1,
-            unit_price: Number(product.base_price),
+            product_name: checkoutProduct.name,
+            quantity: checkoutQuantity,
+            unit_price: unitPrice,
           },
         ],
-        notes: 'Member Portal Click & Collect',
+        notes: `[Fulfillment: ${checkoutFulfillment}] Address: ${checkoutAddress}. Notes: ${checkoutNotes || 'None'}`,
       });
-      toast.success(`Order placed! Reference: ${res.order_no}`);
+
+      toast.success(`Order placed successfully! Reference: #${res.order_no}`, { duration: 5000 });
+      setCheckoutProduct(null);
       const orders = await memberService.getMyOrders();
       setMyOrders(orders);
     } catch (err: any) {
-      toast.error('Failed to place order');
+      toast.error(err?.response?.data?.message || 'Failed to place shop order');
     } finally {
-      setIsPlacingOrder(null);
+      setIsSubmittingCheckout(false);
     }
   };
 
@@ -1162,33 +1192,76 @@ export const MemberPortalPage: React.FC = () => {
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((p) => (
-                <div key={p.id} className="p-5 rounded-3xl bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm flex flex-col justify-between hover:border-[#B89047]/40 transition-all">
-                  <div>
-                    <span className="text-[10px] text-[#B89047] font-bold uppercase tracking-wider">
-                      {p.brand} • {p.category_name || 'Gear'}
-                    </span>
-                    <h4 className="font-bold text-sm text-[#1D1D1F] dark:text-white mt-1 leading-snug">
-                      {p.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2">
-                      {p.description || 'Club approved competition grade equipment.'}
-                    </p>
+              {products.map((p) => {
+                const retailPrice = Number(p.base_price);
+                const isGold = (membership?.plan_code || '').toLowerCase().includes('gold') || (membership?.plan_name || '').toLowerCase().includes('gold');
+                const memberDiscountedPrice = Math.round(retailPrice * (isGold ? 0.85 : 0.90));
+
+                return (
+                  <div key={p.id} className="p-5 rounded-3xl bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 shadow-sm flex flex-col justify-between hover:border-[#B89047]/40 transition-all group">
+                    <div>
+                      {/* Product Preview Image Pedestal with Click to Zoom */}
+                      <div
+                        onClick={() => setPreviewProduct(p)}
+                        className="h-48 w-full mb-3 rounded-2xl overflow-hidden bg-gradient-to-b from-stone-100 to-stone-50 dark:from-white/[0.02] dark:to-white/[0.05] flex items-center justify-center p-3 relative border border-black/5 dark:border-white/5 cursor-pointer group/img transition-all hover:border-[#B89047]/40 shadow-inner"
+                        title="Click to view high-resolution preview"
+                      >
+                        <img
+                          src={p.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                          alt={p.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
+                          }}
+                          className="max-h-full max-w-full object-contain group-hover/img:scale-108 transition-transform duration-300 drop-shadow-sm"
+                        />
+                        <span className="absolute top-2.5 left-2.5 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-black/70 text-white backdrop-blur-sm border border-white/10">
+                          {p.brand}
+                        </span>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-semibold backdrop-blur-[2px]">
+                          <ZoomIn size={16} className="text-[#EAD29A]" />
+                          <span>Inspect Gear</span>
+                        </div>
+                      </div>
+
+                      <span className="text-[10px] text-[#B89047] font-bold uppercase tracking-wider">
+                        {p.category_name || 'Pro Equipment'}
+                      </span>
+                      <h4 className="font-bold text-sm text-[#1D1D1F] dark:text-white mt-0.5 leading-snug group-hover:text-[#B89047] transition-colors">
+                        {p.name}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        {p.description || 'Club approved competition grade equipment.'}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-mono">
+                          <span>MSRP:</span>
+                          <span className="line-through decoration-rose-500/70 font-semibold">
+                            ₹{retailPrice.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="font-display font-bold text-base text-[#B89047] dark:text-[#EAD29A]">
+                            ₹{memberDiscountedPrice.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 uppercase tracking-tight">
+                            {isGold ? '15% VIP OFF' : '10% OFF'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenCheckout(p)}
+                        className="px-4 py-2 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] to-[#B89047] hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+                      >
+                        Order
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
-                    <span className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">
-                      ₹{Number(p.base_price).toLocaleString('en-IN')}
-                    </span>
-                    <button
-                      onClick={() => handleOrderProduct(p)}
-                      disabled={isPlacingOrder === p.id}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#B89047]/10 hover:bg-[#B89047] text-[#B89047] hover:text-black border border-[#B89047]/30 transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {isPlacingOrder === p.id ? 'Ordering...' : 'Order'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Past Orders */}
@@ -1382,40 +1455,57 @@ export const MemberPortalPage: React.FC = () => {
               </div>
 
               {/* Developer / Evaluation Status Simulation Bar */}
-              <div className="rounded-3xl p-6 bg-[#B89047]/10 border border-[#B89047]/30 space-y-3">
-                <div className="flex items-center gap-2 text-[#EAD29A]">
-                  <Zap size={16} />
-                  <span className="text-xs uppercase font-bold tracking-wider">
+              <div className="rounded-3xl p-6 bg-white dark:bg-[#141418] border border-black/10 dark:border-[#B89047]/30 shadow-md space-y-3">
+                <div className="flex items-center gap-2 text-[#997332] dark:text-[#EAD29A]">
+                  <Zap size={16} className="text-[#B89047]" />
+                  <span className="text-xs uppercase font-bold tracking-wider text-[#1D1D1F] dark:text-[#EAD29A]">
                     Member Tier Simulation Tools
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-300 leading-relaxed">
-                  Test portal states with 1-click simulations:
+                <p className="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">
+                  Evaluate real-time member portal states with instantaneous 1-click test simulation presets:
                 </p>
                 <div className="space-y-2">
                   <button
                     onClick={() => handleSimulateStatus('expiring_soon')}
                     disabled={isSimulating}
-                    className="w-full py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                    className="w-full py-2.5 px-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.03] hover:bg-amber-500/[0.08] dark:hover:bg-amber-500/10 border border-black/10 dark:border-white/10 hover:border-amber-500/40 text-[#1D1D1F] dark:text-white text-xs font-medium text-left flex items-center justify-between transition-all cursor-pointer active:scale-98 shadow-sm group"
                   >
-                    <span>Simulate: Expiring in 3 Days</span>
-                    <AlertTriangle size={13} className="text-amber-400" />
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/20" />
+                      <span className="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
+                        Simulate: Expiring in 3 Days (Renewal Warning)
+                      </span>
+                    </div>
+                    <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />
                   </button>
+
                   <button
                     onClick={() => handleSimulateStatus('inactive')}
                     disabled={isSimulating}
-                    className="w-full py-2 px-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                    className="w-full py-2.5 px-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.03] hover:bg-rose-500/[0.08] dark:hover:bg-rose-500/10 border border-black/10 dark:border-white/10 hover:border-rose-500/40 text-[#1D1D1F] dark:text-white text-xs font-medium text-left flex items-center justify-between transition-all cursor-pointer active:scale-98 shadow-sm group"
                   >
-                    <span>Simulate: No Active Pass (Unactivated)</span>
-                    <X size={13} className="text-red-400" />
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 ring-4 ring-rose-500/20" />
+                      <span className="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-rose-700 dark:group-hover:text-rose-300 transition-colors">
+                        Simulate: No Active Pass (Unactivated Member)
+                      </span>
+                    </div>
+                    <X size={14} className="text-rose-500 flex-shrink-0" />
                   </button>
+
                   <button
                     onClick={() => handleSimulateStatus('gold')}
                     disabled={isSimulating}
-                    className="w-full py-2 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-200 text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer"
+                    className="w-full py-2.5 px-3.5 rounded-xl bg-stone-50 dark:bg-white/[0.03] hover:bg-[#B89047]/10 border border-black/10 dark:border-white/10 hover:border-[#B89047]/40 text-[#1D1D1F] dark:text-white text-xs font-medium text-left flex items-center justify-between transition-all cursor-pointer active:scale-98 shadow-sm group"
                   >
-                    <span>Simulate: Active Gold Pass (1 Year)</span>
-                    <Crown size={13} className="text-emerald-400" />
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-[#B89047] ring-4 ring-[#B89047]/20" />
+                      <span className="font-semibold text-gray-800 dark:text-gray-200 group-hover:text-[#B89047] dark:group-hover:text-[#EAD29A] transition-colors">
+                        Simulate: Active Gold Pass (Full VIP Access)
+                      </span>
+                    </div>
+                    <Crown size={14} className="text-[#B89047] flex-shrink-0" />
                   </button>
                 </div>
               </div>
@@ -1424,219 +1514,529 @@ export const MemberPortalPage: React.FC = () => {
         )}
 
         {/* ─── FULL-SCREEN HIGH-RES QR PASS MODAL (ZOOM ON CARD CLICK) ── */}
-        {isQrModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-            <div className="relative w-full max-w-sm bg-gradient-to-br from-[#1C1A17] via-[#24201A] to-[#121214] border-2 border-[#B89047] rounded-3xl p-6 sm:p-8 shadow-2xl text-center text-white">
-              {/* Close Button */}
-              <button
-                onClick={() => setIsQrModalOpen(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+        {isQrModalOpen &&
+          createPortal(
+            <div
+              data-lenis-prevent
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+            >
+              <div className="relative w-full max-w-sm bg-gradient-to-br from-[#1C1A17] via-[#24201A] to-[#121214] border-2 border-[#B89047] rounded-3xl p-6 sm:p-8 shadow-2xl text-center text-white">
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsQrModalOpen(false)}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
 
-              {/* Club Monogram Header */}
-              <div className="flex flex-col items-center mb-5">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#8C6826] p-[2px] mb-2 shadow-lg shadow-[#B89047]/30">
-                  <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-[#EAD29A]" />
+                {/* Club Monogram Header */}
+                <div className="flex flex-col items-center mb-5">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#8C6826] p-[2px] mb-2 shadow-lg shadow-[#B89047]/30">
+                    <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
+                      <Trophy className="w-6 h-6 text-[#EAD29A]" />
+                    </div>
+                  </div>
+                  <h3 className="font-display font-bold text-lg text-[#EAD29A] tracking-wider uppercase">
+                    The Champions Club
+                  </h3>
+                  <span className="text-[10px] text-gray-400 uppercase tracking-widest">
+                    VIP Sanctuary Pass • Gate Clearance Token
+                  </span>
+                </div>
+
+                {/* Member Details Pill */}
+                <div className="py-2 px-4 rounded-xl bg-white/5 border border-white/10 mb-5 flex items-center justify-between text-xs">
+                  <div className="text-left">
+                    <div className="font-display font-bold text-sm text-white">{memberName}</div>
+                    <div className="text-[10px] text-gray-400">ID: {memberCode}</div>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    hasActiveMembership ? 'bg-[#B89047] text-black' : 'bg-gray-700 text-gray-200'
+                  }`}>
+                    {memberPlan}
+                  </span>
+                </div>
+
+                {/* Large High-Contrast Scannable QR Code */}
+                <div className="w-64 h-64 mx-auto p-4 bg-white rounded-2xl border-4 border-[#B89047]/60 shadow-[0_0_40px_rgba(184,144,71,0.25)] flex flex-col items-center justify-center">
+                  <QRCode
+                    value={profile?.qr_token || memberCode}
+                    size={200}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="H"
+                  />
+                </div>
+
+                <div className="mt-3 font-mono text-sm font-bold tracking-widest text-[#EAD29A]">
+                  {memberCode}
+                </div>
+
+                <p className="text-xs text-gray-300 mt-4 leading-relaxed max-w-xs mx-auto">
+                  Present this screen under the gate optical scanner or to the concierge reception desk for 1-second contactless verification.
+                </p>
+
+                <button
+                  onClick={() => setIsQrModalOpen(false)}
+                  className="mt-6 w-full py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#EAD29A] hover:brightness-110 shadow-md cursor-pointer"
+                >
+                  Dismiss QR Pass
+                </button>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* ─── BOOKING MODAL ───────────────────────────────────────── */}
+        {isBookingModalOpen && selectedCourt && selectedTimeSlot &&
+          createPortal(
+            <div
+              data-lenis-prevent
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            >
+              <div className="w-full max-w-md bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-black/5 dark:border-white/10">
+                  <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">
+                    Confirm Court Booking
+                  </h3>
+                  <button onClick={() => setIsBookingModalOpen(false)} className="text-gray-400 hover:text-white cursor-pointer">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Court:</span>
+                      <strong className="text-[#1D1D1F] dark:text-white">{selectedCourt.name} ({selectedCourt.sport_name})</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Date:</span>
+                      <span className="font-mono text-[#1D1D1F] dark:text-white">{selectedDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Time Slot:</span>
+                      <span className="font-mono text-[#1D1D1F] dark:text-white">
+                        {selectedTimeSlot.start.split(' ')[1]} – {selectedTimeSlot.end.split(' ')[1]}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Privilege Tier:</span>
+                      <span className="text-[#B89047] font-bold">{memberPlan} Included</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-gray-500 leading-relaxed">
+                    By confirming, this slot will be reserved exclusively in your name. You may cancel up to 2 hours before the session.
+                  </p>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsBookingModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isBookingSubmitting}
+                    onClick={handleConfirmBooking}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
+                  >
+                    {isBookingSubmitting ? 'Confirming...' : 'Confirm Booking'}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* ─── ONLINE PAYMENT MODAL ─────────────────────────────────── */}
+        {selectedInvoice &&
+          createPortal(
+            <div
+              data-lenis-prevent
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            >
+              <div className="w-full max-w-md bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-black/5 dark:border-white/10">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={18} className="text-[#B89047]" />
+                    <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">
+                      Instant Online Settlement
+                    </h3>
+                  </div>
+                  <button onClick={() => setSelectedInvoice(null)} className="text-gray-400 hover:text-white cursor-pointer">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#B89047]/10 border border-[#B89047]/30 text-center mb-4">
+                  <div className="text-[11px] uppercase tracking-wider text-[#B89047] font-semibold">Total Amount Due</div>
+                  <div className="text-2xl font-bold font-mono text-[#1D1D1F] dark:text-white mt-1">
+                    ₹{Number(selectedInvoice.balance_due).toLocaleString('en-IN')}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1 font-mono">Invoice Ref: {selectedInvoice.invoice_no}</div>
+                </div>
+
+                {/* Payment Methods */}
+                <div className="space-y-2 mb-6">
+                  <label className="block text-xs uppercase font-semibold text-gray-500 font-display">
+                    Select Gateway / Channel
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'upi', label: 'UPI / QR', icon: Smartphone },
+                      { id: 'card', label: 'Debit/Card', icon: CreditCard },
+                      { id: 'online', label: 'Netbanking', icon: ShieldCheck },
+                    ].map((m) => {
+                      const Icon = m.icon;
+                      const isSel = paymentMethod === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setPaymentMethod(m.id as any)}
+                          className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                            isSel
+                              ? 'border-[#B89047] bg-[#B89047]/20 text-[#B89047] font-bold'
+                              : 'border-black/10 dark:border-white/10 text-gray-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <Icon size={16} className="mx-auto mb-1" />
+                          <span className="text-[11px]">{m.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <h3 className="font-display font-bold text-lg text-[#EAD29A] tracking-wider uppercase">
-                  The Champions Club
-                </h3>
-                <span className="text-[10px] text-gray-400 uppercase tracking-widest">
-                  VIP Sanctuary Pass • Gate Clearance Token
-                </span>
-              </div>
 
-              {/* Member Details Pill */}
-              <div className="py-2 px-4 rounded-xl bg-white/5 border border-white/10 mb-5 flex items-center justify-between text-xs">
-                <div className="text-left">
-                  <div className="font-display font-bold text-sm text-white">{memberName}</div>
-                  <div className="text-[10px] text-gray-400">ID: {memberCode}</div>
+                {paymentMethod === 'upi' && (
+                  <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 text-center text-xs text-gray-400 mb-4">
+                    <div className="font-mono text-sm font-bold text-[#1D1D1F] dark:text-white mb-1">
+                      championsclub@okaxis
+                    </div>
+                    <span>Instant UPI QR code generated. Tap below to simulate instant gateway settlement.</span>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedInvoice(null)}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPaying}
+                    onClick={handlePayInvoice}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
+                  >
+                    {isPaying ? 'Processing...' : `Authorize ₹${Number(selectedInvoice.balance_due).toLocaleString('en-IN')}`}
+                  </button>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                  hasActiveMembership ? 'bg-[#B89047] text-black' : 'bg-gray-700 text-gray-200'
-                }`}>
-                  {memberPlan}
-                </span>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* ─── PRO SHOP CHECKOUT & ORDER CONFIRMATION MODAL ─────────── */}
+        {checkoutProduct &&
+          createPortal(
+            <div
+              data-lenis-prevent
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+            >
+              <div className="relative w-full max-w-lg bg-white dark:bg-[#121216] border border-black/10 dark:border-[#B89047]/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-[#1D1D1F] dark:text-white">
+              <button
+                onClick={() => setCheckoutProduct(null)}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 hover:text-black dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[#B89047]/15 border border-[#B89047]/30 flex items-center justify-center text-[#B89047]">
+                  <ShoppingBag size={18} />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white">
+                    Pro Shop Order Checkout
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Review gear selection, member rate, and fulfillment details
+                  </p>
+                </div>
               </div>
 
-              {/* Large High-Contrast Scannable QR Code */}
-              <div className="w-64 h-64 mx-auto p-4 bg-white rounded-2xl border-4 border-[#B89047]/60 shadow-[0_0_40px_rgba(184,144,71,0.25)] flex flex-col items-center justify-center">
-                <QRCode
-                  value={profile?.qr_token || memberCode}
-                  size={200}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="H"
+              <form onSubmit={handleConfirmCheckout} className="space-y-4">
+                {/* Product Dossier Card with Image */}
+                <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/10 flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-white dark:bg-black/40 border border-black/5 dark:border-white/10 flex items-center justify-center p-1.5 flex-shrink-0">
+                    <img
+                      src={checkoutProduct.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                      alt={checkoutProduct.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
+                      }}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#B89047] block">
+                      {checkoutProduct.brand} • {checkoutProduct.category_name || 'Pro Gear'}
+                    </span>
+                    <h4 className="font-bold text-sm text-[#1D1D1F] dark:text-white truncate mt-0.5">
+                      {checkoutProduct.name}
+                    </h4>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="font-display font-bold text-sm text-[#1D1D1F] dark:text-white">
+                        ₹{Math.round(Number(checkoutProduct.base_price) * 0.85).toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-[11px] text-gray-400 line-through font-mono">
+                        ₹{Number(checkoutProduct.base_price).toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                        15% Member Rate
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quantity Stepper */}
+                <div className="flex items-center justify-between py-2 border-b border-black/5 dark:border-white/10">
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Order Quantity</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutQuantity(Math.max(1, checkoutQuantity - 1))}
+                      className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center cursor-pointer border border-black/10 dark:border-white/10"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="font-bold text-sm font-mono w-6 text-center">{checkoutQuantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutQuantity(checkoutQuantity + 1)}
+                      className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center cursor-pointer border border-black/10 dark:border-white/10"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Fulfillment Selection */}
+                <div>
+                  <label className="block text-xs uppercase font-semibold text-gray-500 font-display mb-1.5">
+                    Fulfillment Method *
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[
+                      { id: 'Counter Pickup', label: 'Pro Shop Pickup', desc: 'Ready in 15 mins at counter' },
+                      { id: 'Locker Delivery', label: 'Locker / Sanctuary', desc: 'Placed in member locker' },
+                    ].map((opt) => {
+                      const isSel = checkoutFulfillment === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setCheckoutFulfillment(opt.id as any)}
+                          className={cn(
+                            'p-3 rounded-2xl border text-left transition-all cursor-pointer',
+                            isSel
+                              ? 'border-[#B89047] bg-[#B89047]/15 ring-1 ring-[#B89047]'
+                              : 'border-black/10 dark:border-white/10 bg-black/[0.01] dark:bg-white/[0.02]'
+                          )}
+                        >
+                          <div className="text-xs font-bold text-[#1D1D1F] dark:text-white">{opt.label}</div>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 block">{opt.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Delivery Address / Locker Confirmation */}
+                <div>
+                  <label className="block text-xs uppercase font-semibold text-gray-500 font-display mb-1">
+                    {checkoutFulfillment === 'Locker Delivery' ? 'Locker / Sanctuary Unit Address *' : 'Pickup Verification Contact *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={checkoutAddress}
+                    onChange={(e) => setCheckoutAddress(e.target.value)}
+                    placeholder="e.g. Member Locker #24, Sanctuary Wing A..."
+                    className="w-full px-3.5 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs outline-none focus:border-[#B89047]"
+                  />
+                </div>
+
+                {/* Customization Notes */}
+                <div>
+                  <label className="block text-xs uppercase font-semibold text-gray-500 font-display mb-1">
+                    Special Equipment Instructions (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={checkoutNotes}
+                    onChange={(e) => setCheckoutNotes(e.target.value)}
+                    placeholder="e.g. String tension 26 lbs, gift wrapping..."
+                    className="w-full px-3.5 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs outline-none focus:border-[#B89047]"
+                  />
+                </div>
+
+                {/* Price Breakdown Calculation */}
+                {(() => {
+                  const unitPrice = Math.round(Number(checkoutProduct.base_price) * 0.85);
+                  const subtotal = unitPrice * checkoutQuantity;
+                  const gst = Math.round(subtotal * 0.18);
+                  const total = subtotal + gst;
+                  return (
+                    <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/10 space-y-1.5 text-xs">
+                      <div className="flex justify-between text-gray-500 dark:text-gray-400">
+                        <span>Items Subtotal ({checkoutQuantity}x):</span>
+                        <span>₹{subtotal.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-500 dark:text-gray-400">
+                        <span>GST @ 18% (Sports Equipment):</span>
+                        <span>₹{gst.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between pt-1 border-t border-black/5 dark:border-white/10 font-bold text-[#1D1D1F] dark:text-white text-sm">
+                        <span>Total Charged:</span>
+                        <span className="text-[#B89047] font-mono">₹{total.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingCheckout}
+                  className="w-full py-3 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:brightness-105 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-lg shadow-[#B89047]/20 active:scale-98"
+                >
+                  {isSubmittingCheckout ? (
+                    <>
+                      <RotateCw size={15} className="animate-spin" />
+                      <span>Transmitting Order...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={16} />
+                      <span>Confirm & Place Order</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* ─── MODAL: PRODUCT DETAIL & HIGH-RES PREVIEW LIGHTBOX ─────── */}
+      {previewProduct &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            data-lenis-prevent="true"
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          >
+            <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-[#14141A] border border-black/10 dark:border-white/10 p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-black/10 dark:border-white/10">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase bg-[#B89047]/15 text-[#B89047] dark:text-[#EAD29A] border border-[#B89047]/30">
+                      {previewProduct.brand}
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">
+                      {previewProduct.category_name || 'Equipment'}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-xl sm:text-2xl font-bold text-[#1D1D1F] dark:text-white">
+                    {previewProduct.name}
+                  </h3>
+                </div>
+
+                <button
+                  onClick={() => setPreviewProduct(null)}
+                  className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 dark:text-white/60 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Large Product Image Showcase */}
+              <div className="w-full h-72 sm:h-80 rounded-2xl bg-gradient-to-b from-stone-100 to-stone-50 dark:from-white/[0.02] dark:to-white/[0.05] border border-black/5 dark:border-white/5 flex items-center justify-center p-6 shadow-inner relative">
+                <img
+                  src={previewProduct.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                  alt={previewProduct.name}
+                  className="max-h-full max-w-full object-contain drop-shadow-md"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
+                  }}
                 />
               </div>
 
-              <div className="mt-3 font-mono text-sm font-bold tracking-widest text-[#EAD29A]">
-                {memberCode}
-              </div>
-
-              <p className="text-xs text-gray-300 mt-4 leading-relaxed max-w-xs mx-auto">
-                Present this screen under the gate optical scanner or to the concierge reception desk for 1-second contactless verification.
-              </p>
-
-              <button
-                onClick={() => setIsQrModalOpen(false)}
-                className="mt-6 w-full py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#EAD29A] hover:brightness-110 shadow-md cursor-pointer"
-              >
-                Dismiss QR Pass
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ─── BOOKING MODAL ───────────────────────────────────────── */}
-        {isBookingModalOpen && selectedCourt && selectedTimeSlot && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-black/5 dark:border-white/10">
-                <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">
-                  Confirm Court Booking
-                </h3>
-                <button onClick={() => setIsBookingModalOpen(false)} className="text-gray-400 hover:text-white cursor-pointer">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Court:</span>
-                    <strong className="text-[#1D1D1F] dark:text-white">{selectedCourt.name} ({selectedCourt.sport_name})</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Date:</span>
-                    <span className="font-mono text-[#1D1D1F] dark:text-white">{selectedDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Time Slot:</span>
-                    <span className="font-mono text-[#1D1D1F] dark:text-white">
-                      {selectedTimeSlot.start.split(' ')[1]} – {selectedTimeSlot.end.split(' ')[1]}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Privilege Tier:</span>
-                    <span className="text-[#B89047] font-bold">{memberPlan} Included</span>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-gray-500 leading-relaxed">
-                  By confirming, this slot will be reserved exclusively in your name. You may cancel up to 2 hours before the session.
+              {/* Description & Specifications */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  Product Overview & Specifications
+                </h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {previewProduct.description || 'Competition-grade sports equipment certified and endorsed by The Champions Club. Available for express pickup at the club counter or direct delivery to your private member sanctuary locker.'}
                 </p>
               </div>
 
-              <div className="mt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsBookingModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isBookingSubmitting}
-                  onClick={handleConfirmBooking}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  {isBookingSubmitting ? 'Confirming...' : 'Confirm Booking'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+              {/* Pricing & Order Actions */}
+              {(() => {
+                const retailPrice = Number(previewProduct.base_price);
+                const isGold = (membership?.plan_code || '').toLowerCase().includes('gold') || (membership?.plan_name || '').toLowerCase().includes('gold');
+                const memberPrice = Math.round(retailPrice * (isGold ? 0.85 : 0.90));
+                const savings = retailPrice - memberPrice;
 
-        {/* ─── ONLINE PAYMENT MODAL ─────────────────────────────────── */}
-        {selectedInvoice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md bg-white dark:bg-[#0A0A0D] border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-black/5 dark:border-white/10">
-                <div className="flex items-center gap-2">
-                  <CreditCard size={18} className="text-[#B89047]" />
-                  <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white">
-                    Instant Online Settlement
-                  </h3>
-                </div>
-                <button onClick={() => setSelectedInvoice(null)} className="text-gray-400 hover:text-white cursor-pointer">
-                  <X size={18} />
-                </button>
-              </div>
+                return (
+                  <div className="p-4 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/5 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                        <span>Original Retail Price:</span>
+                        <span className="line-through decoration-rose-500/70 font-semibold text-sm">
+                          ₹{retailPrice.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2 mt-1">
+                        <span className="text-xs text-gray-500 font-medium">Member Privilege Price:</span>
+                        <span className="font-display font-bold text-2xl text-[#B89047] dark:text-[#EAD29A]">
+                          ₹{memberPrice.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                          Save ₹{savings.toLocaleString('en-IN')} ({isGold ? '15% VIP OFF' : '10% OFF'})
+                        </span>
+                      </div>
+                    </div>
 
-              <div className="p-4 rounded-2xl bg-[#B89047]/10 border border-[#B89047]/30 text-center mb-4">
-                <div className="text-[11px] uppercase tracking-wider text-[#B89047] font-semibold">Total Amount Due</div>
-                <div className="text-2xl font-bold font-mono text-[#1D1D1F] dark:text-white mt-1">
-                  ₹{Number(selectedInvoice.balance_due).toLocaleString('en-IN')}
-                </div>
-                <div className="text-[10px] text-gray-400 mt-1 font-mono">Invoice Ref: {selectedInvoice.invoice_no}</div>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="space-y-2 mb-6">
-                <label className="block text-xs uppercase font-semibold text-gray-500 font-display">
-                  Select Gateway / Channel
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'upi', label: 'UPI / QR', icon: Smartphone },
-                    { id: 'card', label: 'Debit/Card', icon: CreditCard },
-                    { id: 'online', label: 'Netbanking', icon: ShieldCheck },
-                  ].map((m) => {
-                    const Icon = m.icon;
-                    const isSel = paymentMethod === m.id;
-                    return (
+                    <div className="flex items-center gap-3">
                       <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setPaymentMethod(m.id as any)}
-                        className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                          isSel
-                            ? 'border-[#B89047] bg-[#B89047]/20 text-[#B89047] font-bold'
-                            : 'border-black/10 dark:border-white/10 text-gray-400 hover:bg-white/5'
-                        }`}
+                        onClick={() => {
+                          const p = previewProduct;
+                          setPreviewProduct(null);
+                          handleOpenCheckout(p);
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-black bg-gradient-to-r from-[#EAD29A] to-[#B89047] hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-lg shadow-[#B89047]/20 flex items-center justify-center gap-2"
                       >
-                        <Icon size={16} className="mx-auto mb-1" />
-                        <span className="text-[11px]">{m.label}</span>
+                        <ShoppingBag size={16} />
+                        <span>Order This Gear</span>
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {paymentMethod === 'upi' && (
-                <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 text-center text-xs text-gray-400 mb-4">
-                  <div className="font-mono text-sm font-bold text-[#1D1D1F] dark:text-white mb-1">
-                    championsclub@okaxis
+                    </div>
                   </div>
-                  <span>Instant UPI QR code generated. Tap below to simulate instant gateway settlement.</span>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedInvoice(null)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isPaying}
-                  onClick={handlePayInvoice}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  {isPaying ? 'Processing...' : `Authorize ₹${Number(selectedInvoice.balance_due).toLocaleString('en-IN')}`}
-                </button>
-              </div>
+                );
+              })()}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
       </div>

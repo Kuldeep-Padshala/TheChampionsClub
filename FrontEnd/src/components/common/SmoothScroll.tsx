@@ -67,14 +67,18 @@ export const SmoothScroll = () => {
     lenisRef.current = lenis;
     (window as any).lenis = lenis;
 
-    // Observe document.body mutations and resize events so async data
-    // (court lists, products, menus, membership tiers) continuously syncs scroll limit
-    let resizeRaf: number | null = null;
-    const resizeObserver = new ResizeObserver(() => {
-      if (resizeRaf) cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => {
+    // Observe document.body mutations and resize events with debouncing so async data
+    // continuously syncs scroll limit without jittering on route mount
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
         lenis.resize();
-      });
+      }, 60);
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedResize();
     });
 
     if (document.body) {
@@ -82,13 +86,13 @@ export const SmoothScroll = () => {
     }
 
     const onWindowResize = () => {
-      lenis.resize();
+      debouncedResize();
     };
 
     window.addEventListener('resize', onWindowResize, { passive: true });
 
     return () => {
-      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      if (resizeTimer) clearTimeout(resizeTimer);
       resizeObserver.disconnect();
       window.removeEventListener('resize', onWindowResize);
       lenis.destroy();

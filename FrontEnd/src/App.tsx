@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ROUTES } from './constants/routes';
 import { HomePage } from './pages/HomePage';
@@ -31,18 +30,8 @@ import { Navbar } from './components/layout/Navbar';
 import { AmbientBackground } from './components/layout/AmbientBackground';
 
 function AnimatedRoutes() {
-  const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -15 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full flex-1 flex flex-col"
-      >
-        <Routes location={location} key={location.pathname}>
+    <Routes>
       <Route path={ROUTES.HOME} element={<HomePage />} />
       <Route path={ROUTES.COURTS} element={<CourtsPage />} />
       <Route path={ROUTES.CAFE} element={<CafePage />} />
@@ -117,9 +106,7 @@ function AnimatedRoutes() {
           </ProtectedRoute>
         }
       />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    </Routes>
   );
 }
 

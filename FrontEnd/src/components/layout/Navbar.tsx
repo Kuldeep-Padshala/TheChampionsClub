@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut, Briefcase, Coffee, ShoppingBag, DollarSign, Crown, Settings } from 'lucide-react';
+import { Menu, X, Trophy, Sparkles, ChevronRight, Phone, ShieldCheck, User, Sun, Moon, LogOut, Briefcase, Coffee, ShoppingBag, DollarSign, Crown, Settings, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '../../constants/routes';
 import { CLUB_INFO } from '../../constants/club';
@@ -32,55 +33,52 @@ const MEMBER_NAV_LINKS: NavItem[] = [
 ];
 
 const FRONT_DESK_NAV_LINKS: NavItem[] = [
-  { name: 'Check-In Station',     path: `${ROUTES.RECEPTIONIST}?tab=checkin` },
-  { name: 'Court Calendar',       path: `${ROUTES.RECEPTIONIST}?tab=calendar` },
-  { name: 'Member Directory',     path: `${ROUTES.RECEPTIONIST}?tab=members` },
-  { name: 'Billing & POS',        path: `${ROUTES.RECEPTIONIST}?tab=billing` },
-  { name: 'Leads & Enquiries',    path: `${ROUTES.RECEPTIONIST}?tab=enquiries` },
+  { name: 'Front Desk Lead',      path: ROUTES.RECEPTIONIST },
+  { name: 'Courts Calendar',      path: ROUTES.COURTS },
+  { name: 'Cafe & Lounge',        path: ROUTES.CAFE },
+  { name: 'Pro Shop',             path: ROUTES.SHOP },
 ];
 
 const MANAGER_NAV_LINKS: NavItem[] = [
-  { name: 'Executive Overview',   path: `${ROUTES.MANAGER}?tab=finance` },
-  { name: 'Court Operations',     path: `${ROUTES.MANAGER}?tab=courts` },
-  { name: 'VIP Overrides',        path: `${ROUTES.MANAGER}?tab=overrides` },
-  { name: 'Inventory & Bar',      path: `${ROUTES.MANAGER}?tab=inventory` },
-  { name: 'Staff & Shifts',       path: `${ROUTES.MANAGER}?tab=hr` },
+  { name: 'Manager Console',      path: ROUTES.MANAGER },
+  { name: 'Front Desk Station',   path: ROUTES.RECEPTIONIST },
+  { name: 'Courts',               path: ROUTES.COURTS },
+  { name: 'Cafe & Lounge',        path: ROUTES.CAFE },
+  { name: 'Pro Shop',             path: ROUTES.SHOP },
 ];
 
 const BAR_NAV_LINKS: NavItem[] = [
-  { name: 'Cafe POS',             path: `${ROUTES.BAR}?tab=pos` },
-  { name: 'Kitchen KDS Queue',    path: `${ROUTES.BAR}?tab=kds` },
-  { name: 'Tables & Tabs',        path: `${ROUTES.BAR}?tab=tables` },
-  { name: 'Menu 86 Board',        path: `${ROUTES.BAR}?tab=menu` },
+  { name: 'Bar Station & POS',    path: ROUTES.BAR },
+  { name: 'Clubhouse Menu',       path: ROUTES.CAFE },
+  { name: 'Courts',               path: ROUTES.COURTS },
 ];
 
 const SHOP_NAV_LINKS: NavItem[] = [
-  { name: 'Counter POS',          path: `${ROUTES.SHOP_STATION}?tab=pos` },
-  { name: 'Click & Collect',      path: `${ROUTES.SHOP_STATION}?tab=pickups` },
-  { name: 'Returns & Restock',    path: `${ROUTES.SHOP_STATION}?tab=returns` },
-  { name: 'Live Stock Levels',    path: `${ROUTES.SHOP_STATION}?tab=inventory` },
+  { name: 'Pro Shop Terminal',    path: ROUTES.SHOP_STATION },
+  { name: 'Club Catalog',         path: ROUTES.SHOP },
+  { name: 'Courts',               path: ROUTES.COURTS },
 ];
 
 const ACCOUNTANT_NAV_LINKS: NavItem[] = [
-  { name: 'P&L Statement',        path: `${ROUTES.ACCOUNTANT}?tab=pnl` },
-  { name: 'Expense Ledger',       path: `${ROUTES.ACCOUNTANT}?tab=expenses` },
-  { name: 'Staff Payroll',        path: `${ROUTES.ACCOUNTANT}?tab=payroll` },
-  { name: 'GST & Compliance',     path: `${ROUTES.ACCOUNTANT}?tab=taxes` },
+  { name: 'Finance & Ledger',     path: ROUTES.ACCOUNTANT },
+  { name: 'Executive Overview',   path: ROUTES.OWNER },
+  { name: 'Courts',               path: ROUTES.COURTS },
+  { name: 'Pro Shop',             path: ROUTES.SHOP },
 ];
 
 const OWNER_NAV_LINKS: NavItem[] = [
-  { name: 'Executive KPIs',       path: `${ROUTES.OWNER}?tab=overview` },
-  { name: 'Approvals',            path: `${ROUTES.OWNER}?tab=approvals` },
-  { name: 'Strategy',             path: `${ROUTES.OWNER}?tab=strategy` },
-  { name: 'Investors',            path: `${ROUTES.OWNER}?tab=investors` },
+  { name: 'Executive Suite',      path: ROUTES.OWNER },
+  { name: 'Operations Console',   path: ROUTES.MANAGER },
+  { name: 'Finance & P&L',        path: ROUTES.ACCOUNTANT },
+  { name: 'Courts',               path: ROUTES.COURTS },
+  { name: 'Pro Shop',             path: ROUTES.SHOP },
+  { name: 'Cafe & Bar',           path: ROUTES.CAFE },
 ];
 
 const ADMIN_NAV_LINKS: NavItem[] = [
-  { name: 'Users & Security',     path: `${ROUTES.ADMIN}?tab=users` },
-  { name: 'Roles Matrix',         path: `${ROUTES.ADMIN}?tab=roles` },
-  { name: 'Club Settings',        path: `${ROUTES.ADMIN}?tab=settings` },
-  { name: 'Tax Slabs',            path: `${ROUTES.ADMIN}?tab=taxes` },
-  { name: 'Audit Trail',          path: `${ROUTES.ADMIN}?tab=audit` },
+  { name: 'Admin Console',        path: ROUTES.ADMIN },
+  { name: 'Front Desk Lead',      path: ROUTES.RECEPTIONIST },
+  { name: 'Courts',               path: ROUTES.COURTS },
 ];
 
 export const Navbar: React.FC = () => {
@@ -90,6 +88,7 @@ export const Navbar: React.FC = () => {
   const isNight = theme === 'night';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [memberPlan, setMemberPlan] = useState<{ planCode?: string; isExpiringSoon?: boolean } | null>(null);
 
   useEffect(() => {
@@ -185,6 +184,15 @@ export const Navbar: React.FC = () => {
     ? 'Private Member Sanctuary • Est. 2018'
     : 'Private Athletic Haven • Est. 2018';
 
+  const isStaffStationRoute =
+    location.pathname.startsWith(ROUTES.MANAGER) ||
+    location.pathname.startsWith(ROUTES.BAR) ||
+    location.pathname.startsWith(ROUTES.SHOP_STATION) ||
+    location.pathname.startsWith(ROUTES.ACCOUNTANT) ||
+    location.pathname.startsWith(ROUTES.OWNER) ||
+    location.pathname.startsWith(ROUTES.ADMIN) ||
+    location.pathname.startsWith(ROUTES.RECEPTIONIST);
+
   const isLinkActive = (itemPath: string) => {
     const fullPath = location.pathname + location.search;
     if (itemPath.includes('?')) {
@@ -276,46 +284,63 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* ── Center: Fluid Crystal Navigation (Guaranteed Single-Line) ── */}
-          <div className={cn(
-            'hidden lg:flex items-center gap-0.5 xl:gap-1 px-1.5 xl:px-2 py-1 rounded-full border transition-colors whitespace-nowrap flex-shrink-0',
-            isNight ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.04]'
-          )}>
-            {currentNavLinks.map((link) => {
-              const isActive = isLinkActive(link.path);
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-colors duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
-                    isActive
-                      ? isNight ? 'text-white font-semibold' : 'text-[#121214] font-semibold'
-                      : isNight ? 'text-[#A1A1A6] hover:text-[#EAD29A]' : 'text-[#55555A] hover:text-[#B89047]'
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="luxury-active-indicator"
-                      transition={{ type: 'spring', stiffness: 350, damping: 28, mass: 0.8 }}
-                      className={cn(
-                        'absolute inset-0 rounded-full border',
-                        isNight
-                          ? 'bg-gradient-to-b from-[#1E1E24] to-[#121216] border-[#B89047]/45 shadow-[0_0_20px_rgba(184,144,71,0.22)]'
-                          : 'bg-gradient-to-b from-white to-[#FDFBF7] border-[#B89047]/30 shadow-[0_4px_16px_rgba(184,144,71,0.18),inset_0_1px_1px_rgba(255,255,255,1)]'
-                      )}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap leading-none">
-                    {isActive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)] flex-shrink-0" />
+          {/* ── Center: Fluid Crystal Navigation or Operational Station Badge ── */}
+          {isStaffStationRoute ? (
+            <div className="hidden lg:flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] select-none shadow-sm flex-shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse flex-shrink-0" />
+              <span className="text-xs font-bold text-[#1D1D1F] dark:text-white font-display tracking-wide whitespace-nowrap">
+                {brandSubline}
+              </span>
+              <span className="text-black/20 dark:text-white/20">•</span>
+              <Link
+                to={ROUTES.HOME}
+                className="text-xs text-[#B89047] hover:text-[#997332] dark:hover:text-[#EAD29A] font-semibold transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap"
+              >
+                <span>View Public Club</span>
+                <ExternalLink size={11} />
+              </Link>
+            </div>
+          ) : (
+            <div className={cn(
+              'hidden lg:flex items-center gap-0.5 xl:gap-1 px-1.5 xl:px-2 py-1 rounded-full border transition-colors whitespace-nowrap flex-shrink-0',
+              isNight ? 'bg-white/[0.04] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.04]'
+            )}>
+              {currentNavLinks.map((link) => {
+                const isActive = isLinkActive(link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={cn(
+                      'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-colors duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
+                      isActive
+                        ? isNight ? 'text-white font-semibold' : 'text-[#121214] font-semibold'
+                        : isNight ? 'text-[#A1A1A6] hover:text-[#EAD29A]' : 'text-[#55555A] hover:text-[#B89047]'
                     )}
-                    <span className="whitespace-nowrap">{link.name}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="luxury-active-indicator"
+                        transition={{ type: 'spring', stiffness: 350, damping: 28, mass: 0.8 }}
+                        className={cn(
+                          'absolute inset-0 rounded-full border',
+                          isNight
+                            ? 'bg-gradient-to-b from-[#1E1E24] to-[#121216] border-[#B89047]/45 shadow-[0_0_20px_rgba(184,144,71,0.22)]'
+                            : 'bg-gradient-to-b from-white to-[#FDFBF7] border-[#B89047]/30 shadow-[0_4px_16px_rgba(184,144,71,0.18),inset_0_1px_1px_rgba(255,255,255,1)]'
+                        )}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap leading-none">
+                      {isActive && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)] flex-shrink-0" />
+                      )}
+                      <span className="whitespace-nowrap">{link.name}</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {/* ── Right Section: Theme Toggle, Role-Based Access & CTA ── */}
           <div className="hidden md:flex items-center gap-2 xl:gap-3 flex-shrink-0 whitespace-nowrap">
@@ -406,31 +431,32 @@ export const Navbar: React.FC = () => {
                   </Link>
                 )}
 
-                <Link
-                  to={brandHomeRoute}
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(true)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 xl:gap-2 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50 whitespace-nowrap flex-shrink-0',
+                    'inline-flex items-center gap-1.5 xl:gap-2 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border transition-colors hover:border-[#B89047]/50 whitespace-nowrap flex-shrink-0 cursor-pointer active:scale-95',
                     isNight
-                      ? 'bg-[#16161A] text-white border-white/10'
-                      : 'bg-[#F7F5F0] text-[#121214] border-black/5'
+                      ? 'bg-[#16161A] text-white border-white/10 hover:bg-[#202026]'
+                      : 'bg-[#F7F5F0] text-[#121214] border-black/5 hover:bg-[#EFECE3]'
                   )}
-                  title="My Sanctuary Account"
+                  title="View My Profile & Station Credentials"
                 >
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#EAD29A] to-[#B89047] flex items-center justify-center text-[10px] font-bold text-[#121214] flex-shrink-0">
                     {user.name ? user.name.charAt(0).toUpperCase() : (isOwner ? 'O' : isAdmin ? 'A' : isBarStaff ? 'B' : isManager ? 'GM' : isFrontDesk ? 'S' : 'M')}
                   </div>
                   <span className="max-w-[90px] xl:max-w-[120px] truncate whitespace-nowrap">{user.name?.split(' ')[0] || 'User'}</span>
-                </Link>
+                </button>
 
-                {/* Exit / Logout */}
+                {/* Exit / Logout Button - Always visible with icon & label */}
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-red-500/25 bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:border-red-500/40 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-                  title="Sign Out"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-red-500/25 bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:border-red-500/40 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 active:scale-95"
+                  title="Sign Out of Club Account"
                 >
                   <LogOut size={13} className="flex-shrink-0" />
-                  <span className="hidden xl:inline whitespace-nowrap">Exit</span>
+                  <span className="whitespace-nowrap">Exit</span>
                 </button>
               </div>
             ) : (
@@ -671,6 +697,104 @@ export const Navbar: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── User Profile & Station Credentials Modal ── */}
+      {isProfileModalOpen && user &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn"
+            data-lenis-prevent
+            onClick={() => setIsProfileModalOpen(false)}
+          >
+            <div
+              className={cn(
+                'relative w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border transition-all',
+                isNight
+                  ? 'bg-[#121216] border-[#B89047]/40 text-white'
+                  : 'bg-white border-black/10 text-[#1D1D1F]'
+              )}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-gray-500 dark:text-gray-300 flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Profile Avatar Header */}
+              <div className="flex flex-col items-center text-center pb-5 border-b border-black/5 dark:border-white/10">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#EAD29A] via-[#B89047] to-[#7D5A1E] p-[2px] mb-3 shadow-lg shadow-[#B89047]/20">
+                  <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center text-xl font-bold text-[#EAD29A]">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                </div>
+                <h3 className="font-display font-bold text-xl text-[#1D1D1F] dark:text-white">
+                  {user.name}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
+                  {user.email}
+                </p>
+                <div className="mt-3">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#B89047]/15 text-[#B89047] border border-[#B89047]/30">
+                    {isOwner ? '👑 Club Owner & Executive' :
+                     isAdmin ? '⚙️ System Administrator' :
+                     isManager ? '💼 General Manager' :
+                     isAccountant ? '💰 Chartered Accountant' :
+                     isShopStaff ? '🛍️ Pro Shop Specialist' :
+                     isBarStaff ? '🍸 Bar & Hospitality' :
+                     isFrontDesk ? '🛡️ Front Desk Concierge' :
+                     '🎖️ Club Member'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Identity & Session Metadata */}
+              <div className="py-4 space-y-2.5 text-xs">
+                <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                  <span className="text-gray-400">Account ID:</span>
+                  <span className="font-mono font-semibold text-[#1D1D1F] dark:text-white">#{user.id}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                  <span className="text-gray-400">Assigned Station:</span>
+                  <span className="font-semibold text-[#B89047]">{brandSubline}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+                  <span className="text-gray-400">Session Status:</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-500">
+                    Authenticated & Active
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-2 space-y-2.5">
+                <Link
+                  to={brandHomeRoute}
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="w-full h-11 rounded-xl text-xs font-semibold bg-gradient-to-r from-[#B89047] via-[#D4AF37] to-[#A67C38] text-black shadow-md hover:brightness-105 flex items-center justify-center gap-2 transition-transform active:scale-98"
+                >
+                  <Briefcase size={14} />
+                  <span>Launch My Assigned Console</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileModalOpen(false);
+                    logout();
+                  }}
+                  className="w-full h-11 rounded-xl text-xs font-semibold border border-red-500/30 bg-red-500/5 text-red-500 hover:bg-red-500/15 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out / Exit Session</span>
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 };

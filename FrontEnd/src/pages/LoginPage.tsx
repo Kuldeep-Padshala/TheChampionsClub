@@ -29,11 +29,32 @@ export const LoginPage: React.FC = () => {
     return ROUTES.MEMBER_PORTAL;
   };
 
+  const isAllowedPath = (path?: string, roles?: string[]) => {
+    if (!path || path === ROUTES.LOGIN || path === ROUTES.REGISTER) return false;
+    const r = roles || [];
+    if (path.startsWith(ROUTES.MEMBER_PORTAL)) return r.includes('MEMBER');
+    if (path.startsWith(ROUTES.MANAGER)) return r.includes('MANAGER') || r.includes('OWNER');
+    if (path.startsWith(ROUTES.OWNER)) return r.includes('OWNER');
+    if (path.startsWith(ROUTES.ACCOUNTANT)) return r.includes('ACCOUNTANT') || r.includes('MANAGER') || r.includes('OWNER');
+    if (path.startsWith(ROUTES.ADMIN)) return r.includes('SYSTEM_ADMIN') || r.includes('ADMIN');
+    if (path.startsWith(ROUTES.BAR)) return r.includes('BAR_STAFF') || r.includes('MANAGER') || r.includes('OWNER');
+    if (path.startsWith(ROUTES.SHOP_STATION)) return r.includes('SHOP_STAFF') || r.includes('GEAR_BOX_STAFF') || r.includes('MANAGER') || r.includes('OWNER');
+    if (path.startsWith(ROUTES.RECEPTIONIST)) return r.includes('FRONT_DESK') || r.includes('MANAGER') || r.includes('OWNER');
+    return true;
+  };
+
+  const getSafeDestination = (requestedPath: string | undefined, roles?: string[]) => {
+    if (requestedPath && isAllowedPath(requestedPath, roles)) {
+      return requestedPath;
+    }
+    return getRoleDestination(roles);
+  };
+
   // If already authenticated, redirect to respective role portal
   useEffect(() => {
     if (isAuthenticated && user) {
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || getRoleDestination(user.roles);
+      const destination = getSafeDestination(state?.from?.pathname, user.roles);
       navigate(destination, { replace: true });
     }
   }, [isAuthenticated, user, navigate, location.state]);
@@ -60,9 +81,9 @@ export const LoginPage: React.FC = () => {
     try {
       const loggedUser = await login(email.trim(), password);
       toast.success(`Welcome back, ${loggedUser.name}!`);
-      // Check if there was a redirected location state
+      // Validate requested path against the user's actual roles
       const state = location.state as { from?: { pathname?: string } } | null;
-      const destination = state?.from?.pathname || getRoleDestination(loggedUser.roles);
+      const destination = getSafeDestination(state?.from?.pathname, loggedUser.roles);
       navigate(destination, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid email, phone, or password. Please verify your credentials.';

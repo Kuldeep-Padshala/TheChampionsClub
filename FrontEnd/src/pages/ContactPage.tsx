@@ -3,19 +3,52 @@ import { PageLayout } from '../components/layout/PageLayout';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { Button } from '../components/ui/Button';
 import { CLUB_INFO } from '../constants/club';
-import { MapPin, Phone, Mail, Clock, CheckCircle } from 'lucide-react';
+import api from '../api/client';
+import toast from 'react-hot-toast';
+import { MapPin, Phone, Mail, Clock, CheckCircle, RotateCw, Send } from 'lucide-react';
 
 export const ContactPage = () => {
-  // Controls success state after form submission
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [topic, setTopic] = useState('General Enquiry');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Handle form submit — in Phase 1 just shows a success message
-  // In Phase 2: POST to /api/enquiries
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    // Auto-hide success message after 6 seconds
-    setTimeout(() => setSubmitted(false), 6000);
+    if (!firstName || !email || !message) {
+      toast.error('Please complete all required fields.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      await api.post('/public/enquiries', {
+        full_name: fullName,
+        email: email.trim().toLowerCase(),
+        phone: phone.trim() || undefined,
+        enquiry_type: topic,
+        message: message.trim(),
+      });
+
+      toast.success('Your enquiry has been received! Our front desk team will contact you shortly.');
+      setSubmitted(true);
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+      setTimeout(() => setSubmitted(false), 8000);
+    } catch (err: any) {
+      console.error('[ContactPage Enquiry]', err);
+      toast.error(err?.response?.data?.message || 'Unable to send enquiry. Please try calling us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Contact detail cards
@@ -124,15 +157,18 @@ export const ContactPage = () => {
                     <input
                       required
                       type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Rohit"
                       className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-navy-primary">Last Name *</label>
+                    <label className="text-sm font-semibold text-navy-primary">Last Name</label>
                     <input
-                      required
                       type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       placeholder="Sharma"
                       className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
                     />
@@ -145,6 +181,8 @@ export const ContactPage = () => {
                   <input
                     required
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
                   />
@@ -155,6 +193,8 @@ export const ContactPage = () => {
                   <label className="text-sm font-semibold text-navy-primary">Phone</label>
                   <input
                     type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
                     className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
                   />
@@ -163,14 +203,18 @@ export const ContactPage = () => {
                 {/* Topic / interest */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-navy-primary">I'm interested in</label>
-                  <select className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle cursor-pointer">
-                    <option>General Enquiry</option>
-                    <option>Membership Information</option>
-                    <option>Court Booking Issue</option>
-                    <option>Corporate / Group Booking</option>
-                    <option>Event Hosting</option>
-                    <option>Pro Shop Query</option>
-                    <option>Coaching Programs</option>
+                  <select
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle cursor-pointer"
+                  >
+                    <option value="General Enquiry">General Enquiry</option>
+                    <option value="Membership Information">Membership Information</option>
+                    <option value="Court Booking Issue">Court Booking Issue</option>
+                    <option value="Corporate / Group Booking">Corporate / Group Booking</option>
+                    <option value="Event Hosting">Event Hosting</option>
+                    <option value="Pro Shop Query">Pro Shop Query</option>
+                    <option value="Coaching Programs">Coaching Programs</option>
                   </select>
                 </div>
 
@@ -180,13 +224,25 @@ export const ContactPage = () => {
                   <textarea
                     required
                     rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     placeholder="Tell us how we can help you..."
                     className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle resize-none"
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-12">
-                  Submit Enquiry
+                <Button type="submit" disabled={isSubmitting} className="w-full h-12 flex items-center justify-center gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <RotateCw size={16} className="animate-spin" />
+                      <span>Sending Enquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      <span>Submit Enquiry</span>
+                    </>
+                  )}
                 </Button>
 
                 <p className="text-xs text-text-secondary text-center">

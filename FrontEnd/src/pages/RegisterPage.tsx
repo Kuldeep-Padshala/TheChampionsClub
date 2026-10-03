@@ -3,12 +3,23 @@ import { Link, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { ROUTES } from '../constants/routes';
 import { CLUB_INFO } from '../constants/club';
-import { Trophy, RotateCw, ArrowLeft, Mail, User, ShieldCheck, Phone, Calendar, BadgeCheck, Briefcase } from 'lucide-react';
+import { Trophy, RotateCw, ArrowLeft, Mail, User, ShieldCheck, Phone, Calendar, BadgeCheck, Briefcase, ShoppingBag, Coffee, DollarSign, Crown, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { PasswordStrength } from '../components/auth/PasswordStrength';
 import { GoogleButton } from '../components/auth/GoogleButton';
 import toast from 'react-hot-toast';
+import { cn } from '../utils/cn';
+
+export type ClubRole =
+  | 'MEMBER'
+  | 'FRONT_DESK'
+  | 'BAR_STAFF'
+  | 'SHOP_STAFF'
+  | 'ACCOUNTANT'
+  | 'MANAGER'
+  | 'OWNER'
+  | 'SYSTEM_ADMIN';
 
 export const RegisterPage: React.FC = () => {
   const { register, isAuthenticated, user } = useAuth();
@@ -19,7 +30,7 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [role, setRole] = useState<'MEMBER' | 'FRONT_DESK'>('MEMBER');
+  const [role, setRole] = useState<ClubRole>('MEMBER');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(true);
@@ -86,11 +97,17 @@ export const RegisterPage: React.FC = () => {
 
       toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Account established.`);
 
-      if (role === 'FRONT_DESK') {
-        navigate(ROUTES.RECEPTIONIST, { replace: true });
-      } else {
-        navigate(ROUTES.MEMBER_PORTAL, { replace: true });
-      }
+      const destinationMap: Record<ClubRole, string> = {
+        OWNER: ROUTES.OWNER,
+        SYSTEM_ADMIN: ROUTES.ADMIN,
+        MANAGER: ROUTES.MANAGER,
+        ACCOUNTANT: ROUTES.ACCOUNTANT,
+        SHOP_STAFF: ROUTES.SHOP_STATION,
+        BAR_STAFF: ROUTES.BAR,
+        FRONT_DESK: ROUTES.RECEPTIONIST,
+        MEMBER: ROUTES.MEMBER_PORTAL,
+      };
+      navigate(destinationMap[role] || ROUTES.MEMBER_PORTAL, { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Registration failed. Email or phone may already be registered.';
       toast.error(msg);
@@ -126,58 +143,96 @@ export const RegisterPage: React.FC = () => {
               <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
                 Account Type & Role Assignment
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Member Role Card */}
-                <button
-                  type="button"
-                  onClick={() => setRole('MEMBER')}
-                  className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden ${
-                    role === 'MEMBER'
-                      ? 'border-[#B89047] bg-[#B89047]/10 shadow-[0_0_20px_rgba(184,144,71,0.15)] ring-1 ring-[#B89047]'
-                      : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      role === 'MEMBER' ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
-                    }`}>
-                      <BadgeCheck size={18} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-[#1D1D1F] dark:text-white">Club Member</div>
-                      <span className="text-[10px] text-[#B89047] font-semibold uppercase tracking-wider">Sanctuary Access</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
-                    Personal digital card, member court rates, pro shop privileges & invoices.
-                  </p>
-                </button>
-
-                {/* Front Desk Staff Card */}
-                <button
-                  type="button"
-                  onClick={() => setRole('FRONT_DESK')}
-                  className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden ${
-                    role === 'FRONT_DESK'
-                      ? 'border-[#B89047] bg-[#B89047]/10 shadow-[0_0_20px_rgba(184,144,71,0.15)] ring-1 ring-[#B89047]'
-                      : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      role === 'FRONT_DESK' ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
-                    }`}>
-                      <Briefcase size={18} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-[#1D1D1F] dark:text-white">Front Desk Staff</div>
-                      <span className="text-[10px] text-[#B89047] font-semibold uppercase tracking-wider">Operational Station</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
-                    Hardware check-in station, court timeline manager, POS billing & leads.
-                  </p>
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {[
+                  {
+                    id: 'MEMBER' as ClubRole,
+                    title: 'Club Member',
+                    sub: 'Sanctuary Access',
+                    desc: 'Digital VIP card, member rates, court reservations & invoices.',
+                    icon: BadgeCheck,
+                  },
+                  {
+                    id: 'FRONT_DESK' as ClubRole,
+                    title: 'Front Desk Lead',
+                    sub: 'Reception & Station',
+                    desc: 'QR check-ins, court timeline scheduler, POS & lead enquiries.',
+                    icon: Briefcase,
+                  },
+                  {
+                    id: 'BAR_STAFF' as ClubRole,
+                    title: 'Bar & Cafe Lounge',
+                    sub: 'POS & KDS Kitchen',
+                    desc: 'Table billing, kitchen order queue, stock status & cocktail bar.',
+                    icon: Coffee,
+                  },
+                  {
+                    id: 'SHOP_STAFF' as ClubRole,
+                    title: 'Pro Shop Specialist',
+                    sub: 'POS & Inventory',
+                    desc: 'Barcode scanning, Click & Collect pickups, restocks & returns.',
+                    icon: ShoppingBag,
+                  },
+                  {
+                    id: 'ACCOUNTANT' as ClubRole,
+                    title: 'Club Accountant',
+                    sub: 'P&L & Compliance',
+                    desc: 'General ledger, payroll disbursals, expense audits & GST tax.',
+                    icon: DollarSign,
+                  },
+                  {
+                    id: 'MANAGER' as ClubRole,
+                    title: 'General Manager',
+                    sub: 'Operations Console',
+                    desc: 'Court tariff overrides, staff shifts, inventory audits & registers.',
+                    icon: ShieldCheck,
+                  },
+                  {
+                    id: 'OWNER' as ClubRole,
+                    title: 'Club Owner',
+                    sub: 'Executive Strategy',
+                    desc: 'Clubwide financial telemetry, expense approvals & investor reports.',
+                    icon: Crown,
+                  },
+                  {
+                    id: 'SYSTEM_ADMIN' as ClubRole,
+                    title: 'System Admin',
+                    sub: 'Security & Access',
+                    desc: 'User accounts, permissions matrix, tax rates & security audit.',
+                    icon: Settings,
+                  },
+                ].map(({ id, title, sub, desc, icon: Icon }) => {
+                  const isSelected = role === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setRole(id)}
+                      className={cn(
+                        'p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden',
+                        isSelected
+                          ? 'border-[#B89047] bg-[#B89047]/15 shadow-[0_0_16px_rgba(184,144,71,0.2)] ring-1 ring-[#B89047]'
+                          : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <div className={cn(
+                          'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0',
+                          isSelected ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
+                        )}>
+                          <Icon size={15} />
+                        </div>
+                        <div className="truncate">
+                          <div className="text-xs font-bold text-[#1D1D1F] dark:text-white truncate">{title}</div>
+                          <span className="text-[9px] text-[#B89047] font-semibold uppercase tracking-wider block leading-none">{sub}</span>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-tight">
+                        {desc}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

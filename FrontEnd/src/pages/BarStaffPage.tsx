@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { useAuth } from '../context/AuthContext';
@@ -1346,8 +1347,8 @@ export const BarStaffPage: React.FC = () => {
         {/* ══════════════════════════════════════════════════════════════
             MODAL 1: DIRECT COUNTER CHECKOUT
             ══════════════════════════════════════════════════════════════ */}
-        {isCheckoutModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {isCheckoutModalOpen && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1422,14 +1423,15 @@ export const BarStaffPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 2: OPEN NEW TAB
             ══════════════════════════════════════════════════════════════ */}
-        {isOpenTabModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {isOpenTabModalOpen && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1500,14 +1502,15 @@ export const BarStaffPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 3: SETTLE TAB
             ══════════════════════════════════════════════════════════════ */}
-        {selectedTabForSettle && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedTabForSettle && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1597,14 +1600,15 @@ export const BarStaffPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ══════════════════════════════════════════════════════════════
             MODAL 4: EDIT MENU ITEM PRICE
             ══════════════════════════════════════════════════════════════ */}
-        {selectedItemForEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {selectedItemForEdit && createPortal(
+          <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
             <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border border-black/10 dark:border-white/10 bg-white dark:bg-[#0E0E12] shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-black/10 dark:border-white/10 mb-5">
                 <div>
@@ -1656,7 +1660,8 @@ export const BarStaffPage: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </PageLayout>

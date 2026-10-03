@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -12,6 +13,7 @@ interface ModalProps {
 /**
  * Modal — Haute Horlogerie & Private Club Overlay Modal
  * Smooth backdrop blur, specular inner highlights, and clean luxury dismiss.
+ * Rendered directly into document.body to ensure perfect viewport centering.
  */
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) => {
   // Close on Escape key press
@@ -32,8 +34,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
+      data-lenis-prevent
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-300"
       onClick={onClose}
     >
@@ -66,7 +69,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, classNa
 
         <div className="relative z-10">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

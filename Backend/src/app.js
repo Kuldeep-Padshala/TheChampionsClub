@@ -4,7 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { env } = require('./config/env');
-const { testConnection } = require('./config/db');
+const { testConnection, pool } = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const receptionistRoutes = require('./routes/receptionist.routes');
 const memberRoutes = require('./routes/member.routes');
@@ -44,6 +44,34 @@ app.use('/api/shop', shopRoutes);
 app.use('/api/accountant', accountantRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/owner', ownerRoutes);
+
+// ─── Public Enquiries (Landing Page / Contact Page) ───────────
+const handlePublicEnquiry = async (req, res) => {
+  try {
+    const { full_name, first_name, last_name, phone, email, topic, enquiry_type, message } = req.body;
+    const name = full_name || [first_name, last_name].filter(Boolean).join(' ') || 'Prospective Member';
+    const contactPhone = phone || 'Not Provided';
+    const type = enquiry_type || topic || 'General Enquiry';
+
+    const [result] = await pool.query(
+      `INSERT INTO enquiries (full_name, phone, email, source, enquiry_type, message, status, created_at, updated_at) 
+       VALUES (?, ?, ?, 'Website Form', ?, ?, 'Open', NOW(), NOW())`,
+      [name, contactPhone, email || null, type, message || 'Enquiry submitted via website contact form']
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Enquiry received successfully. Our team will contact you shortly.',
+      enquiryId: result.insertId,
+    });
+  } catch (err) {
+    console.error('[Public Enquiry Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to record enquiry' });
+  }
+};
+
+app.post('/api/public/enquiries', handlePublicEnquiry);
+app.post('/api/enquiries', handlePublicEnquiry);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
