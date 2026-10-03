@@ -26,7 +26,7 @@ export const CafePage = () => {
 
       {/* ── Page hero with background */}
       <div
-        className="relative bg-navy-primary text-cream py-20 md:py-28 bg-cover bg-center"
+        className="relative bg-navy-primary text-cream pt-36 pb-20 md:pt-44 md:pb-28 bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=2000&auto=format&fit=crop')",

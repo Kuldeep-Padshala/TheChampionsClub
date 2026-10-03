@@ -46,7 +46,7 @@ export const ContactPage = () => {
     <PageLayout>
 
       {/* ── Hero ── */}
-      <div className="bg-navy-primary text-cream py-20 md:py-28">
+      <div className="bg-navy-primary text-cream pt-36 pb-20 md:pt-44 md:pb-28">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-gold-primary mb-4">
             Get in Touch

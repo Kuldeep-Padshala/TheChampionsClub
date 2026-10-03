@@ -1,153 +1,251 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
-import { Button } from '../components/ui/Button';
 import { ROUTES } from '../constants/routes';
 import { CLUB_INFO } from '../constants/club';
-import { Trophy, Eye, EyeOff } from 'lucide-react';
+import { Trophy, RotateCw, ArrowLeft, Mail, User, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { PasswordInput } from '../components/auth/PasswordInput';
+import { PasswordStrength } from '../components/auth/PasswordStrength';
+import { GoogleButton } from '../components/auth/GoogleButton';
+import toast from 'react-hot-toast';
 
-export const RegisterPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+export const RegisterPage: React.FC = () => {
+  const { register, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  // In Phase 1: show "coming soon" toast
-  // In Phase 2: POST to /api/auth/register
-  const handleSubmit = (e: React.FormEvent) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If already authenticated, redirect to home
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(ROUTES.HOME);
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
+
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    if (!fullName) {
+      toast.error('Please enter your full name');
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+      toast.error('Password must contain an uppercase letter, lowercase letter, number, and special character');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (!acceptTerms) {
+      toast.error('Please agree to the Terms of Use and Privacy Policy');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await register(fullName, email.trim().toLowerCase(), password);
+      toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Your account has been created.`);
+      navigate(ROUTES.HOME, { replace: true });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Registration failed. Email may already be registered.';
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <PageLayout>
-      <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 bg-bg-subtle">
-        <div className="w-full max-w-md">
-          {/* Card */}
-          <div className="bg-bg-surface rounded-2xl border border-border shadow-lg p-8 md:p-10">
-            {/* Logo */}
+      <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4">
+        <div className="w-full max-w-lg">
+          {/* Bespoke Luxury Card */}
+          <div className="bg-white/80 dark:bg-[#0A0A0D]/85 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+            
+            {/* Crest Monogram */}
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-gold-primary flex items-center justify-center mx-auto mb-4">
-                <Trophy className="w-7 h-7 text-white" />
+              <div className="relative w-14 h-14 rounded-full p-[2px] bg-gradient-to-br from-[#EAD29A] via-[#B89047] to-[#7D5A1E] mx-auto mb-4 shadow-lg shadow-[#B89047]/20">
+                <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-[#EAD29A]" />
+                </div>
               </div>
-              <h1 className="font-display text-3xl font-bold text-navy-primary mb-1">
-                Create Account
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1D1D1F] dark:text-white tracking-tight mb-1">
+                Join The Club
               </h1>
-              <p className="text-text-secondary text-sm">
-                Join {CLUB_INFO.shortName} today
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Unlock world-class courts, private coaching, and sanctuary privileges
               </p>
             </div>
 
-            {/* Registration form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">First Name</label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="Rohit"
-                    className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
-                  />
+            {/* Google OAuth Button */}
+            <div className="mb-6">
+              <GoogleButton />
+              <div className="relative my-6 text-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-black/10 dark:border-white/10" />
                 </div>
+                <span className="relative px-3 text-[11px] font-semibold tracking-wider text-gray-400 bg-white/80 dark:bg-[#0A0A0D] uppercase">
+                  Or register with email
+                </span>
+              </div>
+            </div>
+
+            {/* Registration Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Name Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">Last Name</label>
+                  <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                    First Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Rohit"
+                      className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
+                    />
+                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                    Last Name
+                  </label>
                   <input
-                    required
                     type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     placeholder="Sharma"
-                    className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
+                    className="w-full px-4 py-3 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-navy-primary">Email</label>
-                <input
-                  required
-                  type="email"
-                  placeholder="you@example.com"
-                  className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
-                />
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-navy-primary">Phone</label>
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
-                />
-              </div>
-
-              {/* Membership plan selector */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-navy-primary">Interested in</label>
-                <select className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle cursor-pointer">
-                  <option value="">Select a membership plan</option>
-                  <option value="gold">Gold — ₹5,000/month (Full Access)</option>
-                  <option value="silver">Silver — ₹2,500/month (Standard)</option>
-                  <option value="junior">Junior — ₹1,500/month (Under 18)</option>
-                  <option value="trial">Trial Visit (No membership yet)</option>
-                </select>
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-navy-primary">Password</label>
+                <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                  Email Address
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type="email"
                     required
-                    placeholder="Minimum 8 characters"
-                    minLength={8}
-                    className="w-full p-3 pr-10 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="rohit.sharma@example.com"
+                    className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-navy-primary"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 mt-2">
-                Create My Account
-              </Button>
+              {/* Password */}
+              <div>
+                <PasswordInput
+                  label="Password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                />
+                <PasswordStrength password={password} />
+              </div>
 
-              <p className="text-xs text-text-secondary text-center">
-                By registering, you agree to our{' '}
-                <a href="#" className="text-gold-primary hover:underline">Terms of Use</a>{' '}
-                and{' '}
-                <a href="#" className="text-gold-primary hover:underline">Privacy Policy</a>.
-              </p>
+              {/* Confirm Password */}
+              <div>
+                <PasswordInput
+                  label="Confirm Password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat your password"
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                )}
+              </div>
+
+              {/* Terms checkbox */}
+              <div className="flex items-start gap-2.5 pt-1">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-[#B89047] focus:ring-[#B89047] cursor-pointer"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400 leading-snug cursor-pointer select-none">
+                  I agree to the{' '}
+                  <span className="text-[#B89047] hover:underline font-medium">Terms of Service</span>,{' '}
+                  <span className="text-[#B89047] hover:underline font-medium">Code of Conduct</span>, and{' '}
+                  <span className="text-[#B89047] hover:underline font-medium">Privacy Policy</span>.
+                </label>
+              </div>
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] dark:from-[#B89047] dark:via-[#A67C38] dark:to-[#8C6826] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 cursor-pointer mt-4"
+              >
+                {isSubmitting ? (
+                  <>
+                    <RotateCw size={16} className="animate-spin" />
+                    <span>Establishing Membership...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck size={16} />
+                    <span>Create My Membership</span>
+                  </>
+                )}
+              </button>
             </form>
 
-            {/* Phase 1 coming soon toast */}
-            {showToast && (
-              <div className="mt-5 bg-blue-50 text-blue-800 p-4 rounded-lg border border-blue-200 text-sm text-center font-medium">
-                🚀 Account creation is coming in Phase 2. We're building it for you!
-              </div>
-            )}
-
-            {/* Login link */}
-            <div className="mt-8 pt-6 border-t border-border text-center text-sm text-text-secondary">
-              Already a member?{' '}
-              <Link to={ROUTES.LOGIN} className="text-gold-primary font-bold hover:underline">
-                Log In
+            {/* Existing member */}
+            <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400">
+              Already a distinguished member?{' '}
+              <Link to={ROUTES.LOGIN} className="text-[#B89047] dark:text-[#EAD29A] font-bold hover:underline ml-1">
+                Sign In
               </Link>
             </div>
           </div>
 
           {/* Back to home */}
           <div className="text-center mt-6">
-            <Link to={ROUTES.HOME} className="text-sm text-text-secondary hover:text-navy-primary transition-colors">
-              ← Back to homepage
+            <Link
+              to={ROUTES.HOME}
+              className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-[#B89047] dark:hover:text-[#EAD29A] transition-colors"
+            >
+              <ArrowLeft size={13} />
+              <span>Back to Sanctuary Homepage</span>
             </Link>
           </div>
         </div>
@@ -155,3 +253,5 @@ export const RegisterPage = () => {
     </PageLayout>
   );
 };
+
+export default RegisterPage;

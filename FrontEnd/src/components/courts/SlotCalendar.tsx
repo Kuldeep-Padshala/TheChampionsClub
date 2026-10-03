@@ -1,9 +1,10 @@
-﻿import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
 import { TimeSlot } from '../../types/court.types';
 import { generateWeekDays, formatDate } from '../../utils/dateUtils';
 import { cn } from '../../utils/cn';
 import { useLoginPrompt } from '../../hooks/useLoginPrompt';
+import { useTheme } from '../../context/ThemeContext';
 
 interface SlotCalendarProps {
   slots: TimeSlot[];
@@ -13,6 +14,8 @@ interface SlotCalendarProps {
 export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange }) => {
   const [currentDate, setCurrentDate] = useState(new Date('2026-10-05'));
   const { requireLogin } = useLoginPrompt();
+  const { theme } = useTheme();
+  const isNight = theme === 'night';
   
   const weekDays = generateWeekDays(currentDate);
   const timeHours = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM
@@ -44,53 +47,90 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
   };
 
   return (
-    <div className="bg-bg-surface border border-border rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-border bg-bg-subtle">
-        <button onClick={prevWeek} className="p-2 rounded-md hover:bg-white text-navy-primary transition-colors"><ChevronLeft size={20} /></button>
-        <h3 className="font-semibold text-navy-primary">
-          Week of {currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-        </h3>
-        <button onClick={nextWeek} className="p-2 rounded-md hover:bg-white text-navy-primary transition-colors"><ChevronRight size={20} /></button>
+    <div className="bg-white dark:bg-[#0A0A0D] border border-black/[0.08] dark:border-white/[0.09] rounded-[28px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.85)]">
+      {/* ── Console Header ── */}
+      <div className="flex items-center justify-between p-5 sm:p-6 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#FAF9F6] dark:bg-[#121216]">
+        <button
+          onClick={prevWeek}
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#1A1A22] border border-black/[0.08] dark:border-white/10 text-[#1D1D1F] dark:text-white hover:border-[#B89047] hover:text-[#B89047] transition-all active:scale-95 shadow-sm"
+          aria-label="Previous Week"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        <div className="text-center">
+          <span className="text-[10px] uppercase font-bold tracking-[0.24em] text-[#B89047] block mb-0.5">
+            CONCIERGE SCHEDULER
+          </span>
+          <h3 className="font-display font-bold text-lg sm:text-xl text-[#1D1D1F] dark:text-white tracking-tight">
+            Week of {currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </h3>
+        </div>
+
+        <button
+          onClick={nextWeek}
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#1A1A22] border border-black/[0.08] dark:border-white/10 text-[#1D1D1F] dark:text-white hover:border-[#B89047] hover:text-[#B89047] transition-all active:scale-95 shadow-sm"
+          aria-label="Next Week"
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
       
+      {/* ── Calendar Matrix ── */}
       <div className="overflow-x-auto">
-        <div className="min-w-[700px]">
-          <div className="grid grid-cols-8 border-b border-border bg-gray-50/50 text-sm font-medium">
-            <div className="p-3 text-center text-text-secondary border-r border-border">Time</div>
+        <div className="min-w-[760px]">
+          {/* Day Headers */}
+          <div className="grid grid-cols-8 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#F5F4F0] dark:bg-[#101014] text-xs font-semibold">
+            <div className="p-3.5 text-center text-[#86868B] border-r border-black/[0.06] dark:border-white/[0.08] uppercase tracking-wider font-display">
+              Timeline
+            </div>
             {weekDays.map((d, i) => (
-              <div key={i} className="p-3 text-center border-r border-border last:border-0 text-navy-primary">
-                <div>{d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                <div className="text-xs text-text-secondary mt-1">{d.getDate()}</div>
+              <div
+                key={i}
+                className="p-3 text-center border-r border-black/[0.06] dark:border-white/[0.08] last:border-0 text-[#1D1D1F] dark:text-white"
+              >
+                <div className="font-bold tracking-tight">{d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div className="text-[11px] text-[#B89047] font-semibold mt-0.5">{d.getDate()}</div>
               </div>
             ))}
           </div>
           
-          <div className="max-h-[500px] overflow-y-auto">
-            {timeHours.map(hour => (
-              <div key={hour} className="grid grid-cols-8 border-b border-border last:border-0 text-sm hover:bg-gray-50/30">
-                <div className="p-3 text-center text-text-secondary border-r border-border font-medium">
-                  {hour === 12 ? '12 PM' : hour > 12 ? `${hour-12} PM` : `${hour} AM`}
+          {/* Time Rows */}
+          <div className="max-h-[520px] overflow-y-auto divide-y divide-black/[0.04] dark:divide-white/[0.05]">
+            {timeHours.map((hour) => (
+              <div
+                key={hour}
+                className="grid grid-cols-8 text-xs hover:bg-[#FAF9F6]/80 dark:hover:bg-white/[0.02] transition-colors"
+              >
+                <div className="p-3 text-center text-[#86868B] border-r border-black/[0.06] dark:border-white/[0.08] font-mono font-medium flex items-center justify-center">
+                  {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
                 </div>
                 {weekDays.map((d, i) => {
                   const slot = getSlot(d, hour);
                   return (
-                    <div key={i} className="p-1 border-r border-border last:border-0">
+                    <div
+                      key={i}
+                      className="p-1 border-r border-black/[0.06] dark:border-white/[0.08] last:border-0"
+                    >
                       {slot ? (
                         <button
                           onClick={() => handleSlotClick(slot)}
                           disabled={slot.status !== 'available'}
                           className={cn(
-                            "w-full h-full min-h-[40px] rounded flex items-center justify-center text-xs font-medium transition-colors",
-                            slot.status === 'available' ? "bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer" :
-                            slot.status === 'booked' ? "bg-red-50 text-red-400 cursor-not-allowed" :
-                            "bg-amber-100 text-amber-700 cursor-not-allowed"
+                            'w-full h-full min-h-[38px] rounded-lg flex items-center justify-center text-[11px] font-bold tracking-tight transition-all duration-200',
+                            slot.status === 'available' &&
+                              'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:scale-[1.02] cursor-pointer shadow-sm',
+                            slot.status === 'booked' &&
+                              'bg-neutral-100 dark:bg-white/[0.03] text-neutral-400 dark:text-neutral-500 cursor-not-allowed border border-transparent',
+                            slot.status === 'social' &&
+                              'bg-[#B89047]/15 text-[#997332] dark:text-[#EAD29A] border border-[#B89047]/30 cursor-not-allowed'
                           )}
                         >
                           {slot.status === 'available' ? 'Book' : slot.status === 'booked' ? 'Booked' : 'Social Play'}
                         </button>
                       ) : (
-                        <div className="w-full h-full min-h-[40px] rounded bg-gray-50/50 border border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-400">
-                          -
+                        <div className="w-full h-full min-h-[38px] rounded-lg bg-black/[0.01] dark:bg-white/[0.01] border border-dashed border-black/[0.04] dark:border-white/[0.04] flex items-center justify-center text-[11px] text-[#A1A1A6]">
+                          —
                         </div>
                       )}
                     </div>
@@ -102,12 +142,30 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({ slots, onWeekChange 
         </div>
       </div>
       
-      <div className="p-4 bg-bg-subtle border-t border-border flex items-center gap-6 text-sm">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-400"></div> <span>Available</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-400 opacity-50"></div> <span>Booked</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-400"></div> <span>Social Play</span></div>
+      {/* ── Console Footer Legend ── */}
+      <div className="p-4 sm:p-5 bg-[#FAF9F6] dark:bg-[#121216] border-t border-black/[0.06] dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+            <span className="font-medium text-[#1D1D1F] dark:text-white">Live Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+            <span className="font-medium text-[#86868B]">Reserved</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#B89047]" />
+            <span className="font-medium text-[#B89047]">Member Social Play</span>
+          </div>
+        </div>
+
+        <div className="text-[11px] text-[#86868B] font-medium flex items-center gap-1">
+          <Sparkles size={12} className="text-[#B89047]" />
+          Instant reservation confirmed to your member profile
+        </div>
       </div>
     </div>
   );
 };
 
+export default SlotCalendar;

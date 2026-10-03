@@ -1,97 +1,162 @@
 import React from 'react';
 import { Product } from '../../types/shop.types';
-import { Card, CardContent } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
+import { SpotlightCard } from '../ui/SpotlightCard';
 import { formatPrice } from '../../utils/priceUtils';
-import { ShoppingCart, Package } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { ShoppingBag, Package, Sparkles, ChevronRight, Check } from 'lucide-react';
+import { cn } from '../../utils/cn';
 
 interface ProductCardProps {
   product: Product;
   onBuy: () => void;
 }
 
+/**
+ * ProductCard — Curated Pro Shop Luxury Gear Card
+ * Inspired by Aceternity UI, ReactBits.dev, and Kokonut UI.
+ */
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuy }) => {
+  const { theme } = useTheme();
+  const isNight = theme === 'night';
   const isOutOfStock = product.stock === 'out-of-stock';
+  const isLowStock = product.stock === 'low-stock';
 
   return (
-    <Card className="flex flex-col h-full group hover:shadow-md hover:-translate-y-1 transition-all">
-      {/* Product image container */}
-      <div className="relative h-52 w-full p-4 bg-white flex items-center justify-center overflow-hidden rounded-t-xl">
+    <SpotlightCard
+      className="group flex flex-col h-full cursor-pointer select-none"
+      enableTilt={true}
+      tiltIntensity={3}
+      onClick={!isOutOfStock ? onBuy : undefined}
+    >
+      {/* ── Visual Showcase Pedestal ── */}
+      <div className="relative h-60 w-full p-6 flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#F9F8F6] to-[#F2EFE9] dark:from-[#141418] dark:to-[#0D0D10] border-b border-black/[0.05] dark:border-white/[0.06]">
+        {/* Soft Radial Center Light */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(184,144,71,0.12)_0%,transparent_70%)] pointer-events-none"
+        />
+
+        {/* Product Image with Hover Spring Zoom */}
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-        />
-        {/* Stock badges (top-left corner) */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.stock === 'low-stock' && (
-            <Badge variant="warning">Low Stock</Badge>
+          className={cn(
+            'max-h-48 max-w-full object-contain transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:scale-110 drop-shadow-md',
+            isOutOfStock && 'opacity-40 grayscale'
           )}
-          {product.stock === 'out-of-stock' && (
-            <Badge variant="danger">Out of Stock</Badge>
+        />
+
+        {/* Top-Left: Brand Monogram Chip */}
+        <div className="absolute top-4 left-4 z-20">
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase bg-black/60 dark:bg-black/70 backdrop-blur-md text-white border border-white/20 shadow-sm font-display">
+            {product.brand}
+          </span>
+        </div>
+
+        {/* Top-Right: Stock Status Pill */}
+        <div className="absolute top-4 right-4 z-20">
+          {isLowStock && (
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/35 backdrop-blur-md shadow-sm">
+              Limited Reserve
+            </span>
+          )}
+          {isOutOfStock && (
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/35 backdrop-blur-md shadow-sm">
+              Sold Out
+            </span>
           )}
         </div>
       </div>
 
-      <CardContent className="flex-1 flex flex-col p-5 border-t border-border">
-        {/* Brand label */}
-        <div className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1">
-          {product.brand}
-        </div>
-        {/* Product name */}
-        <h3 className="text-base font-semibold text-navy-primary mb-3 line-clamp-2 flex-1">
-          {product.name}
-        </h3>
+      {/* ── Product Dossier ── */}
+      <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Category Tag */}
+          <span className="text-[10px] uppercase font-bold tracking-[0.22em] text-[#B89047] block mb-1.5">
+            Tour Equipment • {product.category}
+          </span>
 
-        {/* Pricing block */}
-        <div className="space-y-1 mb-4">
-          {/* Member price — highlighted in gold */}
-          {product.memberPrice && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-navy-mid font-medium">Member Price</span>
-              <span className="text-base font-bold text-gold-primary">
-                {formatPrice(product.memberPrice)}
-              </span>
-            </div>
-          )}
-          {/* Regular / walk-in price */}
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-text-secondary">
-              {product.memberPrice ? 'Regular Price' : 'Price'}
-            </span>
-            <span
-              className={
-                product.memberPrice
-                  ? 'text-xs text-text-secondary line-through'
-                  : 'text-base font-bold text-navy-primary'
-              }
-            >
-              {formatPrice(product.price)}
-            </span>
+          {/* Product Name */}
+          <h3 className="text-xl font-display font-bold tracking-tight text-[#1D1D1F] dark:text-white line-clamp-2 group-hover:text-[#B89047] transition-colors duration-300 mb-2">
+            {product.name}
+          </h3>
+
+          <p className="text-xs text-[#71717A] dark:text-[#A1A1A6] mb-5">
+            Engineered for elite {product.sport} performance and durability.
+          </p>
+        </div>
+
+        <div>
+          {/* ── Pricing Matrix ── */}
+          <div className="rounded-xl p-3.5 bg-[#FAF9F6] dark:bg-[#121216] border border-black/[0.05] dark:border-white/[0.06] mb-5">
+            {product.memberPrice ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#86868B]">
+                    Regular Price
+                  </span>
+                  <span className="text-xs text-[#86868B] line-through font-mono">
+                    {formatPrice(product.price)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-black/[0.05] dark:border-white/[0.06]">
+                  <span className="text-xs font-bold text-[#B89047] flex items-center gap-1">
+                    <Sparkles size={12} /> Member Price
+                  </span>
+                  <span className="text-lg font-bold text-[#1D1D1F] dark:text-white font-display">
+                    {formatPrice(product.memberPrice)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#86868B]">Price</span>
+                <span className="text-lg font-bold text-[#1D1D1F] dark:text-white font-display">
+                  {formatPrice(product.price)}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Add to Cart / Sold Out button */}
-        <Button
-          onClick={onBuy}
-          disabled={isOutOfStock}
-          className="w-full gap-2 flex items-center justify-center"
-          variant={isOutOfStock ? 'ghost' : 'primary'}
-        >
-          {isOutOfStock ? (
-            <>
-              <Package size={15} />
-              Sold Out
-            </>
-          ) : (
-            <>
-              <ShoppingCart size={15} />
-              Add to Cart
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+          {/* ── Action CTA Button ── */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isOutOfStock) onBuy();
+            }}
+            disabled={isOutOfStock}
+            className={cn(
+              'w-full h-11 rounded-full font-semibold text-xs tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group/btn active:scale-[0.98]',
+              isOutOfStock
+                ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed border border-transparent'
+                : isNight
+                ? 'bg-[#18181D] hover:bg-[#22222A] text-white border border-[#B89047]/45 hover:border-[#B89047] shadow-md hover:shadow-[0_0_20px_rgba(184,144,71,0.3)]'
+                : 'bg-[#121214] hover:bg-black text-white border border-[#B89047]/40 shadow-sm hover:shadow-[0_8px_20px_-6px_rgba(184,144,71,0.3)]'
+            )}
+          >
+            {/* Shimmer Light Reflection Sweep */}
+            {!isOutOfStock && (
+              <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent ease-out pointer-events-none" />
+            )}
+
+            {isOutOfStock ? (
+              <>
+                <Package size={14} />
+                <span>Currently Unavailable</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={14} className="text-[#EAD29A] flex-shrink-0" />
+                <span className="relative z-10 font-display">Acquire In Pro Shop</span>
+                <ChevronRight size={13} className="group-hover/btn:translate-x-1 transition-transform relative z-10" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </SpotlightCard>
   );
 };
+
+export default ProductCard;

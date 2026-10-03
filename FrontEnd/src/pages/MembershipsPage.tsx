@@ -59,7 +59,7 @@ export const MembershipsPage = () => {
     <PageLayout>
 
       {/* ── Hero ── */}
-      <div className="bg-navy-primary text-cream py-20 md:py-28">
+      <div className="bg-navy-primary text-cream pt-36 pb-20 md:pt-44 md:pb-28">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-gold-primary mb-4">
             Membership Plans
@@ -75,8 +75,9 @@ export const MembershipsPage = () => {
       {/* Negative top margin pulls the cards up into the hero for a premium overlap effect */}
       <div className="container mx-auto px-4 md:px-6 relative z-20 -mt-10 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-          {plans.map(plan => (
+          {plans.map((plan, index) => (
             <MembershipCard
+              index={index}
               key={plan.id}
               plan={plan}
               onJoin={() => requireLogin('choose a membership plan')}

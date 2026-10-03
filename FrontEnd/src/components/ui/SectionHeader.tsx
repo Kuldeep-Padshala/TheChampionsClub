@@ -25,22 +25,16 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(centered ? 'text-center flex flex-col items-center' : 'text-left', 'mb-8 animate-fade-in-up', className)}>
-      {/* Gold decorative line — shown above the title */}
-      <div className={cn(
-        'w-12 h-0.5 bg-gold-primary rounded-full mb-6',
-        centered ? 'mx-auto' : ''
-      )} />
-
-      {/* Main heading */}
-      <h2 className="font-display text-4xl md:text-5xl text-navy-primary leading-tight mb-4 tracking-tight">
+    <div className={cn(centered ? 'text-center flex flex-col items-center' : 'text-left', 'mb-10 md:mb-14', className)}>
+      {/* Main heading in Apple typography */}
+      <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-[#1D1D1F] tracking-tight leading-[1.08] mb-3 md:mb-4">
         {title}
       </h2>
 
-      {/* Optional subtitle */}
+      {/* Apple subtitle */}
       {subtitle && (
         <p className={cn(
-          'text-text-secondary text-base md:text-lg leading-relaxed font-light',
+          'text-[#86868B] text-base md:text-xl font-normal leading-relaxed',
           centered ? 'max-w-2xl text-center mx-auto' : 'max-w-xl'
         )}>
           {subtitle}

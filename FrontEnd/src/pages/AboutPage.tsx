@@ -3,6 +3,9 @@ import { PageLayout } from '../components/layout/PageLayout';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { Trophy, Target, Heart, Users, Award, Zap } from 'lucide-react';
 import galleryData from '../data/gallery.json';
+import { ScrollExpand } from '../components/ui/ScrollExpand';
+import { MaskedHeading } from '../components/ui/MaskedHeading';
+import { SpotlightCard } from '../components/ui/SpotlightCard';
 
 export const AboutPage = () => {
   // Club facilities list
@@ -50,124 +53,178 @@ export const AboutPage = () => {
   return (
     <PageLayout>
 
-      {/* ── Hero ── */}
-      <div className="bg-navy-primary text-cream py-20 md:py-28">
-        <div className="container mx-auto px-4 md:px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-gold-primary mb-4">
-            Our Story
+      {/* ── Apple-Grade Editorial Hero ── */}
+      <section className="pt-32 md:pt-40 pb-16 md:pb-20 bg-white text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <span className="text-xs uppercase tracking-widest text-[#86868B] font-semibold mb-3 block">
+            Our Mission &amp; Heritage
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-[#1D1D1F] leading-[1.08] mb-6">
+            A sanctuary built for <br className="hidden sm:inline" />
+            <span className="apple-gradient-text">athletic excellence.</span>
           </h1>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Founded in 2018, The Champions Club was built on a simple belief: premium sports facilities should be accessible to the community — not just a lucky few.
+          <p className="text-lg md:text-xl text-[#86868B] max-w-2xl mx-auto leading-relaxed">
+            Founded in 2018, The Champions Club was conceived with a clear vision:
+            to give players access to tour-grade sporting facilities, world-class equipment,
+            and an authentic community — without the pretensions of old-world country clubs.
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* ── Club story ── */}
-      <div className="py-20 bg-bg-primary">
-        <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      {/* ── Club Story Split ── */}
+      <section className="py-16 md:py-24 bg-[#F5F5F7]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
             {/* Story text */}
-            <div className="space-y-5 text-text-secondary leading-relaxed">
-              <p>
-                We noticed a gap in the market: serious players had to choose between impossibly expensive country clubs or under-maintained public courts with zero amenities. The Champions Club was built to bridge that gap.
+            <div className="space-y-6 text-[#1D1D1F] leading-relaxed text-base md:text-lg">
+              <span className="text-xs uppercase font-semibold text-[#86868B] tracking-wider">The Origin</span>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-[#1D1D1F]">
+                Closing the gap between amateur play and tour standards.
+              </h2>
+              <p className="text-[#86868B] text-base leading-relaxed">
+                We observed a glaring divide: dedicated athletes were forced to choose between exorbitantly priced heritage clubs with multi-year waiting lists, or neglected public courts lacking basic lighting, coaching, and amenities.
               </p>
-              <p>
-                Today, we're proud to host over 500 active members across our three tiers — Gold, Silver, and Junior — ranging from weekend social players to ranked competitive athletes.
-              </p>
-              <p>
-                Our flagship facility in Koramangala features world-class courts, a fully stocked pro shop, and The Clubhouse Cafe & Bar — which has become a social hub for the local sporting community.
-              </p>
-              <p>
-                We believe sport builds character, community, and confidence. Everything we do — from our coaching programs to our bar menu — is designed to make The Champions Club your second home.
+              <p className="text-[#86868B] text-base leading-relaxed">
+                The Champions Club was engineered to be the definitive alternative. Today, our Koramangala facility proudly welcomes over 500 active members — ranging from junior competitors to ranked circuit players.
               </p>
             </div>
-            {/* Feature image */}
-            <div className="rounded-2xl overflow-hidden shadow-lg">
+
+            {/* Feature Image Frame */}
+            <div className="rounded-[32px] overflow-hidden border border-black/[0.08] shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=700&auto=format&fit=crop"
-                alt="The Champions Club main court"
-                className="w-full h-80 object-cover"
+                src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=1000&auto=format&fit=crop"
+                alt="The Champions Club facility"
+                className="w-full h-[400px] object-cover hover:scale-105 transition-transform duration-700"
               />
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Stats row ── */}
-      <div className="py-16 bg-gold-primary">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-navy-primary">
+      {/* ── Apple-Style Stat Highlights ── */}
+      <section className="py-16 bg-white border-y border-black/[0.06]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center">
             {[
-              { number: '500+', label: 'Active Members' },
-              { number: '4',    label: 'Premium Courts' },
-              { number: '8',    label: 'Years Running'  },
-              { number: '1000+', label: 'Matches Played Monthly' },
+              { number: '500+',  label: 'Active Members',         desc: 'Elite sporting community' },
+              { number: '4',     label: 'Championship Courts',   desc: 'Synthetic grass, hard & indoor' },
+              { number: '8 Yrs', label: 'Consistent Excellence',  desc: 'Established Bengaluru 2018' },
+              { number: '1,200+',label: 'Monthly Matches',        desc: 'Played under pro floodlights' },
             ].map((stat, i) => (
-              <div key={i}>
-                <div className="font-display text-4xl md:text-5xl font-bold mb-2">{stat.number}</div>
-                <div className="text-sm font-semibold opacity-80">{stat.label}</div>
+              <div key={i} className="space-y-1">
+                <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">{stat.number}</div>
+                <div className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#1D1D1F]">{stat.label}</div>
+                <div className="text-xs text-[#86868B]">{stat.desc}</div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Facilities grid ── */}
-      <div className="py-24 bg-bg-primary">
-        <div className="container mx-auto px-4 md:px-6">
-          <SectionHeader title="Our Facilities" subtitle="Everything you need, under one roof." centered />
+      {/* ── ScrollExpand Section (Globetrotter style) ── */}
+      <section className="w-full relative z-20 my-16 max-w-7xl mx-auto px-4 sm:px-6">
+        <ScrollExpand
+          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2000&auto=format&fit=crop"
+          alt="The Arena Sanctuary"
+          title="The Sanctuary"
+          scrollHint="Scroll down to expand"
+        >
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">Built Without Compromise</h2>
+          <p className="text-lg md:text-xl text-white/80 max-w-lg mx-auto">From sub-base drainage to electronic restringing, every detail is engineered for perfection.</p>
+        </ScrollExpand>
+      </section>
+
+      {/* ── MaskedHeading Section (Image behind text effect) ── */}
+      <section className="py-20 w-full flex flex-col items-center justify-center bg-white overflow-hidden">
+        <div className="w-full max-w-5xl px-4">
+          <MaskedHeading 
+            text="DISCIPLINE CREATES MASTERY" 
+            src="https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=2000&auto=format&fit=crop"
+            trigger="view"
+            weight={800}
+            tracking={-0.04}
+          />
+        </div>
+      </section>
+
+      {/* ── Facilities Bento Grid ── */}
+      <section className="py-24 bg-[#F5F5F7]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title="Every facility, elevated."
+            subtitle="Designed for precision training, match play, and recovery."
+            centered
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
             {facilities.map((fac, i) => {
               const Icon = fac.icon;
               return (
-                <div key={i} className="bg-bg-surface border border-border rounded-2xl p-7 hover:shadow-md hover:border-gold-light transition-all">
-                  <div className="w-12 h-12 bg-bg-subtle rounded-xl flex items-center justify-center mb-5">
-                    <Icon className="w-6 h-6 text-gold-primary" />
+                <SpotlightCard
+                  key={i}
+                  className="p-8 group cursor-pointer"
+                  enableTilt={true}
+                  tiltIntensity={2.5}
+                >
+                  <div className="w-12 h-12 bg-[#FAF8F5] dark:bg-white/[0.06] rounded-2xl flex items-center justify-center mb-6 border border-black/[0.06] dark:border-white/10 group-hover:scale-105 transition-transform">
+                    <Icon size={22} className="text-[#B89047]" />
                   </div>
-                  <h3 className="text-lg font-display font-bold text-navy-primary mb-2">{fac.title}</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">{fac.desc}</p>
-                </div>
+                  <h3 className="text-xl font-display font-bold text-[#1D1D1F] dark:text-white tracking-tight mb-2 group-hover:text-[#B89047] transition-colors">{fac.title}</h3>
+                  <p className="text-sm text-[#71717A] dark:text-[#A1A1A6] leading-relaxed font-normal">{fac.desc}</p>
+                </SpotlightCard>
               );
             })}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Photo gallery ── */}
-      <div className="py-20 bg-bg-subtle">
-        <div className="container mx-auto px-4 md:px-6">
-          <SectionHeader title="Gallery" centered />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10 max-w-5xl mx-auto">
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title="Life inside The Club."
+            subtitle="Explore our facilities, morning sessions, and evening matches."
+            centered
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto">
             {galleryData.map(item => (
-              <div key={item.id} className="overflow-hidden rounded-xl group">
+              <div key={item.id} className="overflow-hidden rounded-[28px] border border-black/[0.06] shadow-sm group">
                 <img
                   src={item.url}
                   alt={item.alt}
-                  className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Meet the team ── */}
-      <div className="py-20 bg-bg-primary">
-        <div className="container mx-auto px-4 md:px-6">
-          <SectionHeader title="Meet the Team" centered />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mt-12">
+      <section className="py-24 bg-[#F5F5F7]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionHeader
+            title="Leadership &amp; Coaching"
+            subtitle="The directors, trainers, and hospitality leads dedicated to your experience."
+            centered
+          />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto mt-12">
             {team.map((member, i) => (
-              <div key={i} className="text-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 border-4 border-gold-light/40">
+              <SpotlightCard
+                key={i}
+                className="text-center p-6 group cursor-pointer"
+                enableTilt={true}
+                tiltIntensity={3}
+              >
+                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2 border-[#B89047]/30 shadow-md group-hover:scale-105 group-hover:border-[#B89047] transition-all">
                   <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
                 </div>
-                <h4 className="font-display font-bold text-navy-primary text-sm">{member.name}</h4>
-                <p className="text-xs text-text-secondary mt-1">{member.role}</p>
-              </div>
+                <h4 className="font-display font-bold text-[#1D1D1F] dark:text-white text-base tracking-tight group-hover:text-[#B89047] transition-colors">{member.name}</h4>
+                <p className="text-xs text-[#86868B] dark:text-[#A1A1A6] mt-1 font-medium">{member.role}</p>
+              </SpotlightCard>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
     </PageLayout>
   );

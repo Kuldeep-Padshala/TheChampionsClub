@@ -1,108 +1,179 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
-import { Button } from '../components/ui/Button';
 import { ROUTES } from '../constants/routes';
 import { CLUB_INFO } from '../constants/club';
-import { Trophy, Eye, EyeOff } from 'lucide-react';
+import { Trophy, RotateCw, ArrowLeft, Mail } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { PasswordInput } from '../components/auth/PasswordInput';
+import { GoogleButton } from '../components/auth/GoogleButton';
+import toast from 'react-hot-toast';
 
-export const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  // Shows a "coming soon" toast when user tries to submit
-  const [showToast, setShowToast] = useState(false);
+export const LoginPage: React.FC = () => {
+  const { login, isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // In Phase 1: show a "backend coming soon" toast
-  // In Phase 2: POST credentials to /api/auth/login
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If already authenticated, redirect to respective role portal
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const isStaff = user.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
+      const state = location.state as { from?: { pathname?: string } } | null;
+      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.HOME);
+      navigate(destination, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location.state]);
+
+  // Check for OAuth error query param
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const err = params.get('error');
+    if (err === 'google_not_configured') {
+      toast.error('Google Sign-In is not configured on this server yet. Please use email and password.');
+    } else if (err === 'google_failed') {
+      toast.error('Google Sign-In failed or was cancelled. Please try again.');
+    }
+  }, [location.search]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
+    if (!email || !password) {
+      toast.error('Please fill in both email and password');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const loggedUser = await login(email.trim(), password);
+      toast.success(`Welcome back, ${loggedUser.name}!`);
+      const isStaff = loggedUser.roles?.some((r: string) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
+      // Check if there was a redirected location state
+      const state = location.state as { from?: { pathname?: string } } | null;
+      const destination = state?.from?.pathname || (isStaff ? ROUTES.RECEPTIONIST : ROUTES.HOME);
+      navigate(destination, { replace: true });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Invalid email, phone, or password. Please verify your credentials.';
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <PageLayout>
-      <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 bg-bg-subtle">
+      <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4">
         <div className="w-full max-w-md">
-          {/* Card */}
-          <div className="bg-bg-surface rounded-2xl border border-border shadow-lg p-8 md:p-10">
-            {/* Logo */}
+          {/* Bespoke Luxury Card */}
+          <div className="bg-white/80 dark:bg-[#0A0A0D]/85 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+            
+            {/* Crest Monogram */}
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-full bg-gold-primary flex items-center justify-center mx-auto mb-4">
-                <Trophy className="w-7 h-7 text-white" />
+              <div className="relative w-14 h-14 rounded-full p-[2px] bg-gradient-to-br from-[#EAD29A] via-[#B89047] to-[#7D5A1E] mx-auto mb-4 shadow-lg shadow-[#B89047]/20">
+                <div className="w-full h-full rounded-full bg-[#121214] flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-[#EAD29A]" />
+                </div>
               </div>
-              <h1 className="font-display text-3xl font-bold text-navy-primary mb-1">
-                Welcome Back
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1D1D1F] dark:text-white tracking-tight mb-1">
+                Member Access
               </h1>
-              <p className="text-text-secondary text-sm">
-                Log in to {CLUB_INFO.shortName}
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Sign in to your private {CLUB_INFO.shortName} portal
               </p>
             </div>
 
-            {/* Login form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email field */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-navy-primary">Email</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="member@example.com"
-                  className="w-full p-3 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
-                />
-              </div>
-
-              {/* Password field with show/hide toggle */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-semibold text-navy-primary">Password</label>
-                  <a href="#" className="text-sm text-gold-primary hover:underline">
-                    Forgot password?
-                  </a>
+            {/* Google OAuth Button */}
+            <div className="mb-6">
+              <GoogleButton />
+              <div className="relative my-6 text-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-black/10 dark:border-white/10" />
                 </div>
+                <span className="relative px-3 text-[11px] font-semibold tracking-wider text-gray-400 bg-white/80 dark:bg-[#0A0A0D] uppercase">
+                  Or continue with password
+                </span>
+              </div>
+            </div>
+
+            {/* Login form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email / Phone field */}
+              <div className="space-y-1.5">
+                <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
+                  Email or Registered Phone
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type="text"
                     required
-                    placeholder="••••••••"
-                    className="w-full p-3 pr-10 rounded-lg border border-border focus:ring-2 focus:ring-gold-primary outline-none text-sm bg-bg-subtle"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@example.com or +91 98..."
+                    className="w-full px-4 py-3 pl-11 rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-[#B89047] focus:ring-2 focus:ring-[#B89047]/20 outline-none text-sm transition-all shadow-sm"
                   />
-                  {/* Show/hide password button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-navy-primary"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  <Mail size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 mt-2">
-                Log In
-              </Button>
+              {/* Password field */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="sr-only">Password</span>
+                </div>
+                <PasswordInput
+                  label="Password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                />
+                <div className="flex justify-end -mt-2">
+                  <Link
+                    to={ROUTES.FORGOT_PASSWORD}
+                    className="text-xs font-semibold text-[#B89047] hover:text-[#A67C38] dark:hover:text-[#EAD29A] transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+              </div>
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] dark:from-[#B89047] dark:via-[#A67C38] dark:to-[#8C6826] hover:opacity-95 shadow-md border border-[#B89047]/30 transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 cursor-pointer mt-4"
+              >
+                {isSubmitting ? (
+                  <>
+                    <RotateCw size={16} className="animate-spin" />
+                    <span>Verifying Credentials...</span>
+                  </>
+                ) : (
+                  <span>Access Private Portal</span>
+                )}
+              </button>
             </form>
 
-            {/* "Backend coming soon" notice — shown after submit in Phase 1 */}
-            {showToast && (
-              <div className="mt-5 bg-blue-50 text-blue-800 p-4 rounded-lg border border-blue-200 text-sm text-center font-medium">
-                🚀 Authentication backend is coming in Phase 2. Stay tuned!
-              </div>
-            )}
-
             {/* Sign up link */}
-            <div className="mt-8 pt-6 border-t border-border text-center text-sm text-text-secondary">
-              Don't have an account?{' '}
-              <Link to={ROUTES.REGISTER} className="text-gold-primary font-bold hover:underline">
-                Sign up for free
+            <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400">
+              Not yet a member?{' '}
+              <Link to={ROUTES.REGISTER} className="text-[#B89047] dark:text-[#EAD29A] font-bold hover:underline ml-1">
+                Apply for Membership
               </Link>
             </div>
           </div>
 
           {/* Back to home */}
           <div className="text-center mt-6">
-            <Link to={ROUTES.HOME} className="text-sm text-text-secondary hover:text-navy-primary transition-colors">
-              ← Back to homepage
+            <Link
+              to={ROUTES.HOME}
+              className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-[#B89047] dark:hover:text-[#EAD29A] transition-colors"
+            >
+              <ArrowLeft size={13} />
+              <span>Back to Sanctuary Homepage</span>
             </Link>
           </div>
         </div>
@@ -110,3 +181,5 @@ export const LoginPage = () => {
     </PageLayout>
   );
 };
+
+export default LoginPage;

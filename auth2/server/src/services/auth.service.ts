@@ -7,7 +7,6 @@ import type { User } from '../types';
 
 const SALT_ROUNDS = 12;
 const OTP_MAX_ATTEMPTS = 5;
-const OTP_EXPIRY_MINUTES = 10;
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -21,18 +20,20 @@ function generateOtp(): string {
 
 async function findUserByEmail(email: string): Promise<User | null> {
   const [rows] = await pool.execute(
-    'SELECT * FROM users WHERE email = ? LIMIT 1',
+    'SELECT id, full_name as name, email, password_hash, (CASE WHEN email_verified_at IS NOT NULL THEN 1 ELSE 0 END) as is_email_verified, created_at, updated_at FROM users WHERE email = ? LIMIT 1',
     [email]
-  ) as [User[], any];
-  return rows[0] || null;
+  ) as [any[], any];
+  if (!rows[0]) return null;
+  return { ...rows[0], id: String(rows[0].id) };
 }
 
 async function findUserById(id: string): Promise<User | null> {
   const [rows] = await pool.execute(
-    'SELECT * FROM users WHERE id = ? LIMIT 1',
+    'SELECT id, full_name as name, email, password_hash, (CASE WHEN email_verified_at IS NOT NULL THEN 1 ELSE 0 END) as is_email_verified, created_at, updated_at FROM users WHERE id = ? LIMIT 1',
     [id]
-  ) as [User[], any];
-  return rows[0] || null;
+  ) as [any[], any];
+  if (!rows[0]) return null;
+  return { ...rows[0], id: String(rows[0].id) };
 }
 
 // ─── Register ────────────────────────────────────────────────
@@ -52,12 +53,12 @@ export async function registerUser(input: RegisterInput): Promise<{ id: string; 
   }
 
   const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
-  const userId = uuidv4();
 
-  await pool.execute(
-    'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
-    [userId, input.name, input.email, passwordHash]
+  const [result]: any = await pool.execute(
+    'INSERT INTO users (full_name, email, password_hash, email_verified_at, status) VALUES (?, ?, ?, NOW(), ?)',
+    [input.name, input.email, passwordHash, 'active']
   );
+  const userId = String(result.insertId);
 
   sendWelcomeEmail(input.email, input.name).catch((err) =>
     console.error('[Email] Failed to send welcome email:', err.message)
@@ -173,13 +174,13 @@ export interface GoogleUserInfo {
 
 export async function handleGoogleOAuth(googleUser: GoogleUserInfo): Promise<{ id: string; name: string; email: string; isNew: boolean }> {
   const [accountRows] = await pool.execute(
-    'SELECT a.*, u.name, u.email as user_email FROM accounts a JOIN users u ON a.user_id = u.id WHERE a.provider = ? AND a.provider_id = ?',
+    'SELECT a.*, u.full_name as name, u.email as user_email FROM accounts a JOIN users u ON a.user_id = u.id WHERE a.provider = ? AND a.provider_id = ?',
     ['google', googleUser.sub]
   ) as [any[], any];
 
   if (accountRows.length > 0) {
     const account = accountRows[0];
-    return { id: account.user_id, name: account.name, email: account.user_email, isNew: false };
+    return { id: String(account.user_id), name: account.name, email: account.user_email, isNew: false };
   }
 
   const existingUser = await findUserByEmail(googleUser.email);
@@ -192,31 +193,31 @@ export async function handleGoogleOAuth(googleUser: GoogleUserInfo): Promise<{ i
     return { id: existingUser.id, name: existingUser.name, email: existingUser.email, isNew: false };
   }
 
-  const userId = uuidv4();
   const conn = await (await import('../config/db')).pool.getConnection();
   try {
     await conn.beginTransaction();
-    await conn.execute(
-      'INSERT INTO users (id, name, email, is_email_verified) VALUES (?, ?, ?, ?)',
-      [userId, googleUser.name, googleUser.email, 1]
+    const [result]: any = await conn.execute(
+      'INSERT INTO users (full_name, email, email_verified_at, status) VALUES (?, ?, NOW(), ?)',
+      [googleUser.name, googleUser.email, 'active']
     );
+    const userId = String(result.insertId);
     await conn.execute(
       'INSERT INTO accounts (id, user_id, provider, provider_id, provider_email) VALUES (?, ?, ?, ?, ?)',
       [uuidv4(), userId, 'google', googleUser.sub, googleUser.email]
     );
     await conn.commit();
+
+    sendWelcomeEmail(googleUser.email, googleUser.name).catch((err) =>
+      console.error('[Email] Failed to send welcome email:', err.message)
+    );
+
+    return { id: userId, name: googleUser.name, email: googleUser.email, isNew: true };
   } catch (err) {
     await conn.rollback();
     throw err;
   } finally {
     conn.release();
   }
-
-  sendWelcomeEmail(googleUser.email, googleUser.name).catch((err) =>
-    console.error('[Email] Failed to send welcome email:', err.message)
-  );
-
-  return { id: userId, name: googleUser.name, email: googleUser.email, isNew: true };
 }
 
 export async function getUserById(id: string): Promise<{ id: string; name: string; email: string } | null> {

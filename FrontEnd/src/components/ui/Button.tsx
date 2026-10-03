@@ -6,21 +6,29 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * Button — Haute Horlogerie & Private Club Luxury Button
+ * Built with subtle tactile spring physics, specular highlight, and champagne gold accents.
+ */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
     return (
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center rounded-full font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold-primary focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]',
+          'inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#B89047]/50 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] select-none font-display',
           {
-            'bg-gold-primary text-white hover:bg-gold-dark shadow-md hover:shadow-lg': variant === 'primary',
-            'bg-navy-primary text-white hover:bg-navy-mid shadow-md hover:shadow-lg': variant === 'secondary',
-            'border border-gold-primary text-gold-primary hover:bg-gold-primary hover:text-white': variant === 'outline',
-            'hover:bg-bg-subtle text-navy-primary': variant === 'ghost',
-            'h-10 px-5 text-sm tracking-wide': size === 'sm',
-            'h-12 px-8 text-base tracking-wide': size === 'md',
-            'h-14 px-10 text-lg tracking-wide': size === 'lg',
+            'bg-[#121214] text-white hover:bg-black border border-[#B89047]/45 shadow-[0_4px_16px_rgba(18,18,20,0.25)] hover:shadow-[0_8px_24px_rgba(184,144,71,0.35)] dark:bg-gradient-to-r dark:from-[#EAD29A] dark:via-[#B89047] dark:to-[#B89047] dark:text-[#0A0A0D] dark:border-[#EAD29A]/60 dark:shadow-[0_4px_20px_rgba(184,144,71,0.35)]':
+              variant === 'primary',
+            'bg-gradient-to-r from-[#B89047] via-[#EAD29A] to-[#B89047] text-[#0A0A0D] font-bold shadow-md hover:brightness-105 border border-white/40':
+              variant === 'secondary',
+            'border border-black/15 dark:border-white/15 text-[#1D1D1F] dark:text-white hover:border-[#B89047]/50 hover:bg-[#FAF8F5] dark:hover:bg-white/5 shadow-sm':
+              variant === 'outline',
+            'text-[#B89047] dark:text-[#EAD29A] hover:bg-[#B89047]/10 transition-colors':
+              variant === 'ghost',
+            'h-8 px-4 text-xs tracking-tight': size === 'sm',
+            'h-11 px-6 text-sm tracking-tight': size === 'md',
+            'h-12 px-8 text-base tracking-tight': size === 'lg',
           },
           className
         )}
@@ -29,5 +37,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     );
   }
 );
+
 Button.displayName = 'Button';
 
+export default Button;

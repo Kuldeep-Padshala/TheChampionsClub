@@ -120,6 +120,10 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 }
 
 export async function googleRedirect(req: Request, res: Response): Promise<void> {
+  if (!env.google.clientId || !env.google.clientSecret) {
+    res.redirect(`${env.clientUrl}/login?error=google_not_configured`);
+    return;
+  }
   const url = oauthClient.generateAuthUrl({
     access_type: 'offline',
     scope: ['profile', 'email'],
@@ -132,7 +136,7 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
   try {
     const { code } = req.query as { code: string };
     if (!code) {
-      res.redirect(`${env.clientUrl}/signin?error=google_failed`);
+      res.redirect(`${env.clientUrl}/login?error=google_failed`);
       return;
     }
 
@@ -145,7 +149,7 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
     });
     const googlePayload = ticket.getPayload();
     if (!googlePayload || !googlePayload.sub || !googlePayload.email) {
-      res.redirect(`${env.clientUrl}/signin?error=google_failed`);
+      res.redirect(`${env.clientUrl}/login?error=google_failed`);
       return;
     }
 
@@ -160,7 +164,7 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
     res.redirect(`${env.clientUrl}/`);
   } catch (err: any) {
     console.error('[Google OAuth] Error:', err.message);
-    res.redirect(`${env.clientUrl}/signin?error=google_failed`);
+    res.redirect(`${env.clientUrl}/login?error=google_failed`);
   }
 }
 

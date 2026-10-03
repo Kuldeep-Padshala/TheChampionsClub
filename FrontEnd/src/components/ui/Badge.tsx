@@ -8,15 +8,7 @@ interface BadgeProps {
 }
 
 /**
- * Badge — small label pill used for sport types, stock status, plan labels.
- *
- * Variants:
- *   gold    — gold background, white text (primary accent)
- *   navy    — navy background, white text
- *   success — green (available, in-stock)
- *   warning — amber (low stock, social play)
- *   danger  — red (booked, out-of-stock)
- *   default — gray (neutral)
+ * Badge — Luxury Jewel Pill Status & Tag Component
  */
 export const Badge: React.FC<BadgeProps> = ({
   children,
@@ -26,14 +18,20 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+        'inline-flex items-center rounded-full px-3 py-0.5 text-[10.5px] font-bold tracking-wider uppercase backdrop-blur-md shadow-sm border transition-colors font-display',
         {
-          'bg-gold-primary text-white':           variant === 'gold',
-          'bg-navy-primary text-white':           variant === 'navy',
-          'bg-green-100 text-green-800 border border-green-200': variant === 'success',
-          'bg-amber-100 text-amber-800 border border-amber-200': variant === 'warning',
-          'bg-red-100 text-red-800 border border-red-200':       variant === 'danger',
-          'bg-bg-subtle text-navy-mid border border-border':     variant === 'default',
+          'bg-gradient-to-r from-[#B89047] via-[#EAD29A] to-[#B89047] text-[#0A0A0D] border-white/40 shadow-[0_2px_8px_rgba(184,144,71,0.25)]':
+            variant === 'gold',
+          'bg-[#121214] text-white border-[#B89047]/40':
+            variant === 'navy',
+          'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30':
+            variant === 'success',
+          'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30':
+            variant === 'warning',
+          'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30':
+            variant === 'danger',
+          'bg-[#FAF8F5] dark:bg-white/[0.05] text-[#1D1D1F] dark:text-[#E5E5EA] border-black/[0.06] dark:border-white/10':
+            variant === 'default',
         },
         className
       )}
@@ -42,3 +40,5 @@ export const Badge: React.FC<BadgeProps> = ({
     </span>
   );
 };
+
+export default Badge;

@@ -1,41 +1,51 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { SpotlightCard } from './SpotlightCard';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
+  enableTilt?: boolean;
 }
 
-interface CardContentProps {
+interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
 }
 
 /**
- * Card — base card container with white background, border, and rounded corners.
- * Used for court cards, product cards, and info panels.
+ * Card — Ultra-Luxury Base Card Container
+ * Built on SpotlightCard with cursor-tracking spotlight, glowing borders,
+ * and specular glass inner highlights.
  */
-export const Card: React.FC<CardProps> = ({ children, className }) => {
+export const Card: React.FC<CardProps> = ({
+  children,
+  className,
+  enableTilt = true,
+  ...props
+}) => {
   return (
-    <div
-      className={cn(
-        'bg-bg-surface border border-border/60 rounded-2xl overflow-hidden luxury-shadow transition-all duration-500',
-        className
-      )}
+    <SpotlightCard
+      enableTilt={enableTilt}
+      tiltIntensity={2.5}
+      className={cn('apple-card overflow-hidden group', className)}
+      {...props}
     >
       {children}
-    </div>
+    </SpotlightCard>
   );
 };
 
-/**
- * CardContent — inner padding wrapper for Card.
- * Keeps padding consistent across all cards.
- */
-export const CardContent: React.FC<CardContentProps> = ({ children, className }) => {
+export const CardContent: React.FC<CardContentProps> = ({
+  children,
+  className,
+  ...props
+}) => {
   return (
-    <div className={cn('p-5', className)}>
+    <div className={cn('p-6 sm:p-7', className)} {...props}>
       {children}
     </div>
   );
 };
+
+export default Card;

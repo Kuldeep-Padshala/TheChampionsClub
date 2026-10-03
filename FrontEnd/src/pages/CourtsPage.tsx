@@ -8,6 +8,7 @@ import { Court, TimeSlot } from '../types/court.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { formatDate } from '../utils/dateUtils';
 import { Trophy, Clock, Users, Shield } from 'lucide-react';
+import { cn } from '../utils/cn';
 
 export const CourtsPage = () => {
   const [courts, setCourts] = useState<Court[]>([]);
@@ -34,17 +35,22 @@ export const CourtsPage = () => {
 
   // When user clicks "View Slots & Book" on a CourtCard:
   // - select that court in the calendar
-  // - smooth-scroll to the calendar section
+  // - smooth-scroll to the calendar section with luxury momentum
   const handleBook = (courtId: string) => {
     setSelectedCourtId(courtId);
-    document.getElementById('slot-calendar')?.scrollIntoView({ behavior: 'smooth' });
+    const lenis = (window as any).lenis;
+    if (lenis) {
+      lenis.scrollTo('#slot-calendar', { offset: -90, duration: 1.2 });
+    } else {
+      document.getElementById('slot-calendar')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
     <PageLayout>
 
       {/* ── Page hero banner ── */}
-      <div className="bg-navy-primary text-cream py-20 md:py-28 relative overflow-hidden">
+      <div className="bg-navy-primary text-cream pt-36 pb-20 md:pt-44 md:pb-28 relative overflow-hidden">
         {/* Subtle pattern / background image */}
         <div className="absolute inset-0 z-0 opacity-10">
           <img
@@ -89,16 +95,17 @@ export const CourtsPage = () => {
           {/* Section header + court selector tabs in the same row */}
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <SectionHeader title="Check Availability" subtitle="Click any green slot to book." />
-            <div className="flex overflow-x-auto pb-1 gap-2 w-full md:w-auto">
+            <div className="flex overflow-x-auto pb-1 gap-2 w-full md:w-auto scrollbar-hide">
               {courts.map(court => (
                 <button
                   key={court.id}
                   onClick={() => setSelectedCourtId(court.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors flex-shrink-0 ${
+                  className={cn(
+                    'px-5 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-all font-display tracking-wide flex-shrink-0 active:scale-95 shadow-sm',
                     selectedCourtId === court.id
-                      ? 'bg-navy-primary text-white'
-                      : 'bg-white border border-border text-navy-mid hover:bg-gold-primary/10 hover:border-gold-primary/30'
-                  }`}
+                      ? 'bg-[#121214] text-white dark:bg-gradient-to-r dark:from-[#EAD29A] dark:via-[#B89047] dark:to-[#B89047] dark:text-black border border-[#B89047]/60 shadow-[0_4px_12px_rgba(184,144,71,0.25)]'
+                      : 'bg-white/90 dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/10 text-[#66666E] dark:text-[#A1A1A6] hover:border-[#B89047]/45 hover:text-[#1D1D1F] dark:hover:text-white backdrop-blur-md'
+                  )}
                 >
                   {court.name}
                 </button>
@@ -110,31 +117,37 @@ export const CourtsPage = () => {
           <SlotCalendar slots={slots} onWeekChange={() => {}} />
 
           {/* Booking rules info box */}
-          <div className="mt-8 bg-bg-surface border border-gold-light/40 rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-start gap-3">
-              <Clock className="text-gold-primary flex-shrink-0 mt-0.5" size={20} />
+          <div className="mt-8 bg-white dark:bg-[#0A0A0D] border border-[#B89047]/30 rounded-[28px] p-7 sm:p-8 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#FAF8F5] dark:bg-white/[0.06] flex items-center justify-center flex-shrink-0 border border-black/[0.06] dark:border-white/10">
+                <Clock className="text-[#B89047]" size={18} />
+              </div>
               <div>
-                <h4 className="font-semibold text-navy-primary text-sm mb-1">Advance Booking</h4>
-                <p className="text-xs text-text-secondary">
+                <h4 className="font-display font-bold text-[#1D1D1F] dark:text-white text-sm mb-1">Advance Booking</h4>
+                <p className="text-xs text-[#71717A] dark:text-[#A1A1A6] leading-relaxed">
                   Members: up to 14 days ahead. Walk-ins: up to 3 days ahead.
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Users className="text-gold-primary flex-shrink-0 mt-0.5" size={20} />
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#FAF8F5] dark:bg-white/[0.06] flex items-center justify-center flex-shrink-0 border border-black/[0.06] dark:border-white/10">
+                <Users className="text-[#B89047]" size={18} />
+              </div>
               <div>
-                <h4 className="font-semibold text-navy-primary text-sm mb-1">Daily Limit</h4>
-                <p className="text-xs text-text-secondary">
-                  Maximum 2 bookings per member per day. Gold members have no limit.
+                <h4 className="font-display font-bold text-[#1D1D1F] dark:text-white text-sm mb-1">Daily Limit</h4>
+                <p className="text-xs text-[#71717A] dark:text-[#A1A1A6] leading-relaxed">
+                  Maximum 2 bookings per member per day. Gold members enjoy unlimited access.
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Shield className="text-gold-primary flex-shrink-0 mt-0.5" size={20} />
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#FAF8F5] dark:bg-white/[0.06] flex items-center justify-center flex-shrink-0 border border-black/[0.06] dark:border-white/10">
+                <Shield className="text-[#B89047]" size={18} />
+              </div>
               <div>
-                <h4 className="font-semibold text-navy-primary text-sm mb-1">Cancellation</h4>
-                <p className="text-xs text-text-secondary">
-                  Cancel up to 24 hours before for a full refund. Late cancellations are non-refundable.
+                <h4 className="font-display font-bold text-[#1D1D1F] dark:text-white text-sm mb-1">Cancellation</h4>
+                <p className="text-xs text-[#71717A] dark:text-[#A1A1A6] leading-relaxed">
+                  Cancel up to 24 hours before for a full refund. Late cancellations non-refundable.
                 </p>
               </div>
             </div>

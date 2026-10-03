@@ -1,4 +1,4 @@
-﻿export const ROUTES = {
+export const ROUTES = {
   HOME: '/',
   COURTS: '/courts',
   CAFE: '/cafe',
@@ -8,5 +8,6 @@
   CONTACT: '/contact',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RECEPTIONIST: '/frontdesk',
 };
-

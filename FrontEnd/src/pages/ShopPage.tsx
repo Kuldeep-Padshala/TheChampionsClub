@@ -33,7 +33,7 @@ export const ShopPage = () => {
     <PageLayout>
 
       {/* ── Page hero ── */}
-      <div className="bg-navy-primary text-cream py-20 md:py-28 relative overflow-hidden">
+      <div className="bg-navy-primary text-cream pt-36 pb-20 md:pt-44 md:pb-28 relative overflow-hidden">
         {/* Decorative large icon in background */}
         <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
           <ShoppingBag size={500} />
