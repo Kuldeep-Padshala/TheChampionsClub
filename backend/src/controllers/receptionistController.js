@@ -96,7 +96,7 @@ const getCourtAvailability = async (req, res) => {
     // Get bookings for that date
     const [reservations] = await db.query(
       `SELECT r.id, r.court_id, r.starts_at, r.ends_at, r.status 
-       FROM court_reservations r 
+       FROM r court_reservations 
        WHERE DATE(r.starts_at) = ? AND r.status != 'Cancelled'`,
       [date || new Date().toISOString().split('T')[0]]
     );

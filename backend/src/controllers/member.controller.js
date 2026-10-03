@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.placeMyOrder = exports.getMyOrders = exports.getProducts = exports.initOnlinePayment = exports.getMyInvoices = exports.cancelMyBooking = exports.createMyBooking = exports.getMyBookings = exports.updateMe = exports.getMe = void 0;
-// @ts-ignore
 const db_js_1 = __importDefault(require("../config/db.js"));
 // ============================================
 // 1. Authentication & Profile

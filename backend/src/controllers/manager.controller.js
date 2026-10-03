@@ -1,8 +1,12 @@
 const db = require('../config/db.js');
 
+
+
 // ============================================
 // 1. Operations & Configuration
 // ============================================
+
+
 
 const updateCourt = async (req, res) => {
   try {
@@ -21,6 +25,8 @@ const updateCourt = async (req, res) => {
   }
 };
 
+
+
 const updateCourtRate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -34,6 +40,8 @@ const updateCourtRate = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const adjustInventory = async (req, res) => {
   try {
@@ -60,6 +68,8 @@ const adjustInventory = async (req, res) => {
   }
 };
 
+
+
 const updateBarMenu = async (req, res) => {
   try {
     const { id } = req.params;
@@ -77,9 +87,13 @@ const updateBarMenu = async (req, res) => {
   }
 };
 
+
+
 // ============================================
 // 2. Overrides & Corrections
 // ============================================
+
+
 
 const forceBookCourt = async (req, res) => {
   try {
@@ -104,6 +118,8 @@ const forceBookCourt = async (req, res) => {
   }
 };
 
+
+
 const voidInvoice = async (req, res) => {
   try {
     const { id } = req.params;
@@ -118,9 +134,13 @@ const voidInvoice = async (req, res) => {
   }
 };
 
+
+
 // ============================================
 // 3. Staff & Shift Management (HR)
 // ============================================
+
+
 
 const getEmployees = async (req, res) => {
   try {
@@ -137,6 +157,8 @@ const getEmployees = async (req, res) => {
   }
 };
 
+
+
 const createShift = async (req, res) => {
   try {
     const { employee_id, start_time, end_time, role, notes } = req.body;
@@ -152,6 +174,8 @@ const createShift = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const approveLeave = async (req, res) => {
   try {
@@ -171,9 +195,13 @@ const approveLeave = async (req, res) => {
   }
 };
 
+
+
 // ============================================
 // 4. Financial Reporting & End-of-Day
 // ============================================
+
+
 
 const closeRegister = async (req, res) => {
   try {
@@ -194,6 +222,8 @@ const closeRegister = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 const getDailySummary = async (req, res) => {
   try {
@@ -229,6 +259,8 @@ const getDailySummary = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
+
+
 
 module.exports = {
   updateCourt,
