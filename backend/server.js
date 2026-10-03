@@ -9,6 +9,7 @@ const managerRoutes = require('./src/routes/manager.routes');
 const barRoutes = require('./src/routes/bar.routes');
 const shopRoutes = require('./src/routes/shop.routes');
 const accountantRoutes = require('./src/routes/accountant.routes');
+const adminRoutes = require('./src/routes/admin.routes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/manager', managerRoutes);
 app.use('/api/bar', barRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/accountant', accountantRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
