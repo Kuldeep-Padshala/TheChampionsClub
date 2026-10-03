@@ -8,6 +8,7 @@ const memberRoutes = require('./src/routes/member.routes').default || require('.
 const managerRoutes = require('./src/routes/manager.routes');
 const barRoutes = require('./src/routes/bar.routes');
 const shopRoutes = require('./src/routes/shop.routes');
+const accountantRoutes = require('./src/routes/accountant.routes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/receptionist', receptionistRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/bar', barRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/accountant', accountantRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
