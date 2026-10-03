@@ -10,6 +10,7 @@ const barRoutes = require('./src/routes/bar.routes');
 const shopRoutes = require('./src/routes/shop.routes');
 const accountantRoutes = require('./src/routes/accountant.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const ownerRoutes = require('./src/routes/owner.routes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/bar', barRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/accountant', accountantRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/owner', ownerRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
