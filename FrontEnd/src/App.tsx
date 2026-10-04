@@ -29,7 +29,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { AmbientBackground } from './components/layout/AmbientBackground';
 
-function AnimatedRoutes() {
+function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.HOME} element={<HomePage />} />
@@ -119,7 +119,7 @@ function App() {
           <ScrollToTop />
           <AmbientBackground />
           <Navbar />
-          <AnimatedRoutes />
+          <AppRoutes />
           <LoginPromptModal />
           <Toaster
             position="top-right"

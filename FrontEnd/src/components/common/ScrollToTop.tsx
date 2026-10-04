@@ -1,8 +1,7 @@
 import React from 'react';
 
 /**
- * ScrollToTop — Synchronized with SmoothScroll.
- * Route scroll resets and hash targeting are managed smoothly via Lenis in SmoothScroll.
+ * ScrollToTop — no-op. Scroll resets are handled by SmoothScroll via Lenis.
  */
 export const ScrollToTop: React.FC = () => {
   return null;

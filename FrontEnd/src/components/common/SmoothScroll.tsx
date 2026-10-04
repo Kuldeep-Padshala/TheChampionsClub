@@ -32,16 +32,8 @@ export const lenisScrollTo = (
 };
 
 /**
- * SmoothScroll — Hardware-synchronized 120fps luxury momentum scrolling
- * active across the ENTIRE website (/courts, /shop, /cafe, /memberships, etc.)
- *
- * Features:
- * 1. Synchronized Lenis instance on window with 120Hz VSync autoRaf.
- * 2. Instant scroll reset to (0,0) on route change with zero layout jumps.
- * 3. Reactive ResizeObserver: detects when courts, products, menu items, or plans
- *    finish asynchronous fetching and dynamically recalculates page limits.
- * 4. Staggered post-navigation measurements to synchronize perfectly with Framer Motion transitions.
- * 5. Hash anchor targeting (e.g. #slot-calendar) with buttery ease-out curve.
+ * SmoothScroll — Hardware-synchronized 120fps luxury momentum scrolling.
+ * Lenis handles scroll physics. Route changes reset scroll position immediately.
  */
 export const SmoothScroll = () => {
   const { pathname, hash } = useLocation();
@@ -51,11 +43,11 @@ export const SmoothScroll = () => {
   useEffect(() => {
     const lenis = new Lenis({
       autoRaf: true,
-      lerp: 0.11, // Ultra-buttery momentum with zero lag during high-speed scrolling
+      lerp: 0.1,
       wheelMultiplier: 1.0,
       touchMultiplier: 1.0,
       smoothWheel: true,
-      syncTouch: false, // Preserves hardware 120Hz touch physics on mobile/touchpads
+      syncTouch: false,
       autoResize: true,
       stopInertiaOnNavigate: true,
       prevent: (node) =>
@@ -67,52 +59,26 @@ export const SmoothScroll = () => {
     lenisRef.current = lenis;
     (window as any).lenis = lenis;
 
-    // Observe document.body mutations and resize events with debouncing so async data
-    // continuously syncs scroll limit without jittering on route mount
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    const debouncedResize = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        lenis.resize();
-      }, 60);
-    };
-
-    const resizeObserver = new ResizeObserver(() => {
-      debouncedResize();
-    });
-
-    if (document.body) {
-      resizeObserver.observe(document.body);
-    }
-
-    const onWindowResize = () => {
-      debouncedResize();
-    };
-
-    window.addEventListener('resize', onWindowResize, { passive: true });
-
     return () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', onWindowResize);
       lenis.destroy();
       lenisRef.current = null;
       delete (window as any).lenis;
     };
   }, []);
 
-  // Handle route navigation: instant scroll reset to top
+  // Route change: immediately snap scroll to top before next paint
   useEffect(() => {
     const lenis = lenisRef.current || (window as any).lenis;
     let hashTimer: ReturnType<typeof setTimeout>;
 
     if (!hash) {
-      if (lenis) {
-        lenis.scrollTo(0, { immediate: true });
-      }
+      // Instantly zero out both native position and Lenis tracked position
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      }
     } else {
       hashTimer = setTimeout(() => {
         const id = hash.replace('#', '');

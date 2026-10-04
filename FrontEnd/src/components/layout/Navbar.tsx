@@ -87,7 +87,6 @@ export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isFrontDesk, isManager, isBarStaff, isShopStaff, isAccountant, isOwner, isAdmin } = useAuth();
   const isNight = theme === 'night';
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [memberPlan, setMemberPlan] = useState<{ planCode?: string; isExpiringSoon?: boolean } | null>(null);
 
@@ -208,28 +207,10 @@ export const Navbar: React.FC = () => {
     return location.pathname === itemPath;
   };
 
-  // Close mobile drawer and reset scrolled state on route change
+  // Close mobile drawer on route change
   useEffect(() => {
     setMobileOpen(false);
-    setScrolled(false);
-  }, [location.pathname, location.search]);
-
-  // Zero-latency hardware-accelerated scroll measurement
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 20);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   return (
     <>
@@ -237,7 +218,7 @@ export const Navbar: React.FC = () => {
           BESPOKE ULTRA-LUXURY FLOATING GLASS CAPSULE
           Pure Obsidian (#000) Night & Champagne Pearl Day
           ══════════════════════════════════════════════════════ */}
-      <header className="fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl" style={{ contain: 'layout style' }}>
+      <header className="fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
         <nav
           className={cn(
             'flex items-center justify-between rounded-full px-5 sm:px-7 py-3 transition-colors duration-200 border shadow-lg select-none',
@@ -312,28 +293,29 @@ export const Navbar: React.FC = () => {
                     key={link.path}
                     to={link.path}
                     className={cn(
-                      'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-colors duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
+                      'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-all duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
                       isActive
                         ? isNight ? 'text-white font-semibold' : 'text-[#121214] font-semibold'
                         : isNight ? 'text-[#A1A1A6] hover:text-[#EAD29A]' : 'text-[#55555A] hover:text-[#B89047]'
                     )}
                   >
-                    {isActive && (
-                      <motion.div
-                        layoutId="luxury-active-indicator"
-                        transition={{ type: 'spring', stiffness: 350, damping: 28, mass: 0.8 }}
+                    {/* Active pill background — simple CSS, no cross-route layoutId animation */}
+                    <span
+                      className={cn(
+                        'absolute inset-0 rounded-full border transition-opacity duration-200',
+                        isNight
+                          ? 'bg-gradient-to-b from-[#1E1E24] to-[#121216] border-[#B89047]/45 shadow-[0_0_20px_rgba(184,144,71,0.22)]'
+                          : 'bg-gradient-to-b from-white to-[#FDFBF7] border-[#B89047]/30 shadow-[0_4px_16px_rgba(184,144,71,0.18),inset_0_1px_1px_rgba(255,255,255,1)]',
+                        isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                      )}
+                    />
+                    <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap leading-none">
+                      <span
                         className={cn(
-                          'absolute inset-0 rounded-full border',
-                          isNight
-                            ? 'bg-gradient-to-b from-[#1E1E24] to-[#121216] border-[#B89047]/45 shadow-[0_0_20px_rgba(184,144,71,0.22)]'
-                            : 'bg-gradient-to-b from-white to-[#FDFBF7] border-[#B89047]/30 shadow-[0_4px_16px_rgba(184,144,71,0.18),inset_0_1px_1px_rgba(255,255,255,1)]'
+                          'w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)] flex-shrink-0 transition-opacity duration-200',
+                          isActive ? 'opacity-100' : 'opacity-0'
                         )}
                       />
-                    )}
-                    <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap leading-none">
-                      {isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#B89047] inline-block shadow-[0_0_6px_rgba(184,144,71,0.8)] flex-shrink-0" />
-                      )}
                       <span className="whitespace-nowrap">{link.name}</span>
                     </span>
                   </Link>
@@ -474,8 +456,8 @@ export const Navbar: React.FC = () => {
               </Link>
             )}
 
-            {/* Public/Member Reserve CTA (Hidden for Staff & Managers & Owner & Admin) */}
-            {!isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin && (
+            {/* Public Reserve CTA (Only shown for guest visitors who are not logged in) */}
+            {!isAuthenticated && (
               <Link
                 to={ROUTES.COURTS}
                 className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
@@ -524,7 +506,7 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            {!isFrontDesk && !isManager && !isBarStaff && (
+            {!isAuthenticated && (
               <Link
                 to={ROUTES.COURTS}
                 className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] font-semibold text-white bg-[#121214] border border-[#B89047]/40 shadow-sm"
@@ -629,7 +611,7 @@ export const Navbar: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-black/5 dark:border-white/10 mt-4 space-y-2.5">
-                {!isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin && (
+                {!isAuthenticated && (
                   <Link
                     to={ROUTES.COURTS}
                     className="flex items-center justify-center gap-2 w-full h-12 text-sm font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] rounded-full shadow-md border border-[#B89047]/40"

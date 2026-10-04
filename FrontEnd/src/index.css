@@ -74,6 +74,8 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
     overflow-anchor: none;
   }
 
