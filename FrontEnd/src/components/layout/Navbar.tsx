@@ -460,7 +460,7 @@ export const Navbar: React.FC = () => {
             {!isAuthenticated && (
               <Link
                 to={ROUTES.COURTS}
-                className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
+                className="group relative hidden xl:inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
               >
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/15 to-transparent ease-out" />
                 <Sparkles size={13} className="text-[#EAD29A] group-hover:text-white transition-colors flex-shrink-0" />

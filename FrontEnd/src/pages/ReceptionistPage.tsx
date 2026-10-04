@@ -595,7 +595,7 @@ export const ReceptionistPage: React.FC = () => {
   return (
     <ProtectedRoute allowedRoles={['FRONT_DESK']}>
       <PageLayout>
-        <div className="min-h-screen pt-6 sm:pt-8 pb-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="min-h-screen pt-24 sm:pt-28 pb-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           
           {/* ══════════════════════════════════════════════════
               RECEPTIONIST CONCIERGE HEADER BAR

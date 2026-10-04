@@ -355,7 +355,7 @@ export const MemberPortalPage: React.FC = () => {
   if (isLoading) {
     return (
       <PageLayout>
-        <div className="min-h-screen flex items-center justify-center pt-24 pb-16">
+        <div className="min-h-screen flex items-center justify-center pb-16">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-2 border-[#B89047]/30 border-t-[#B89047] rounded-full animate-spin" />
             <span className="text-xs uppercase tracking-widest text-[#B89047] font-semibold">

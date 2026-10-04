@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
@@ -67,7 +67,7 @@ export const SmoothScroll = () => {
   }, []);
 
   // Route change: immediately snap scroll to top before next paint
-  useEffect(() => {
+  useLayoutEffect(() => {
     const lenis = lenisRef.current || (window as any).lenis;
     let hashTimer: ReturnType<typeof setTimeout>;
 
