@@ -137,7 +137,7 @@ async function googleRedirect(req, res) {
   const client = getOAuthClient();
   const url = client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['profile', 'email'],
+    scope: ['openid', 'profile', 'email'],
     prompt: 'consent',
   });
   res.redirect(url);
@@ -145,7 +145,13 @@ async function googleRedirect(req, res) {
 
 async function googleCallback(req, res) {
   try {
-    const { code } = req.query;
+    const { code, error, error_description } = req.query;
+    if (error) {
+      console.warn('[Google OAuth] Consent error from Google:', error, error_description);
+      res.redirect(`${env.clientUrl}/login?error=google_failed&details=${encodeURIComponent(error_description || error)}`);
+      return;
+    }
+
     if (!code) {
       res.redirect(`${env.clientUrl}/login?error=google_failed`);
       return;
@@ -155,30 +161,141 @@ async function googleCallback(req, res) {
     const { tokens } = await client.getToken(code);
     client.setCredentials(tokens);
 
-    const ticket = await client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: env.google.clientId,
-    });
-    const googlePayload = ticket.getPayload();
-    if (!googlePayload || !googlePayload.sub || !googlePayload.email) {
+    let googleEmail = null;
+    let googleName = null;
+    let googleSub = null;
+    let googlePicture = null;
+
+    // 1. Try verifyIdToken if id_token exists
+    if (tokens.id_token) {
+      try {
+        const ticket = await client.verifyIdToken({
+          idToken: tokens.id_token,
+          audience: env.google.clientId,
+        });
+        const googlePayload = ticket.getPayload();
+        if (googlePayload && googlePayload.email) {
+          googleEmail = googlePayload.email;
+          googleName = googlePayload.name || googlePayload.email.split('@')[0];
+          googleSub = googlePayload.sub;
+          googlePicture = googlePayload.picture;
+        }
+      } catch (ticketErr) {
+        console.warn('[Google OAuth] verifyIdToken note:', ticketErr.message);
+      }
+    }
+
+    // 2. Fallback to Google OAuth2 UserInfo API if id_token verification didn't get email
+    if (!googleEmail) {
+      try {
+        const oauth2 = google.oauth2({ version: 'v2', auth: client });
+        const { data: userInfo } = await oauth2.userinfo.get();
+        if (userInfo && userInfo.email) {
+          googleEmail = userInfo.email;
+          googleName = userInfo.name || userInfo.email.split('@')[0];
+          googleSub = userInfo.id || userInfo.sub;
+          googlePicture = userInfo.picture;
+        }
+      } catch (apiErr) {
+        console.error('[Google OAuth] userinfo API error:', apiErr.message);
+      }
+    }
+
+    if (!googleEmail) {
+      console.error('[Google OAuth] Could not extract email from Google profile');
       res.redirect(`${env.clientUrl}/login?error=google_failed`);
       return;
     }
 
     const user = await handleGoogleOAuth({
-      sub: googlePayload.sub,
-      email: googlePayload.email,
-      name: googlePayload.name || googlePayload.email.split('@')[0],
-      picture: googlePayload.picture,
+      sub: googleSub,
+      email: googleEmail,
+      name: googleName,
+      picture: googlePicture,
     });
 
     const { accessToken } = await issueTokens(res, user.id, user.email);
-    const isStaff = user.roles && user.roles.some((r) => ['FRONT_DESK', 'MANAGER', 'OWNER'].includes(r));
-    const targetPath = isStaff ? '/frontdesk' : '/member';
+
+    // Smart role-based destination redirect
+    const userRoles = user.roles || [];
+    let targetPath = '/member';
+    if (userRoles.includes('OWNER')) targetPath = '/owner';
+    else if (userRoles.includes('SYSTEM_ADMIN') || userRoles.includes('ADMIN')) targetPath = '/admin';
+    else if (userRoles.includes('MANAGER')) targetPath = '/manager';
+    else if (userRoles.includes('ACCOUNTANT')) targetPath = '/finance';
+    else if (userRoles.includes('SHOP_STAFF') || userRoles.includes('GEAR_BOX_STAFF')) targetPath = '/shop-station';
+    else if (userRoles.includes('BAR_STAFF')) targetPath = '/bar';
+    else if (userRoles.includes('FRONT_DESK')) targetPath = '/frontdesk';
+
     res.redirect(`${env.clientUrl}${targetPath}?token=${accessToken}`);
   } catch (err) {
     console.error('[Google OAuth] Error:', err.message);
-    res.redirect(`${env.clientUrl}/login?error=google_failed`);
+    res.redirect(`${env.clientUrl}/login?error=google_failed&details=${encodeURIComponent(err.message)}`);
+  }
+}
+
+async function googleVerifyToken(req, res) {
+  try {
+    const { credential, idToken, accessToken: clientAccessToken } = req.body;
+    let googleEmail = null;
+    let googleName = null;
+    let googleSub = null;
+    let googlePicture = null;
+
+    const tokenToVerify = credential || idToken;
+    if (tokenToVerify) {
+      const client = getOAuthClient();
+      try {
+        const ticket = await client.verifyIdToken({
+          idToken: tokenToVerify,
+          audience: env.google.clientId,
+        });
+        const payload = ticket.getPayload();
+        if (payload && payload.email) {
+          googleEmail = payload.email;
+          googleName = payload.name || payload.email.split('@')[0];
+          googleSub = payload.sub;
+          googlePicture = payload.picture;
+        }
+      } catch (e) {
+        console.warn('[Google Verify] verifyIdToken note:', e.message);
+      }
+    }
+
+    if (!googleEmail && clientAccessToken) {
+      const client = getOAuthClient();
+      client.setCredentials({ access_token: clientAccessToken });
+      const oauth2 = google.oauth2({ version: 'v2', auth: client });
+      const { data: userInfo } = await oauth2.userinfo.get();
+      if (userInfo && userInfo.email) {
+        googleEmail = userInfo.email;
+        googleName = userInfo.name || userInfo.email.split('@')[0];
+        googleSub = userInfo.id || userInfo.sub;
+        googlePicture = userInfo.picture;
+      }
+    }
+
+    if (!googleEmail) {
+      return res.status(400).json({ success: false, message: 'Could not resolve Google account email' });
+    }
+
+    const user = await handleGoogleOAuth({
+      sub: googleSub,
+      email: googleEmail,
+      name: googleName,
+      picture: googlePicture,
+    });
+
+    const { accessToken, refreshToken } = await issueTokens(res, user.id, user.email);
+    res.json({
+      success: true,
+      user,
+      token: accessToken,
+      tokens: { accessToken, refreshToken },
+    });
+  } catch (err) {
+    console.error('[Google Verify Token Error]', err);
+    res.status(500).json({ success: false, message: 'Google authentication failed: ' + err.message });
   }
 }
 
@@ -226,6 +343,7 @@ module.exports = {
   refresh,
   googleRedirect,
   googleCallback,
+  googleVerifyToken,
   forgotPassword,
   resetPasswordHandler,
   getMe,

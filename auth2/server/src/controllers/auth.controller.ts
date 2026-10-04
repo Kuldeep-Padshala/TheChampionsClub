@@ -126,7 +126,7 @@ export async function googleRedirect(req: Request, res: Response): Promise<void>
   }
   const url = oauthClient.generateAuthUrl({
     access_type: 'offline',
-    scope: ['profile', 'email'],
+    scope: ['openid', 'profile', 'email'],
     prompt: 'consent',
   });
   res.redirect(url);

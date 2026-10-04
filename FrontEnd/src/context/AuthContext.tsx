@@ -23,6 +23,7 @@ export interface AuthContextType {
   isMember: boolean;
   hasRole: (role: string) => boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
+  loginWithGoogleToken: (idToken: string) => Promise<AuthUser>;
   register: (
     name: string,
     email: string,
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const urlToken = urlParams.get('token');
       if (urlToken) {
         localStorage.setItem('auth_token', urlToken);
+        api.defaults.headers.common['Authorization'] = `Bearer ${urlToken}`;
         const cleanUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
       }
@@ -71,6 +73,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.post('/auth/login', { email, password });
     if (res.data.token) {
       localStorage.setItem('auth_token', res.data.token);
+      websocketService.authenticate(res.data.token);
+    }
+    setUser(res.data.user);
+    return res.data.user;
+  };
+
+  const loginWithGoogleToken = async (idToken: string): Promise<AuthUser> => {
+    const res = await api.post('/auth/google/verify-token', { idToken });
+    if (res.data.token) {
+      localStorage.setItem('auth_token', res.data.token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       websocketService.authenticate(res.data.token);
     }
     setUser(res.data.user);
@@ -143,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isMember,
         hasRole,
         login,
+        loginWithGoogleToken,
         register,
         logout,
         refreshUser,

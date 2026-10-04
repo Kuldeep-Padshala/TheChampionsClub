@@ -64,9 +64,14 @@ export const LoginPage: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const err = params.get('error');
     if (err === 'google_not_configured') {
-      toast.error('Google Sign-In is not configured on this server yet. Please use email and password.');
+      toast.error('Google Sign-In is not configured on this server yet. Please verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.');
     } else if (err === 'google_failed') {
-      toast.error('Google Sign-In failed or was cancelled. Please try again.');
+      const details = params.get('details');
+      toast.error(
+        details
+          ? `Google Sign-In issue: ${decodeURIComponent(details)}`
+          : 'Google Sign-In was cancelled or failed. Please ensure http://localhost:5000/api/auth/google/callback is added to Authorized Redirect URIs in Google Cloud Console.'
+      );
     }
   }, [location.search]);
 
