@@ -197,6 +197,19 @@ export const HomePage = () => {
                 View Membership Tiers
               </span>
             </MagneticButton>
+
+            <MagneticButton
+              onClick={() => {
+                if ((window as any).openTrialModal) (window as any).openTrialModal();
+                else window.dispatchEvent(new CustomEvent('open_trial_modal'));
+              }}
+              className="group relative inline-flex items-center justify-center px-7 py-3.5 bg-gradient-to-r from-amber-500/15 via-[#B89047]/20 to-amber-500/15 border border-[#B89047]/45 text-[#1D1D1F] dark:text-[#EAD29A] backdrop-blur-md rounded-full text-base font-semibold overflow-hidden shadow-md transition-all duration-300 hover:scale-105 active:scale-95 hover:border-[#B89047]"
+            >
+              <span className="relative z-10 font-display flex items-center gap-1.5">
+                <Sparkles size={15} className="text-[#B89047]" />
+                Book Free Trial
+              </span>
+            </MagneticButton>
           </motion.div>
 
           {/* Quick Sign In Prompt when not authenticated */}

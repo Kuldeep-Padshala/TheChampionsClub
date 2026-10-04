@@ -7,7 +7,7 @@ import { getCourts, getSlotsForWeek } from '../services/courtsService';
 import { Court, TimeSlot } from '../types/court.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { formatDate } from '../utils/dateUtils';
-import { Trophy, Clock, Users, Shield } from 'lucide-react';
+import { Trophy, Clock, Users, Shield, Zap } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 export const CourtsPage = () => {
@@ -72,6 +72,22 @@ export const CourtsPage = () => {
             Book your next game on our premium surfaces. Members enjoy exclusive rates,
             priority slots, and free equipment hire.
           </p>
+
+          {/* Emergency Restringing Quick Action (Problem Statement Scene 3) */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-emergency-restringing'))}
+              className="group inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-gradient-to-r from-amber-500/20 via-gold-primary/20 to-amber-500/20 border border-gold-primary/50 text-gold-light hover:text-white hover:border-gold-primary transition-all duration-300 shadow-lg shadow-gold-primary/10 hover:shadow-gold-primary/25 cursor-pointer backdrop-blur-md"
+            >
+              <Zap size={16} className="text-gold-primary animate-pulse group-hover:scale-110 transition-transform" />
+              <span className="text-sm font-semibold tracking-wide">
+                Broken Racket String? 10-Min Emergency Restringing & Loaner Delivery
+              </span>
+              <span className="text-xs bg-gold-primary text-navy-primary font-bold px-2 py-0.5 rounded-full ml-1">
+                Scene 3
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

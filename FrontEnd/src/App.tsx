@@ -28,6 +28,10 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { AmbientBackground } from './components/layout/AmbientBackground';
+import { ChampionsAiConcierge } from './components/hackathon/ChampionsAiConcierge';
+import { EmergencyRestringingModal } from './components/hackathon/EmergencyRestringingModal';
+import { BookTrialModal } from './components/hackathon/BookTrialModal';
+import { HackathonStoryTourModal } from './components/hackathon/HackathonStoryTourModal';
 
 function AppRoutes() {
   return (
@@ -111,6 +115,30 @@ function AppRoutes() {
 }
 
 function App() {
+  const [isEmergencyRestringOpen, setIsEmergencyRestringOpen] = React.useState(false);
+  const [isTrialModalOpen, setIsTrialModalOpen] = React.useState(false);
+  const [isTourModalOpen, setIsTourModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    (window as any).openEmergencyRestringing = () => setIsEmergencyRestringOpen(true);
+    (window as any).openTrialModal = () => setIsTrialModalOpen(true);
+    (window as any).openHackathonTour = () => setIsTourModalOpen(true);
+
+    const onEmergency = () => setIsEmergencyRestringOpen(true);
+    const onTrial = () => setIsTrialModalOpen(true);
+    const onTour = () => setIsTourModalOpen(true);
+
+    window.addEventListener('open_emergency_restringing', onEmergency);
+    window.addEventListener('open_trial_modal', onTrial);
+    window.addEventListener('open_hackathon_tour', onTour);
+
+    return () => {
+      window.removeEventListener('open_emergency_restringing', onEmergency);
+      window.removeEventListener('open_trial_modal', onTrial);
+      window.removeEventListener('open_hackathon_tour', onTour);
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -121,6 +149,28 @@ function App() {
           <Navbar />
           <AppRoutes />
           <LoginPromptModal />
+          
+          {/* ── Hackathon Killer Features ── */}
+          <ChampionsAiConcierge
+            onTriggerEmergencyRestring={() => setIsEmergencyRestringOpen(true)}
+            onTriggerTrialModal={() => setIsTrialModalOpen(true)}
+            onTriggerTourModal={() => setIsTourModalOpen(true)}
+          />
+          <EmergencyRestringingModal
+            isOpen={isEmergencyRestringOpen}
+            onClose={() => setIsEmergencyRestringOpen(false)}
+          />
+          <BookTrialModal
+            isOpen={isTrialModalOpen}
+            onClose={() => setIsTrialModalOpen(false)}
+          />
+          <HackathonStoryTourModal
+            isOpen={isTourModalOpen}
+            onClose={() => setIsTourModalOpen(false)}
+            onTriggerEmergencyRestring={() => setIsEmergencyRestringOpen(true)}
+            onTriggerTrialModal={() => setIsTrialModalOpen(true)}
+          />
+
           <Toaster
             position="top-right"
             toastOptions={{

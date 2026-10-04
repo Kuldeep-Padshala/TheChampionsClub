@@ -30,6 +30,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { shopStaffService } from '../services/shopStaffService';
+import { websocketService } from '../services/websocketService';
 import {
   ShopProduct,
   ShopProductVariant,
@@ -97,8 +98,40 @@ export const ShopStaffPage: React.FC = () => {
     }
   };
 
+  // Real-time Scene 3 Emergency Restringing Alerts
+  const [emergencyAlerts, setEmergencyAlerts] = useState<Array<{
+    reqNo: string;
+    memberName: string;
+    courtLocation: string;
+    racketBrand: string;
+    tension: string;
+    needLoaner: boolean;
+    createdAt: string;
+  }>>([]);
+
   useEffect(() => {
     loadData();
+
+    // Listen for incoming emergency restringing requests (Scene 3)
+    const unsub = websocketService.on('EMERGENCY_RESTRINGING_ALERT', (alertData: any) => {
+      setEmergencyAlerts((prev) => [alertData, ...prev]);
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-amber-500">🚨 EMERGENCY RESTRINGING REQUEST</span>
+            <span className="text-xs text-white/90">
+              {alertData.memberName} on {alertData.courtLocation} ({alertData.racketBrand})
+            </span>
+            {alertData.needLoaner && (
+              <span className="text-[11px] font-semibold text-emerald-400">⚡ Dispatch loaner racket immediately!</span>
+            )}
+          </div>
+        ),
+        { duration: 8000 }
+      );
+    });
+
+    return () => unsub();
   }, []);
 
   // Filtered categories
@@ -451,6 +484,53 @@ export const ShopStaffPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Emergency Restringing Banner (Scene 3 Live Alert) */}
+        {emergencyAlerts.length > 0 && (
+          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200 shadow-lg space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                </span>
+                <h3 className="font-bold text-sm tracking-wide uppercase text-amber-600 dark:text-amber-400">
+                  Scene 3 Emergency Restringing & Loaner Requests ({emergencyAlerts.length})
+                </h3>
+              </div>
+              <button
+                onClick={() => setEmergencyAlerts([])}
+                className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 transition-colors font-medium cursor-pointer"
+              >
+                Clear All
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {emergencyAlerts.map((alert, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-white/90 dark:bg-black/60 border border-amber-500/30 flex justify-between items-center text-xs shadow-sm">
+                  <div>
+                    <p className="font-bold text-sm text-gray-900 dark:text-white">{alert.memberName} • {alert.courtLocation}</p>
+                    <p className="text-gray-600 dark:text-gray-300">Racket: <strong>{alert.racketBrand}</strong> ({alert.tension})</p>
+                    {alert.needLoaner && (
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        ⚡ Urgent: Dispatch Loaner Racket to Court
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      toast.success(`Loaner racket dispatched to ${alert.courtLocation} for ${alert.memberName}!`);
+                      setEmergencyAlerts(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all active:scale-95 whitespace-nowrap ml-2 cursor-pointer"
+                  >
+                    Fulfill Loaner
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Sub Navigation Tabs ──────────────────────────────────── */}
         <div className="flex items-center gap-2 mt-6 p-1.5 rounded-2xl bg-white dark:bg-white/[0.04] border border-black/10 dark:border-white/10 shadow-sm overflow-x-auto">

@@ -338,6 +338,25 @@ export const Navbar: React.FC = () => {
 
           {/* ── Right Section: Theme Toggle, Role-Based Access & CTA ── */}
           <div className="hidden md:flex items-center gap-1.5 xl:gap-2 flex-shrink-0 whitespace-nowrap">
+            {/* Hackathon Problem Statement 6-Scene Showcase Guide */}
+            <button
+              onClick={() => {
+                if ((window as any).openHackathonTour) (window as any).openHackathonTour();
+                else window.dispatchEvent(new CustomEvent('open_hackathon_tour'));
+              }}
+              title="Interactive Hackathon Problem Statement Tour (6 Scenes from PDF)"
+              className={cn(
+                'inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all cursor-pointer shadow-sm active:scale-95 flex-shrink-0',
+                isNight
+                  ? 'bg-amber-500/15 border-amber-500/40 text-[#EAD29A] hover:bg-amber-500/25 shadow-[0_0_12px_rgba(234,210,154,0.25)]'
+                  : 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+              )}
+            >
+              <Trophy size={13} className="text-[#B89047]" />
+              <span className="hidden xl:inline">🏆 Hackathon Showcase (6 Scenes)</span>
+              <span className="xl:hidden">🏆 Showcase</span>
+            </button>
+
             {/* Real-Time VIP Notification Center */}
             <NotificationCenter />
 
@@ -698,6 +717,19 @@ export const Navbar: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-black/5 dark:border-white/10 mt-4 space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    if ((window as any).openHackathonTour) (window as any).openHackathonTour();
+                    else window.dispatchEvent(new CustomEvent('open_hackathon_tour'));
+                  }}
+                  className="flex items-center justify-center gap-2 w-full h-11 text-xs font-bold text-amber-950 bg-gradient-to-r from-[#EAD29A] via-[#B89047] to-[#D4AF37] rounded-2xl shadow-md border border-[#B89047]/60 active:scale-95 transition-all cursor-pointer"
+                >
+                  <Trophy size={14} className="text-amber-950" />
+                  <span>🏆 Problem Statement Tour (6 Scenes)</span>
+                </button>
+
                 {!isAuthenticated && (
                   <Link
                     to={ROUTES.COURTS}

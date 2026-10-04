@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { env } = require('./config/env');
 const { testConnection, pool } = require('./config/db');
-const { initWebSocketServer } = require('./services/websocket.service');
+const { initWebSocketServer, broadcast, createAndSendNotification } = require('./services/websocket.service');
 const authRoutes = require('./routes/auth.routes');
 const receptionistRoutes = require('./routes/receptionist.routes');
 const memberRoutes = require('./routes/member.routes');
@@ -64,6 +64,15 @@ const handlePublicEnquiry = async (req, res) => {
       [name, contactPhone, email || null, type, message || 'Enquiry submitted via website contact form']
     );
 
+    createAndSendNotification({
+      recipient_role: 'FRONT_DESK',
+      title: 'New Online Lead / Enquiry',
+      body: `${name} reached out regarding ${type} (${contactPhone})`,
+      type: 'general',
+      entity_type: 'enquiry',
+      entity_id: result.insertId,
+    }).catch(err => console.error('[Enquiry notif error]', err.message));
+
     res.status(201).json({
       success: true,
       message: 'Enquiry received successfully. Our team will contact you shortly.',
@@ -77,6 +86,128 @@ const handlePublicEnquiry = async (req, res) => {
 
 app.post('/api/public/enquiries', handlePublicEnquiry);
 app.post('/api/enquiries', handlePublicEnquiry);
+
+// ─── Scene 3: 10-Minute Emergency Racket Restringing & Loaner Service ───
+app.post('/api/public/emergency-restringing', async (req, res) => {
+  try {
+    const { member_name, court_location, racket_brand, tension, need_loaner, notes } = req.body;
+    const reqNo = 'REST-' + Date.now().toString().slice(-6);
+
+    createAndSendNotification({
+      recipient_role: 'SHOP_STAFF',
+      title: '🚨 EMERGENCY: Racket String Snapped Before Play',
+      body: `${member_name || 'Member'} on ${court_location || 'Court'}: ${racket_brand || 'Racket'}. ${need_loaner ? '⚡ Loaner racket requested!' : ''}`,
+      type: 'booking',
+      entity_type: 'shop_order',
+      entity_id: 0,
+    }).catch(err => console.error('[Emergency notif error]', err.message));
+
+    broadcast({
+      type: 'EMERGENCY_RESTRINGING_ALERT',
+      reqNo,
+      memberName: member_name || 'Member',
+      courtLocation: court_location || 'Court',
+      racketBrand: racket_brand || 'Pro Racket',
+      tension: tension || '54 lbs',
+      needLoaner: Boolean(need_loaner),
+      createdAt: new Date().toISOString(),
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Emergency restringing request logged! Pro Shop technician has been alerted and is preparing your loaner racket.',
+      request_no: reqNo,
+      eta_minutes: 10,
+    });
+  } catch (err) {
+    console.error('[Emergency restringing error]', err);
+    res.status(500).json({ success: false, message: 'Failed to record emergency request' });
+  }
+});
+
+// ─── Scene 5: Instant Complimentary Trial Session Booking ───
+app.post('/api/public/book-trial', async (req, res) => {
+  try {
+    const { full_name, phone, email, preferred_sport, preferred_time, notes } = req.body;
+    if (!full_name || !phone) {
+      return res.status(400).json({ success: false, message: 'Name and phone are required for trial booking' });
+    }
+
+    const trialMsg = `Complimentary Trial Booking: Sport: ${preferred_sport || 'Tennis'}, Preferred Time: ${preferred_time || 'This Week'}. Notes: ${notes || 'None'}`;
+    const [result] = await pool.query(
+      `INSERT INTO enquiries (full_name, phone, email, source, enquiry_type, message, status, created_at, updated_at) 
+       VALUES (?, ?, ?, 'Online Trial Booking', 'Trial Session', ?, 'Open', NOW(), NOW())`,
+      [full_name, phone, email || null, trialMsg]
+    );
+
+    createAndSendNotification({
+      recipient_role: 'FRONT_DESK',
+      title: '🎾 New Complimentary Trial Session Booking!',
+      body: `${full_name} booked a free trial for ${preferred_sport || 'Tennis'} (${phone})`,
+      type: 'general',
+      entity_type: 'enquiry',
+      entity_id: result.insertId,
+    }).catch(err => console.error('[Trial notif error]', err.message));
+
+    res.status(201).json({
+      success: true,
+      message: 'Trial session confirmed! Our concierge will welcome you and assign your court.',
+      enquiryId: result.insertId,
+    });
+  } catch (err) {
+    console.error('[Book trial error]', err);
+    res.status(500).json({ success: false, message: 'Failed to book trial session' });
+  }
+});
+
+// ─── Hackathon Winner Feature: Club AI Concierge ───
+app.post('/api/public/ai-concierge', async (req, res) => {
+  try {
+    const { message = '' } = req.body;
+    const q = message.toLowerCase().trim();
+
+    const [courts] = await pool.query("SELECT COUNT(*) as count FROM courts WHERE status = 'active'");
+    const [plans] = await pool.query("SELECT name, fee FROM membership_plans WHERE is_active = 1");
+    const planSummary = plans.map(p => `${p.name} (₹${Math.round(p.fee).toLocaleString('en-IN')}/mo)`).join(', ');
+
+    let reply = '';
+    let action = null;
+
+    if (q.includes('court') || q.includes('book') || q.includes('slot') || q.includes('availability') || q.includes('schedule')) {
+      reply = `We have ${courts[0].count} championship-grade courts (Hardcourt, Synthetic Grass, Padel Glass, Badminton, and Cricket Nets). Slots run in 1-hour sessions from 6:00 AM to 10:00 PM with real-time multi-client synchronization. Gold members enjoy unlimited complimentary court bookings, while Silver members pay ₹350/hr. Would you like to reserve a slot?`;
+      action = { type: 'NAVIGATE', label: 'View Live Court Matrix', path: '/courts' };
+    } else if (q.includes('string') || q.includes('snap') || q.includes('broken') || q.includes('repair') || q.includes('restring')) {
+      reply = `🚨 Snapped a racket string ten minutes before your match? Our Pro Shop operates a 10-minute emergency electronic restringing service and can immediately dispatch a loaner racket directly to your court so you don't miss any game time!`;
+      action = { type: 'EMERGENCY_RESTRING', label: '⚡ Request 10-Min Emergency Stringing' };
+    } else if (q.includes('membership') || q.includes('plan') || q.includes('price') || q.includes('gold') || q.includes('silver') || q.includes('junior')) {
+      reply = `The Champions Club features three distinct tiers: ${planSummary}. Gold tier offers unlimited free court reservations, 20% pro shop discount, 15% cellar & cafe discount, and 4 monthly guest passes. Silver tier offers ₹350 court rates and 10% discounts. Juniors enjoy preferential rates under 18.`;
+      action = { type: 'NAVIGATE', label: 'Compare Membership Tiers', path: '/memberships' };
+    } else if (q.includes('trial') || q.includes('free') || q.includes('visit') || q.includes('guest')) {
+      reply = `You can book a complimentary trial session on our championship courts right now! Our front desk concierge will arrange a personalized walk-through, racket hire, and court access.`;
+      action = { type: 'BOOK_TRIAL', label: '🎟️ Book a Free Trial Session' };
+    } else if (q.includes('shop') || q.includes('racket') || q.includes('shoe') || q.includes('ball') || q.includes('gear')) {
+      reply = `Our Pro Gear Shop carries tour-certified equipment from Wilson, Babolat, Nike, and Adidas. Members enjoy unified shelf inventory — buy at the counter or order from your sofa for VIP locker delivery or click & collect!`;
+      action = { type: 'NAVIGATE', label: 'Browse Pro Shop Catalog', path: '/shop' };
+    } else if (q.includes('cafe') || q.includes('bar') || q.includes('food') || q.includes('drink') || q.includes('menu') || q.includes('tab')) {
+      reply = `The Clubhouse Cafe & Lounge serves artisan post-match nutrition, cold-pressed recovery shakes, and curated cellar reserves. Members automatically receive their 15% discount and can run a running bar tab settled at the end of their stay.`;
+      action = { type: 'NAVIGATE', label: 'View Clubhouse Menu', path: '/cafe' };
+    } else if (q.includes('hackathon') || q.includes('scene') || q.includes('story') || q.includes('problem')) {
+      reply = `The Champions Club platform was engineered directly against all 6 operational scenes in the problem statement: From Scene 1 (New Member Walk-in & Digital Pass) and Scene 2 (6 PM Court Rush & Double-Booking Prevention) to Scene 3 (10-Min Snapped String), Scene 4 (Bar Tabs & KDS), Scene 5 (Online Discovery & Quote CRM), and Scene 6 (Owner Month-End P&L Audit). Launch our interactive Hackathon Story Tour!`;
+      action = { type: 'OPEN_TOUR', label: '🏆 Launch Hackathon Story Tour' };
+    } else {
+      reply = `Hello! I am the Champions Club AI Concierge. I can assist you with real-time court availability, membership passes, emergency racket restringing, pro shop gear, or booking a complimentary trial session. How can I elevate your game today?`;
+      action = { type: 'SUGGESTIONS', options: ['Check Court Slots', 'Emergency String Repair', 'Membership Tiers', 'Book Free Trial'] };
+    }
+
+    res.json({ success: true, reply, action });
+  } catch (err) {
+    console.error('[AI Concierge Error]', err);
+    res.status(500).json({
+      success: false,
+      reply: 'Welcome to The Champions Club! How can I assist you with courts, memberships, or our pro shop today?',
+    });
+  }
+});
 
 // ─── Dynamic Public Live Endpoints (Zero Static Mock Data) ───
 // 1. Live Membership Plans
