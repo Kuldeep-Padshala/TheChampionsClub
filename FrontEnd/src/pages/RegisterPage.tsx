@@ -205,7 +205,7 @@ export const RegisterPage: React.FC = () => {
                     desc: 'User accounts, permissions matrix, tax rates & security audit.',
                     icon: Settings,
                   },
-                ].map(({ id, title, sub, desc, icon: Icon }) => {
+                ]?.map(({ id, title, sub, desc, icon: Icon }) => {
                   const isSelected = role === id;
                   return (
                     <button

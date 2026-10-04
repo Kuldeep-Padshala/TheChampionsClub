@@ -101,7 +101,7 @@ export const ContactPage = () => {
 
             {/* Contact cards */}
             <div className="space-y-5">
-              {contactDetails.map(({ icon: Icon, label, value }) => (
+              {contactDetails?.map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-bg-subtle rounded-full flex items-center justify-center flex-shrink-0 border border-border">
                     <Icon className="text-gold-primary" size={20} />

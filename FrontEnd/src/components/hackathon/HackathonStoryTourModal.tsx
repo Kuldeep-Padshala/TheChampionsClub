@@ -193,7 +193,7 @@ export const HackathonStoryTourModal: React.FC<HackathonStoryTourModalProps> = (
 
         {/* Scene Tabs Carousel Strip */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide border-b border-white/10">
-          {scenes.map((s, idx) => (
+          {scenes?.map((s, idx) => (
             <button
               key={s.id}
               onClick={() => setActiveSceneIndex(idx)}
@@ -245,7 +245,7 @@ export const HackathonStoryTourModal: React.FC<HackathonStoryTourModalProps> = (
               </span>
 
               <ul className="space-y-2">
-                {current.solutionHighlights.map((highlight, hIdx) => (
+                {current.solutionHighlights?.map((highlight, hIdx) => (
                   <li key={hIdx} className="flex items-start gap-2 text-xs text-gray-200">
                     <CheckCircle2 size={14} className="text-[#EAD29A] flex-shrink-0 mt-0.5" />
                     <span>{highlight}</span>

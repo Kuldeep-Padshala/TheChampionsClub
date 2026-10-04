@@ -84,7 +84,7 @@ export const NotificationCenter: React.FC = () => {
     const success = await notificationService.markAsRead(notifId);
     if (success) {
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notifId ? { ...n, is_read: 1 } : n))
+        prev?.map((n) => (n.id === notifId ? { ...n, is_read: 1 } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
@@ -93,7 +93,7 @@ export const NotificationCenter: React.FC = () => {
   const handleMarkAllAsRead = async () => {
     const success = await notificationService.markAllAsRead();
     if (success) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
+      setNotifications((prev) => prev?.map((n) => ({ ...n, is_read: 1 })));
       setUnreadCount(0);
     }
   };
@@ -342,7 +342,7 @@ export const NotificationCenter: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                filteredNotifications.map((notif) => (
+                filteredNotifications?.map((notif) => (
                   <div
                     key={notif.id}
                     onClick={() => !notif.is_read && handleMarkAsRead(notif.id)}

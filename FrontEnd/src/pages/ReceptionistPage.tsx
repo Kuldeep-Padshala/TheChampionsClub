@@ -55,6 +55,8 @@ import {
   Camera,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { websocketService } from '../services/websocketService';
+
 import { cn } from '../utils/cn';
 import { useTheme } from '../context/ThemeContext';
 import { CameraQrScannerModal } from '../components/common/CameraQrScannerModal';
@@ -251,6 +253,22 @@ export const ReceptionistPage: React.FC = () => {
     }
   }, [activeTab, calendarDate, selectedSportId]);
 
+  
+  // ⚡ Live WebSocket synchronization for calendar and incoming changes
+  useEffect(() => {
+    const unsubCourt = websocketService.on('court_slot_change', () => {
+      if (activeTab === 'calendar') loadCalendarData();
+    });
+    const unsubNotif = websocketService.on('notification', () => {
+      // Reload relevant badge counters or enquiries
+      loadEnquiriesData();
+    });
+    return () => {
+      unsubCourt();
+      unsubNotif();
+    };
+  }, [activeTab]);
+
   const loadCalendarData = async () => {
     setIsCalendarLoading(true);
     try {
@@ -344,7 +362,7 @@ export const ReceptionistPage: React.FC = () => {
     const startsAt = `${calendarDate} ${slotTime}:00`;
     setBookingStartsAt(startsAt);
     // Default 1 hour slot
-    const [h, m] = slotTime.split(':').map(Number);
+    const [h, m] = slotTime.split(':')?.map(Number);
     const endH = String(h + 1).padStart(2, '0');
     setBookingEndsAt(`${calendarDate} ${endH}:${String(m).padStart(2, '0')}:00`);
     setBookingMemberId(null);
@@ -652,7 +670,7 @@ export const ReceptionistPage: React.FC = () => {
                     <div className="p-2 border-b border-black/5 dark:border-white/10 text-[10px] uppercase font-bold tracking-wider text-gray-400 px-3">
                       Matching Members ({searchResults.length})
                     </div>
-                    {searchResults.map((m) => (
+                    {searchResults?.map((m) => (
                       <div
                         key={m.id}
                         className="p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-b border-black/5 dark:border-white/5 last:border-none flex items-center justify-between gap-2"
@@ -705,7 +723,7 @@ export const ReceptionistPage: React.FC = () => {
               { id: 'members',   label: 'Member Directory',    icon: Users,      badge: `${members.length || ''}` },
               { id: 'billing',   label: 'Billing & POS',        icon: CreditCard, badge: invoices.length > 0 ? `${invoices.length} Due` : undefined },
               { id: 'enquiries', label: 'Leads & Enquiries',    icon: PhoneCall,  badge: `${enquiries.length || ''}` },
-            ].map((tab) => {
+            ]?.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
@@ -842,7 +860,7 @@ export const ReceptionistPage: React.FC = () => {
                       Or Select from Registered Members
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                      {members.slice(0, 6).map((m) => (
+                      {members.slice(0, 6)?.map((m) => (
                         <button
                           key={m.id}
                           onClick={() => handleCheckInSubmit(undefined, m.id)}
@@ -1054,7 +1072,7 @@ export const ReceptionistPage: React.FC = () => {
                   >
                     All Sports
                   </button>
-                  {sports.map((s) => (
+                  {sports?.map((s) => (
                     <button
                       key={s.id}
                       onClick={() => setSelectedSportId(s.id)}
@@ -1080,7 +1098,7 @@ export const ReceptionistPage: React.FC = () => {
                         <th className="p-3 text-left text-xs font-bold text-gray-500 font-display uppercase tracking-wider w-44 sticky left-0 bg-white/95 dark:bg-[#0A0A0D]/95 backdrop-blur-md z-10">
                           Court Surface
                         </th>
-                        {timeSlots.map((time) => (
+                        {timeSlots?.map((time) => (
                           <th key={time} className="p-2 text-center text-[10px] font-mono text-gray-400 font-semibold border-l border-black/5 dark:border-white/5 w-20">
                             {time}
                           </th>
@@ -1088,13 +1106,13 @@ export const ReceptionistPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {courts.map((court) => (
+                      {courts?.map((court) => (
                         <tr key={court.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/[0.01] dark:hover:bg-white/[0.01]">
                           <td className="p-3 sticky left-0 bg-white/95 dark:bg-[#0A0A0D]/95 backdrop-blur-md z-10 border-r border-black/5 dark:border-white/5">
                             <p className="text-xs font-bold text-[#1D1D1F] dark:text-white truncate">{court.name}</p>
                             <span className="text-[10px] text-[#B89047] font-semibold">{court.sport_name || court.surface}</span>
                           </td>
-                          {timeSlots.map((time) => {
+                          {timeSlots?.map((time) => {
                             // Find reservation overlapping this slot
                             const slotStart = new Date(`${calendarDate}T${time}:00`);
                             const match = reservations.find((r) => {
@@ -1185,7 +1203,7 @@ export const ReceptionistPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {members.map((m) => (
+                      {members?.map((m) => (
                         <tr key={m.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                           <td className="p-4">
                             <p className="font-bold text-[#1D1D1F] dark:text-white text-xs">{m.full_name}</p>
@@ -1281,7 +1299,7 @@ export const ReceptionistPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {invoices.map((inv) => (
+                      {invoices?.map((inv) => (
                         <tr key={inv.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                           <td className="p-4 font-mono font-bold text-[#B89047]">{inv.invoice_no}</td>
                           <td className="p-4">
@@ -1378,7 +1396,7 @@ export const ReceptionistPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {enquiries.map((enq) => (
+                      {enquiries?.map((enq) => (
                         <tr key={enq.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                           <td className="p-4 font-bold text-[#1D1D1F] dark:text-white">{enq.full_name}</td>
                           <td className="p-4">
@@ -1488,7 +1506,7 @@ export const ReceptionistPage: React.FC = () => {
 
                     {bookingMemberOptions.length > 0 && !bookingMemberId && (
                       <div className="max-h-36 overflow-y-auto border border-black/10 dark:border-white/10 rounded-xl mb-3 divide-y divide-black/5 dark:divide-white/5">
-                        {bookingMemberOptions.map((m) => (
+                        {bookingMemberOptions?.map((m) => (
                           <div
                             key={m.id}
                             onClick={() => {
@@ -1695,7 +1713,7 @@ export const ReceptionistPage: React.FC = () => {
                         className="w-full p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs font-semibold"
                       >
                         <option value="">No Plan (Register First)</option>
-                        {plans.map((p) => (
+                        {plans?.map((p) => (
                           <option key={p.id} value={p.id}>{p.name} — ₹{Number(p.fee).toLocaleString('en-IN')}</option>
                         ))}
                       </select>
@@ -1786,7 +1804,7 @@ export const ReceptionistPage: React.FC = () => {
                   </div>
                   {memberDetail.active_memberships.length > 0 ? (
                     <div className="space-y-2">
-                      {memberDetail.active_memberships.map((ms) => (
+                      {memberDetail.active_memberships?.map((ms) => (
                         <div key={ms.id} className="p-3.5 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-between">
                           <div>
                             <p className="text-xs font-bold text-[#1D1D1F] dark:text-white">{ms.plan_name} Membership</p>
@@ -1815,7 +1833,7 @@ export const ReceptionistPage: React.FC = () => {
                       Recent Court Bookings
                     </h4>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                      {memberDetail.bookings.map((b) => (
+                      {memberDetail.bookings?.map((b) => (
                         <div key={b.id} className="p-2 rounded-xl border border-black/5 dark:border-white/5 text-[11px]">
                           <p className="font-semibold text-[#1D1D1F] dark:text-white">{b.court_name}</p>
                           <p className="text-gray-400">{new Date(b.starts_at).toLocaleDateString()} • {b.status}</p>
@@ -1833,7 +1851,7 @@ export const ReceptionistPage: React.FC = () => {
                       Recent Check-Ins
                     </h4>
                     <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                      {memberDetail.checkIns.map((ci) => (
+                      {memberDetail.checkIns?.map((ci) => (
                         <div key={ci.id} className="p-2 rounded-xl border border-black/5 dark:border-white/5 text-[11px] flex justify-between">
                           <span className="font-mono text-gray-500">{new Date(ci.checked_in_at).toLocaleString()}</span>
                           <span className="font-semibold text-[#B89047]">{ci.method}</span>
@@ -1878,7 +1896,7 @@ export const ReceptionistPage: React.FC = () => {
                       }}
                       className="w-full p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs font-semibold"
                     >
-                      {plans.map((p) => (
+                      {plans?.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} ({p.duration_months} Mos) — ₹{Number(p.fee).toLocaleString('en-IN')}
                         </option>
@@ -1961,7 +1979,7 @@ export const ReceptionistPage: React.FC = () => {
                   <div>
                     <label className="block text-[11px] uppercase font-bold text-gray-400 mb-1">Payment Method *</label>
                     <div className="grid grid-cols-4 gap-2">
-                      {(['UPI', 'Card', 'Cash', 'Online'] as const).map((method) => (
+                      {(['UPI', 'Card', 'Cash', 'Online'] as const)?.map((method) => (
                         <button
                           key={method}
                           type="button"
@@ -2138,7 +2156,7 @@ export const ReceptionistPage: React.FC = () => {
                         className="w-full p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] text-xs font-semibold"
                       >
                         <option value="">Full Club Membership</option>
-                        {sports.map((s) => (
+                        {sports?.map((s) => (
                           <option key={s.id} value={s.id}>{s.name} Coaching / Play</option>
                         ))}
                       </select>

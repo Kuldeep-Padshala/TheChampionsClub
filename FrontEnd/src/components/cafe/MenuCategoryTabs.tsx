@@ -16,7 +16,7 @@ interface MenuCategoryTabsProps {
 export const MenuCategoryTabs: React.FC<MenuCategoryTabsProps> = ({ activeTab, onChange }) => {
   return (
     <div className="flex gap-2 sm:gap-4 mb-10 border-b border-black/[0.06] dark:border-white/[0.08] pb-0 overflow-x-auto scrollbar-hide">
-      {TABS.map(({ key, label, icon: Icon }) => {
+      {TABS?.map(({ key, label, icon: Icon }) => {
         const isActive = activeTab === key;
         return (
           <button

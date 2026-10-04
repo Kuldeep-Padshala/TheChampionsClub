@@ -27,7 +27,7 @@ export const PasswordStrength: React.FC<Props> = ({ password }) => {
   return (
     <div className="mt-2.5">
       <div className="flex gap-1.5">
-        {[1, 2, 3, 4].map((s) => (
+        {[1, 2, 3, 4]?.map((s) => (
           <div
             key={s}
             className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${

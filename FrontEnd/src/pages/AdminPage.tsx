@@ -217,7 +217,7 @@ export const AdminPage: React.FC = () => {
     try {
       const res = await adminService.toggleUserLock(u.id, action);
       toast.success(res.message);
-      setUsersList(prev => prev.map(item => item.id === u.id ? { ...item, status: action === 'unlock' ? 'active' : 'suspended' } : item));
+      setUsersList(prev => prev?.map(item => item.id === u.id ? { ...item, status: action === 'unlock' ? 'active' : 'suspended' } : item));
       adminService.getStats().then(s => setStats(s)).catch(() => {});
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to toggle account lock');
@@ -255,7 +255,7 @@ export const AdminPage: React.FC = () => {
     try {
       const res = await adminService.updateRolePermissions(selectedRoleId, activePermIds);
       toast.success(res.message);
-      setRoles(prev => prev.map(r => r.id === selectedRoleId ? { ...r, permission_ids: activePermIds } : r));
+      setRoles(prev => prev?.map(r => r.id === selectedRoleId ? { ...r, permission_ids: activePermIds } : r));
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to update permissions');
     } finally {
@@ -309,7 +309,7 @@ export const AdminPage: React.FC = () => {
       const newStatus = rate.is_active ? 0 : 1;
       await adminService.toggleTaxRate(rate.id, newStatus === 1);
       toast.success(`Tax rate ${rate.name} set to ${newStatus === 1 ? 'active' : 'inactive'}`);
-      setTaxRates(prev => prev.map(r => r.id === rate.id ? { ...r, is_active: newStatus } : r));
+      setTaxRates(prev => prev?.map(r => r.id === rate.id ? { ...r, is_active: newStatus } : r));
     } catch (err: any) {
       toast.error('Failed to toggle tax rate');
     }
@@ -321,7 +321,7 @@ export const AdminPage: React.FC = () => {
     try {
       const res = await adminService.updateClubSetting(key, value);
       toast.success(res.message);
-      setSettings(prev => prev.map(s => s.key === key ? { ...s, value } : s));
+      setSettings(prev => prev?.map(s => s.key === key ? { ...s, value } : s));
       setEditingSettingKey(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to update setting');
@@ -656,7 +656,7 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                  {filteredUsers.map((u) => (
+                  {filteredUsers?.map((u) => (
                     <tr key={u.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2.5">
@@ -675,7 +675,7 @@ export const AdminPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex flex-wrap gap-1">
-                          {u.roles.map((r, i) => (
+                          {u.roles?.map((r, i) => (
                             <span
                               key={i}
                               className={cn(
@@ -807,7 +807,7 @@ export const AdminPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {membershipRequests.map((req) => (
+                    {membershipRequests?.map((req) => (
                       <tr key={req.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         <td className="py-3.5 px-3">
                           <div className="font-semibold text-sm text-[#1D1D1F] dark:text-white">
@@ -937,7 +937,7 @@ export const AdminPage: React.FC = () => {
 
             {/* Role Select Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              {roles.map(r => (
+              {roles?.map(r => (
                 <button
                   key={r.id}
                   onClick={() => setSelectedRoleId(r.id)}
@@ -955,7 +955,7 @@ export const AdminPage: React.FC = () => {
 
             {/* Permissions Grouped By Module */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(permissionsByModule).map(([mod, perms]) => (
+              {Object.entries(permissionsByModule)?.map(([mod, perms]) => (
                 <div key={mod} className="p-4 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/10 dark:border-white/10 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-black/10 dark:border-white/10">
                     <span className="font-display font-bold text-xs uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
@@ -965,7 +965,7 @@ export const AdminPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    {perms.map(p => {
+                    {perms?.map(p => {
                       const isChecked = activePermIds.includes(p.id);
                       return (
                         <label
@@ -1141,7 +1141,7 @@ export const AdminPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {settings.map((s) => {
+                    {settings?.map((s) => {
                       const isEditing = editingSettingKey === s.key;
                       return (
                         <tr key={s.key} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
@@ -1300,7 +1300,7 @@ export const AdminPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {taxRates.map((t) => (
+              {taxRates?.map((t) => (
                 <div
                   key={t.id}
                   className="p-5 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/10 dark:border-white/10 flex items-center justify-between"
@@ -1362,7 +1362,7 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 font-mono text-[11px]">
-                  {auditLogs.map((log) => (
+                  {auditLogs?.map((log) => (
                     <tr key={log.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                       <td className="py-2.5 px-3 text-gray-500 dark:text-white/50">
                         {new Date(log.created_at).toLocaleString('en-IN')}

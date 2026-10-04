@@ -158,8 +158,7 @@ export const OwnerPage: React.FC = () => {
     setIsSubmittingPlan(true);
     try {
       const benefitList = planForm.benefits
-        .split('\n')
-        .map(b => b.trim())
+        .split('\n')?.map(b => b.trim())
         .filter(Boolean);
 
       const res = await ownerService.createMembershipPlan({
@@ -344,7 +343,7 @@ export const OwnerPage: React.FC = () => {
             { id: 'approvals',  label: 'Financial Approvals', icon: CheckSquare, badge: pendingApprovals.payrolls.length + pendingApprovals.expenses.length },
             { id: 'strategy',   label: 'Strategy & Plans',   icon: Sliders },
             { id: 'investors',  label: 'Investor Reports',   icon: Share2 },
-          ].map(tab => {
+          ]?.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -402,7 +401,7 @@ export const OwnerPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/40 p-1 rounded-xl border border-black/10 dark:border-white/10 self-start sm:self-auto">
-                    {(['day', 'week', 'month', 'year'] as const).map(tf => (
+                    {(['day', 'week', 'month', 'year'] as const)?.map(tf => (
                       <button
                         key={tf}
                         onClick={() => setRevenueTimeframe(tf)}
@@ -482,7 +481,7 @@ export const OwnerPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
-                    {occupancy.slice(0, 6).map(court => (
+                    {occupancy.slice(0, 6)?.map(court => (
                       <div key={court.court_id} className="p-3 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-black/5 dark:border-white/5 space-y-1.5">
                         <div className="flex justify-between items-center text-xs">
                           <div className="flex items-center gap-2">
@@ -585,7 +584,7 @@ export const OwnerPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {pendingApprovals.payrolls.map(pr => (
+                  {pendingApprovals.payrolls?.map(pr => (
                     <div key={pr.id} className="p-4 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/5 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
@@ -644,7 +643,7 @@ export const OwnerPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {pendingApprovals.expenses.map(exp => (
+                  {pendingApprovals.expenses?.map(exp => (
                     <div key={exp.id} className="p-4 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/5 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
@@ -773,7 +772,7 @@ export const OwnerPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {membershipPlans.map(plan => (
+                {membershipPlans?.map(plan => (
                   <div
                     key={plan.id}
                     className="rounded-2xl bg-stone-50 dark:bg-gradient-to-b dark:from-white/[0.04] dark:to-white/[0.01] border border-black/10 dark:border-white/10 p-5 space-y-4 hover:border-[#B89047]/40 transition-all flex flex-col justify-between shadow-sm"
@@ -811,7 +810,7 @@ export const OwnerPage: React.FC = () => {
                       {plan.benefits && plan.benefits.length > 0 && (
                         <div className="mt-4 pt-3 border-t border-black/10 dark:border-white/10 space-y-1.5">
                           <span className="text-[10px] font-bold uppercase text-gray-500 dark:text-white/50 block">Tier Privileges</span>
-                          {plan.benefits.map((b, i) => (
+                          {plan.benefits?.map((b, i) => (
                             <div key={i} className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-white/70">
                               <Check size={13} className="text-emerald-500 flex-shrink-0" />
                               <span className="truncate">{b}</span>
@@ -866,7 +865,7 @@ export const OwnerPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {reportShares.map(share => {
+                    {reportShares?.map(share => {
                       const link = `http://localhost:5173/reports/share/${share.share_token}`;
                       return (
                         <tr key={share.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">

@@ -517,7 +517,7 @@ export const AccountantPage: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {pnl?.costs.expenses_by_category && pnl.costs.expenses_by_category.length > 0 ? (
-                  pnl.costs.expenses_by_category.map((c, i) => (
+                  pnl.costs.expenses_by_category?.map((c, i) => (
                     <div
                       key={i}
                       className="p-3.5 rounded-2xl bg-stone-50 dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex items-center justify-between text-xs"
@@ -577,7 +577,7 @@ export const AccountantPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 text-gray-800 dark:text-white/80 font-sans">
-                  {expenses.map((exp) => (
+                  {expenses?.map((exp) => (
                     <tr key={exp.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-4 font-mono text-[#B89047] dark:text-[#EAD29A] font-bold">
                         #{exp.id}
@@ -653,7 +653,7 @@ export const AccountantPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {payrollRuns.map((run) => (
+            {payrollRuns?.map((run) => (
               <div
                 key={run.id}
                 className="p-5 rounded-3xl bg-white dark:bg-gradient-to-b dark:from-[#14141A] dark:to-[#0D0D12] border border-black/10 dark:border-white/10 hover:border-[#B89047]/40 transition-all shadow-xl space-y-4"
@@ -739,7 +739,7 @@ export const AccountantPage: React.FC = () => {
                 </div>
 
                 <div className="overflow-y-auto flex-1 space-y-2 pr-1">
-                  {selectedRunItems.map((item) => (
+                  {selectedRunItems?.map((item) => (
                     <div
                       key={item.id}
                       className="p-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-[#E5E5EA] dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
@@ -867,7 +867,7 @@ export const AccountantPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5 text-gray-800 dark:text-white/80 font-sans">
-                    {taxReturns.map((tr) => (
+                    {taxReturns?.map((tr) => (
                       <tr key={tr.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                         <td className="py-3 px-4 font-bold text-[#1D1D1F] dark:text-white font-mono">{tr.tax_type}</td>
                         <td className="py-3 px-4 font-mono text-gray-600 dark:text-white/60">
@@ -927,7 +927,7 @@ export const AccountantPage: React.FC = () => {
                   onChange={(e) => setNewExpenseCat(Number(e.target.value))}
                   className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-[#B89047]"
                 >
-                  {categories.map((c) => (
+                  {categories?.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>

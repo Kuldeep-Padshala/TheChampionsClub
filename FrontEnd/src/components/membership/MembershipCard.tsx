@@ -162,7 +162,7 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
       {/* ── Bespoke Privileges List ── */}
       <div className="flex-1 p-7 sm:p-8 flex flex-col justify-between">
         <ul className="space-y-3.5 mb-8">
-          {plan.benefits.map((benefit, i) => (
+          {plan.benefits?.map((benefit, i) => (
             <li
               key={i}
               className="flex items-start gap-3 text-sm text-[#2C2C2E] dark:text-[#E5E5EA] leading-snug"

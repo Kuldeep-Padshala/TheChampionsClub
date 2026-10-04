@@ -51,7 +51,7 @@ export const Footer = () => {
                 { label: 'Memberships',    to: ROUTES.MEMBERSHIPS },
                 { label: 'Our Story',      to: ROUTES.ABOUT       },
                 { label: 'Contact Us',     to: ROUTES.CONTACT     },
-              ].map(({ label, to }) => (
+              ]?.map(({ label, to }) => (
                 <li key={to}>
                   <Link to={to} className="text-[#86868B] hover:text-[#1D1D1F] hover:underline transition-colors">
                     {label}

@@ -177,7 +177,7 @@ export const ChampionsAiConcierge: React.FC<ChampionsAiConciergeProps> = ({
 
           {/* Messages Feed */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
-            {messages.map((m) => (
+            {messages?.map((m) => (
               <div
                 key={m.id}
                 className={cn(
@@ -206,7 +206,7 @@ export const ChampionsAiConcierge: React.FC<ChampionsAiConciergeProps> = ({
                   {/* Suggestion action pills */}
                   {m.action?.type === 'SUGGESTIONS' && Array.isArray(m.action.options) && (
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {m.action.options.map((opt, i) => (
+                      {m.action.options?.map((opt, i) => (
                         <button
                           key={i}
                           onClick={() => handleSend(opt.replace(/^[^a-zA-Z0-9]+/, ''))}

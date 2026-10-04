@@ -174,7 +174,7 @@ export const BarStaffPage: React.FC = () => {
     setCart((prev) => {
       const existing = prev.find((c) => c.menu_item.id === item.id);
       if (existing) {
-        return prev.map((c) =>
+        return prev?.map((c) =>
           c.menu_item.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
         );
       }
@@ -184,8 +184,7 @@ export const BarStaffPage: React.FC = () => {
 
   const updateQuantity = (itemId: number, delta: number) => {
     setCart((prev) => {
-      return prev
-        .map((c) => {
+      return prev?.map((c) => {
           if (c.menu_item.id === itemId) {
             const newQty = c.quantity + delta;
             return newQty > 0 ? { ...c, quantity: newQty } : null;
@@ -198,7 +197,7 @@ export const BarStaffPage: React.FC = () => {
 
   const updateInstructions = (itemId: number, text: string) => {
     setCart((prev) =>
-      prev.map((c) => (c.menu_item.id === itemId ? { ...c, special_instructions: text } : c))
+      prev?.map((c) => (c.menu_item.id === itemId ? { ...c, special_instructions: text } : c))
     );
   };
 
@@ -242,7 +241,7 @@ export const BarStaffPage: React.FC = () => {
         member_id: memberId ? Number(memberId) : null,
         guest_name: guestName.trim() || undefined,
         notes: orderNotes.trim() || undefined,
-        items: cart.map((c) => ({
+        items: cart?.map((c) => ({
           menu_item_id: c.menu_item.id,
           quantity: c.quantity,
           special_instructions: c.special_instructions.trim() || undefined,
@@ -276,7 +275,7 @@ export const BarStaffPage: React.FC = () => {
         guest_name: guestName.trim() || 'Walk-in Counter Guest',
         payment_method: checkoutPaymentMethod,
         notes: orderNotes.trim() || 'Counter Touch Sale',
-        items: cart.map((c) => ({
+        items: cart?.map((c) => ({
           menu_item_id: c.menu_item.id,
           quantity: c.quantity,
         })),
@@ -397,7 +396,7 @@ export const BarStaffPage: React.FC = () => {
         nextVal ? `${item.name} is now Available / In Stock` : `${item.name} 86'd (Sold Out)`
       );
       setMenuItems((prev) =>
-        prev.map((m) => (m.id === item.id ? { ...m, is_available: nextVal } : m))
+        prev?.map((m) => (m.id === item.id ? { ...m, is_available: nextVal } : m))
       );
     } catch (err: any) {
       toast.error('Failed to toggle item availability');
@@ -514,7 +513,7 @@ export const BarStaffPage: React.FC = () => {
               { id: 'kds',    label: 'Kitchen KDS Queue',    icon: Flame, badge: stats?.pending_orders },
               { id: 'tables', label: 'Tables & Tabs',        icon: LayoutGrid, badge: stats?.active_tabs },
               { id: 'menu',   label: 'Menu 86 Board',        icon: SlidersHorizontal },
-            ].map(({ id, label, icon: Icon, badge }) => {
+            ]?.map(({ id, label, icon: Icon, badge }) => {
               const isActive = activeTab === id;
               return (
                 <button
@@ -565,7 +564,7 @@ export const BarStaffPage: React.FC = () => {
                   >
                     All Items
                   </button>
-                  {categories.map((cat) => (
+                  {categories?.map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
@@ -596,7 +595,7 @@ export const BarStaffPage: React.FC = () => {
 
               {/* Menu Items Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredMenuItems.map((item) => {
+                {filteredMenuItems?.map((item) => {
                   const inCartCount = cart.find((c) => c.menu_item.id === item.id)?.quantity || 0;
                   return (
                     <div
@@ -697,7 +696,7 @@ export const BarStaffPage: React.FC = () => {
                     className="w-full px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white outline-none"
                   >
                     <option value="">Counter / Takeaway</option>
-                    {tables.map((t) => (
+                    {tables?.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.table_number} ({t.zone}) — {t.status}
                       </option>
@@ -711,8 +710,7 @@ export const BarStaffPage: React.FC = () => {
                   >
                     <option value="">No Tab (Immediate)</option>
                     {tabs
-                      .filter((t) => t.status === 'open')
-                      .map((t) => (
+                      .filter((t) => t.status === 'open')?.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.tab_no} ({t.guest_name || t.member_name || 'Guest'})
                         </option>
@@ -798,7 +796,7 @@ export const BarStaffPage: React.FC = () => {
                     Tap any menu item on the left to add to ticket.
                   </div>
                 ) : (
-                  cart.map((item) => (
+                  cart?.map((item) => (
                     <div
                       key={item.menu_item.id}
                       className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-2"
@@ -931,7 +929,7 @@ export const BarStaffPage: React.FC = () => {
                 { status: 'preparing', label: 'In Preparation',   color: 'border-amber-500/30 bg-amber-500/5' },
                 { status: 'ready',     label: 'Ready for Service', color: 'border-emerald-500/30 bg-emerald-500/5' },
                 { status: 'served',    label: 'Delivered / Served', color: 'border-gray-500/30 bg-black/[0.02]' },
-              ].map(({ status, label, color }) => {
+              ]?.map(({ status, label, color }) => {
                 const columnOrders = orders.filter((o) => o.status === status);
                 return (
                   <div key={status} className={cn('rounded-2xl p-4 border flex flex-col', color)}>
@@ -950,7 +948,7 @@ export const BarStaffPage: React.FC = () => {
                           No tickets in {status}
                         </div>
                       ) : (
-                        columnOrders.map((ord) => {
+                        columnOrders?.map((ord) => {
                           const elapsedMins = Math.floor(
                             (Date.now() - new Date(ord.placed_at).getTime()) / 60000
                           );
@@ -1080,7 +1078,7 @@ export const BarStaffPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  {['all', 'indoor', 'terrace', 'lounge'].map((zone) => (
+                  {['all', 'indoor', 'terrace', 'lounge']?.map((zone) => (
                     <button
                       key={zone}
                       type="button"
@@ -1101,8 +1099,7 @@ export const BarStaffPage: React.FC = () => {
               {/* Table Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {tables
-                  .filter((t) => tableZoneFilter === 'all' || t.zone === tableZoneFilter)
-                  .map((tbl) => (
+                  .filter((t) => tableZoneFilter === 'all' || t.zone === tableZoneFilter)?.map((tbl) => (
                     <div
                       key={tbl.id}
                       className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col justify-between"
@@ -1200,7 +1197,7 @@ export const BarStaffPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {tabs.map((tab) => (
+                    {tabs?.map((tab) => (
                       <tr key={tab.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                         <td className="py-3 px-3 font-mono font-bold text-[#1D1D1F] dark:text-white">
                           {tab.tab_no}
@@ -1285,7 +1282,7 @@ export const BarStaffPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                  {menuItems.map((item) => (
+                  {menuItems?.map((item) => (
                     <tr key={item.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                       <td className="py-3 px-3 font-semibold text-[#1D1D1F] dark:text-white">
                         {item.name}
@@ -1374,7 +1371,7 @@ export const BarStaffPage: React.FC = () => {
                     Select Payment Method *
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {['upi', 'card', 'cash'].map((m) => (
+                    {['upi', 'card', 'cash']?.map((m) => (
                       <button
                         key={m}
                         type="button"
@@ -1462,7 +1459,7 @@ export const BarStaffPage: React.FC = () => {
                     className="w-full px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[#1D1D1F] dark:text-white outline-none"
                   >
                     <option value="">No Specific Table</option>
-                    {tables.map((t) => (
+                    {tables?.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.table_number} ({t.zone}) — {t.status}
                       </option>
@@ -1551,7 +1548,7 @@ export const BarStaffPage: React.FC = () => {
                     Settlement Method *
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {['upi', 'card', 'cash'].map((m) => (
+                    {['upi', 'card', 'cash']?.map((m) => (
                       <button
                         key={m}
                         type="button"

@@ -113,7 +113,7 @@ export const CafePage = () => {
         ) : (
           /* 2-column menu grid on large screens */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-5xl mx-auto">
-            {filteredMenu.map(item => (
+            {filteredMenu?.map(item => (
               <MenuCard
                 key={item.id}
                 item={item}
@@ -249,7 +249,7 @@ export const CafePage = () => {
                     className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-white text-xs font-semibold outline-none focus:border-[#B89047] cursor-pointer"
                   >
                     {diningTables.length > 0 ? (
-                      diningTables.map((t) => (
+                      diningTables?.map((t) => (
                         <option
                           key={t.id}
                           value={`${t.table_number} (${t.zone.toUpperCase()} • ${t.seats} Seats)`}

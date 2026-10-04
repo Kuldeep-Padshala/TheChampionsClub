@@ -494,7 +494,7 @@ export const HomePage = () => {
           </div>
           {/* Featured court cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {courts.map(court => (
+            {courts?.map(court => (
               <CourtCard
                 key={court.id}
                 court={court}
@@ -517,7 +517,7 @@ export const HomePage = () => {
             centered
           />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-14 items-start">
-            {plans.map((plan, index) => (
+            {plans?.map((plan, index) => (
               <MembershipCard
                 index={index}
                 key={plan.id}
@@ -543,7 +543,7 @@ export const HomePage = () => {
         <div className="container mx-auto px-4 md:px-6">
           <SectionHeader title="Life at The Club" subtitle="A peek inside our world." centered />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-12 max-w-5xl mx-auto">
-            {gallery.map((item, i) => (
+            {gallery?.map((item, i) => (
               <div
                 key={item.id}
                 className={`relative overflow-hidden rounded-xl group cursor-pointer ${
@@ -632,7 +632,7 @@ export const HomePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {hours.map((row, i) => (
+                {hours?.map((row, i) => (
                   <tr
                     key={i}
                     className={`border-t border-border ${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-subtle'}`}

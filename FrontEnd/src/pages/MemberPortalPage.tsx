@@ -831,7 +831,7 @@ export const MemberPortalPage: React.FC = () => {
               badge: 'Security',
               badgeColor: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
             },
-          ].map((tab) => {
+          ]?.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -1018,7 +1018,7 @@ export const MemberPortalPage: React.FC = () => {
 
                   {/* Plan Cards Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {plans.map((p) => {
+                    {plans?.map((p) => {
                       const isGold = p.code === 'gold' || p.name.toLowerCase().includes('gold');
                       return (
                         <div
@@ -1183,7 +1183,7 @@ export const MemberPortalPage: React.FC = () => {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {recentCheckins.map((ci) => (
+                        {recentCheckins?.map((ci) => (
                           <div key={ci.id} className="flex items-center justify-between p-3.5 rounded-xl bg-black/5 dark:bg-white/[0.02] text-xs">
                             <div className="flex items-center gap-2.5">
                               <CheckCircle size={15} className="text-emerald-500" />
@@ -1247,7 +1247,7 @@ export const MemberPortalPage: React.FC = () => {
                     Extend your membership validity for another full term to preserve your current member rates, VIP privileges, and gate clearance.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {plans.map((p) => (
+                    {plans?.map((p) => (
                       <div key={p.id} className="p-4 rounded-2xl border border-black/10 dark:border-white/10 flex flex-col justify-between">
                         <div>
                           <div className="font-bold text-sm text-[#1D1D1F] dark:text-white">{p.name} Pass</div>
@@ -1312,7 +1312,7 @@ export const MemberPortalPage: React.FC = () => {
                 <thead>
                   <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider text-gray-400 font-display">
                     <th className="pb-3 pr-4">Court</th>
-                    {OPERATING_HOURS.map((hr) => (
+                    {OPERATING_HOURS?.map((hr) => (
                       <th key={hr} className="pb-3 text-center px-1 font-mono text-[10px]">
                         {hr}:00
                       </th>
@@ -1320,13 +1320,13 @@ export const MemberPortalPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 text-xs">
-                  {availableCourts.map((court) => (
+                  {availableCourts?.map((court) => (
                     <tr key={court.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.01]">
                       <td className="py-3 pr-4 font-semibold text-[#1D1D1F] dark:text-white whitespace-nowrap">
                         <div>{court.name}</div>
                         <span className="text-[10px] text-[#B89047] font-normal">{court.sport_name || court.surface}</span>
                       </td>
-                      {OPERATING_HOURS.map((hr) => {
+                      {OPERATING_HOURS?.map((hr) => {
                         const pad = (n: number) => (n < 10 ? '0' + n : String(n));
                         const slotStart = `${selectedDate} ${pad(hr)}:00:00`;
                         const slotEnd = `${selectedDate} ${pad(hr + 1)}:00:00`;
@@ -1377,7 +1377,7 @@ export const MemberPortalPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-black/5 dark:divide-white/5">
-                  {myBookings.map((b) => {
+                  {myBookings?.map((b) => {
                     const isUpcoming = new Date(b.starts_at) > new Date() && b.status !== 'cancelled';
                     return (
                       <div key={b.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1454,7 +1454,7 @@ export const MemberPortalPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-black/5 dark:divide-white/5">
-                  {invoices.map((inv) => (
+                  {invoices?.map((inv) => (
                     <div key={inv.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 font-mono font-bold text-sm text-[#1D1D1F] dark:text-white">
@@ -1506,7 +1506,7 @@ export const MemberPortalPage: React.FC = () => {
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((p) => {
+              {products?.map((p) => {
                 const retailPrice = Number(p.base_price);
                 const isGold = (membership?.plan_code || '').toLowerCase().includes('gold') || (membership?.plan_name || '').toLowerCase().includes('gold');
                 const memberDiscountedPrice = Math.round(retailPrice * (isGold ? 0.85 : 0.90));
@@ -1521,7 +1521,7 @@ export const MemberPortalPage: React.FC = () => {
                         title="Click to view high-resolution preview"
                       >
                         <img
-                          src={p.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                          src={p.image_url ? (p.image_url.startsWith('http') ? p.image_url : (import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000') + (p.image_url.startsWith('/') ? '' : '/') + p.image_url) : 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
                           alt={p.name}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
@@ -1587,7 +1587,7 @@ export const MemberPortalPage: React.FC = () => {
                 <div className="text-xs text-gray-400 italic">No shop orders placed yet.</div>
               ) : (
                 <div className="divide-y divide-black/5 dark:divide-white/5 text-xs">
-                  {myOrders.map((o) => (
+                  {myOrders?.map((o) => (
                     <div key={o.id} className="py-3 flex items-center justify-between">
                       <div>
                         <div className="font-bold font-mono text-[#1D1D1F] dark:text-white">{o.order_no}</div>
@@ -2075,7 +2075,7 @@ export const MemberPortalPage: React.FC = () => {
                 <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/10 flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl bg-white dark:bg-black/40 border border-black/5 dark:border-white/10 flex items-center justify-center p-1.5 flex-shrink-0">
                     <img
-                      src={checkoutProduct.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                      src={checkoutProduct.image_url ? (checkoutProduct.image_url.startsWith('http') ? checkoutProduct.image_url : (import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000') + (checkoutProduct.image_url.startsWith('/') ? '' : '/') + checkoutProduct.image_url) : 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
                       alt={checkoutProduct.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
@@ -2135,7 +2135,7 @@ export const MemberPortalPage: React.FC = () => {
                     {[
                       { id: 'Counter Pickup', label: 'Pro Shop Pickup', desc: 'Ready in 15 mins at counter' },
                       { id: 'Locker Delivery', label: 'Locker / Sanctuary', desc: 'Placed in member locker' },
-                    ].map((opt) => {
+                    ]?.map((opt) => {
                       const isSel = checkoutFulfillment === opt.id;
                       return (
                         <button
@@ -2269,7 +2269,7 @@ export const MemberPortalPage: React.FC = () => {
               {/* Large Product Image Showcase */}
               <div className="w-full h-72 sm:h-80 rounded-2xl bg-gradient-to-b from-stone-100 to-stone-50 dark:from-white/[0.02] dark:to-white/[0.05] border border-black/5 dark:border-white/5 flex items-center justify-center p-6 shadow-inner relative">
                 <img
-                  src={previewProduct.image_url || 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
+                  src={previewProduct.image_url ? (previewProduct.image_url.startsWith('http') ? previewProduct.image_url : (import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000') + (previewProduct.image_url.startsWith('/') ? '' : '/') + previewProduct.image_url) : 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop'}
                   alt={previewProduct.name}
                   className="max-h-full max-w-full object-contain drop-shadow-md"
                   onError={(e) => {

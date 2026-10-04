@@ -187,7 +187,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
             <div className="p-3.5 text-center text-[#86868B] border-r border-black/[0.06] dark:border-white/[0.08] uppercase tracking-wider font-display">
               Timeline
             </div>
-            {weekDays.map((d, i) => (
+            {weekDays?.map((d, i) => (
               <div
                 key={i}
                 className="p-3 text-center border-r border-black/[0.06] dark:border-white/[0.08] last:border-0 text-[#1D1D1F] dark:text-white"
@@ -204,7 +204,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
             data-lenis-prevent
             className="max-h-[520px] overflow-y-auto overscroll-contain divide-y divide-black/[0.04] dark:divide-white/[0.05]"
           >
-            {timeHours.map((hour) => (
+            {timeHours?.map((hour) => (
               <div
                 key={hour}
                 className="grid grid-cols-8 text-xs hover:bg-[#FAF9F6]/80 dark:hover:bg-white/[0.02] transition-colors"
@@ -212,7 +212,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
                 <div className="p-3 text-center text-[#86868B] border-r border-black/[0.06] dark:border-white/[0.08] font-mono font-medium flex items-center justify-center">
                   {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
                 </div>
-                {weekDays.map((d, i) => {
+                {weekDays?.map((d, i) => {
                   const slot = getSlot(d, hour);
                   return (
                     <div

@@ -17,7 +17,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 }) => {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {categories.map((cat) => {
+      {categories?.map((cat) => {
         const isActive = activeCategory === cat;
         return (
           <button

@@ -608,7 +608,7 @@ export const ManagerPage: React.FC = () => {
               { id: 'overrides',  label: 'VIP Overrides & Voids', icon: ShieldAlert },
               { id: 'inventory',  label: 'Inventory & Bar',      icon: Package },
               { id: 'hr',         label: 'Staff & Shifts (HR)',  icon: Users },
-            ].map(({ id, label, icon: Icon }) => {
+            ]?.map(({ id, label, icon: Icon }) => {
               const isActive = activeTab === id;
               return (
                 <button
@@ -719,7 +719,7 @@ export const ManagerPage: React.FC = () => {
                 </h3>
                 {dailySummary?.payment_breakdown && dailySummary.payment_breakdown.length > 0 ? (
                   <div className="space-y-3">
-                    {dailySummary.payment_breakdown.map((item, idx) => (
+                    {dailySummary.payment_breakdown?.map((item, idx) => (
                       <div
                         key={idx}
                         className="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/[0.03] border border-black/5 dark:border-white/5"
@@ -752,7 +752,7 @@ export const ManagerPage: React.FC = () => {
                 </h3>
                 {dailySummary?.invoice_breakdown && dailySummary.invoice_breakdown.length > 0 ? (
                   <div className="space-y-3">
-                    {dailySummary.invoice_breakdown.map((item, idx) => (
+                    {dailySummary.invoice_breakdown?.map((item, idx) => (
                       <div
                         key={idx}
                         className="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/[0.03] border border-black/5 dark:border-white/5"
@@ -827,7 +827,7 @@ export const ManagerPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
                     {dailyClosings.length > 0 ? (
-                      dailyClosings.map((c) => {
+                      dailyClosings?.map((c) => {
                         const varianceNum = Number(c.cash_variance);
                         return (
                           <tr key={c.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
@@ -901,7 +901,7 @@ export const ManagerPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {courts.map((court) => (
+                {courts?.map((court) => (
                   <div
                     key={court.id}
                     className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col justify-between"
@@ -978,7 +978,7 @@ export const ManagerPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {courtRates.map((rate) => (
+                    {courtRates?.map((rate) => (
                       <tr key={rate.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                         <td className="py-3 px-3 font-semibold text-[#1D1D1F] dark:text-white">
                           {rate.sport_name}
@@ -1113,7 +1113,7 @@ export const ManagerPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
                     {filteredInvoices.length > 0 ? (
-                      filteredInvoices.map((inv) => (
+                      filteredInvoices?.map((inv) => (
                         <tr key={inv.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                           <td className="py-3 px-3 font-semibold text-[#1D1D1F] dark:text-white">
                             {inv.invoice_no}
@@ -1271,7 +1271,7 @@ export const ManagerPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {filteredInventoryItems.map((item) => {
+                      {filteredInventoryItems?.map((item) => {
                         const isLowStock = item.stock_on_hand <= item.reorder_level;
                         return (
                           <tr key={item.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
@@ -1347,7 +1347,7 @@ export const ManagerPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {barItems.map((bar) => (
+                  {barItems?.map((bar) => (
                     <div
                       key={bar.id}
                       className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col justify-between"
@@ -1424,7 +1424,7 @@ export const ManagerPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {stockMovements.map((mov) => (
+                      {stockMovements?.map((mov) => (
                         <tr key={mov.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                           <td className="py-3 px-3 text-gray-400">
                             {new Date(mov.created_at).toLocaleString([], {
@@ -1527,7 +1527,7 @@ export const ManagerPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {employees.map((emp) => (
+                  {employees?.map((emp) => (
                     <div
                       key={emp.id}
                       className="p-4 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]"
@@ -1600,7 +1600,7 @@ export const ManagerPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {shifts.map((shift) => (
+                      {shifts?.map((shift) => (
                         <tr key={shift.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                           <td className="py-3 px-3 font-semibold text-[#1D1D1F] dark:text-white">
                             {shift.employee_name}
@@ -1672,7 +1672,7 @@ export const ManagerPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                      {leaves.map((leave) => (
+                      {leaves?.map((leave) => (
                         <tr key={leave.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                           <td className="py-3 px-3 font-semibold text-[#1D1D1F] dark:text-white">
                             {leave.employee_name}
@@ -2050,7 +2050,7 @@ export const ManagerPage: React.FC = () => {
                     required
                   >
                     <option value="">Select Court</option>
-                    {courts.map((c) => (
+                    {courts?.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} ({c.sport_name}) — Currently {c.status}
                       </option>
@@ -2407,7 +2407,7 @@ export const ManagerPage: React.FC = () => {
                     required
                   >
                     <option value="">Select Employee</option>
-                    {employees.map((e) => (
+                    {employees?.map((e) => (
                       <option key={e.id} value={e.id}>
                         {e.full_name} ({e.employee_code}) — {e.job_title}
                       </option>

@@ -232,7 +232,7 @@ export const ShopStaffPage: React.FC = () => {
           toast.error(`Only ${variant.stock_quantity} available in stock`);
           return prev;
         }
-        return prev.map((item) =>
+        return prev?.map((item) =>
           item.variant_id === variant.variant_id
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -262,8 +262,7 @@ export const ShopStaffPage: React.FC = () => {
   // Update item quantity in cart
   const updateCartQty = (variant_id: number, delta: number) => {
     setCart((prev) =>
-      prev
-        .map((item) => {
+      prev?.map((item) => {
           if (item.variant_id === variant_id) {
             const newQty = item.quantity + delta;
             if (newQty > item.stock_on_hand) {
@@ -310,7 +309,7 @@ export const ShopStaffPage: React.FC = () => {
     setIsCheckingOut(true);
     try {
       const payload = {
-        items: cart.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
+        items: cart?.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
         payment_method: paymentMethod,
         discount_pct: discountPct,
       };
@@ -506,7 +505,7 @@ export const ShopStaffPage: React.FC = () => {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {emergencyAlerts.map((alert, idx) => (
+              {emergencyAlerts?.map((alert, idx) => (
                 <div key={idx} className="p-3 rounded-xl bg-white/90 dark:bg-black/60 border border-amber-500/30 flex justify-between items-center text-xs shadow-sm">
                   <div>
                     <p className="font-bold text-sm text-gray-900 dark:text-white">{alert.memberName} • {alert.courtLocation}</p>
@@ -632,7 +631,7 @@ export const ShopStaffPage: React.FC = () => {
                   { label: 'Delta Pro Padel', sku: 'HED-DLP-370-BLK' },
                   { label: 'Mavis 350 Shuttles', sku: 'YNX-MV350-PKT6' },
                   { label: 'Dri-FIT Polo', sku: 'NKE-DRY-M-WHT' },
-                ].map((chip) => (
+                ]?.map((chip) => (
                   <button
                     key={chip.sku}
                     type="button"
@@ -670,7 +669,7 @@ export const ShopStaffPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto w-full pb-1">
-                {categories.map((cat) => (
+                {categories?.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -689,7 +688,7 @@ export const ShopStaffPage: React.FC = () => {
 
             {/* Product & Variant Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
+              {filteredProducts?.map((product) => (
                 <div
                   key={product.product_id}
                   className="rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 p-4 flex flex-col justify-between hover:border-[#B89047]/40 transition-all shadow-sm group"
@@ -714,7 +713,7 @@ export const ShopStaffPage: React.FC = () => {
 
                   {/* Variants List */}
                   <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 space-y-2">
-                    {product.variants.map((v) => (
+                    {product.variants?.map((v) => (
                       <div
                         key={v.variant_id}
                         className="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-50 dark:bg-black/30 border border-black/5 dark:border-white/5 hover:border-[#B89047]/30 transition-all text-xs"
@@ -789,7 +788,7 @@ export const ShopStaffPage: React.FC = () => {
                     <p className="text-[11px] text-gray-400 dark:text-white/30 mt-1">Scan a barcode or click "+ Add" on items to begin.</p>
                   </div>
                 ) : (
-                  cart.map((item) => (
+                  cart?.map((item) => (
                     <div
                       key={item.variant_id}
                       className="p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 flex items-center justify-between gap-3 text-xs"
@@ -847,7 +846,7 @@ export const ShopStaffPage: React.FC = () => {
                     Member Tier Discount
                   </label>
                   <div className="grid grid-cols-4 gap-1.5">
-                    {[0, 5, 10, 15].map((pct) => (
+                    {[0, 5, 10, 15]?.map((pct) => (
                       <button
                         key={pct}
                         type="button"
@@ -873,7 +872,7 @@ export const ShopStaffPage: React.FC = () => {
                     Payment Method
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {(['UPI', 'Card', 'Cash'] as const).map((method) => (
+                    {(['UPI', 'Card', 'Cash'] as const)?.map((method) => (
                       <button
                         key={method}
                         type="button"
@@ -968,7 +967,7 @@ export const ShopStaffPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingOrders.map((order) => (
+              {pendingOrders?.map((order) => (
                 <div
                   key={order.id}
                   className="p-5 rounded-3xl bg-white dark:bg-[#14141A] border border-black/10 dark:border-white/10 hover:border-[#B89047]/40 transition-all shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -996,7 +995,7 @@ export const ShopStaffPage: React.FC = () => {
 
                     {order.items && order.items.length > 0 && (
                       <div className="pt-2 text-xs text-gray-600 dark:text-white/70 space-y-1">
-                        {order.items.map((i) => (
+                        {order.items?.map((i) => (
                           <div key={i.id} className="flex items-center gap-2 font-mono">
                             <span className="text-[#B89047] dark:text-[#EAD29A] font-bold">{i.quantity}x</span>
                             <span>{i.product_name}</span>
@@ -1196,7 +1195,7 @@ export const ShopStaffPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5 text-gray-700 dark:text-white/80 font-sans">
-                  {flatVariants.map((item) => (
+                  {flatVariants?.map((item) => (
                     <tr key={item.variant_id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-4 font-mono text-[#1D1D1F] dark:text-white/90">
                         <div className="font-bold text-[#B89047] dark:text-[#EAD29A]">{item.sku}</div>
@@ -1305,8 +1304,7 @@ export const ShopStaffPage: React.FC = () => {
                     (v.product_name && v.product_name.toLowerCase().includes(q)) ||
                     (v.category_name && v.category_name.toLowerCase().includes(q))
                   );
-                })
-                .map((variant) => (
+                })?.map((variant) => (
                   <div
                     key={variant.variant_id}
                     className="p-3 rounded-2xl bg-stone-50 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 flex items-center justify-between gap-3 hover:border-[#B89047]/40 transition-all group"

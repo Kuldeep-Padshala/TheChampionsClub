@@ -115,7 +115,7 @@ export const MembershipsPage = () => {
       {/* Negative top margin pulls the cards up into the hero for a premium overlap effect */}
       <div className="container mx-auto px-4 md:px-6 relative z-20 -mt-10 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-          {plans.map((plan, index) => (
+          {plans?.map((plan, index) => (
             <MembershipCard
               index={index}
               key={plan.id}
@@ -147,14 +147,14 @@ export const MembershipsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map((row, i) => (
+                {comparisonRows?.map((row, i) => (
                   <tr
                     key={i}
                     className={`border-t border-black/10 dark:border-white/10 ${i % 2 === 0 ? 'bg-black/[0.02] dark:bg-white/[0.02]' : 'bg-transparent'}`}
                   >
                     <td className="px-6 py-4 font-medium text-[#1D1D1F] dark:text-white">{row.feature}</td>
                     {/* Render boolean values as check/cross icons, strings as text */}
-                    {(['junior', 'silver', 'gold'] as const).map(planKey => (
+                    {(['junior', 'silver', 'gold'] as const)?.map(planKey => (
                       <td key={planKey} className={`px-6 py-4 text-center ${planKey === 'gold' ? 'bg-[#B89047]/10' : ''}`}>
                         {typeof row[planKey] === 'boolean' ? (
                           row[planKey] ? (
@@ -182,7 +182,7 @@ export const MembershipsPage = () => {
         <div className="container mx-auto px-4 md:px-6 max-w-3xl">
           <SectionHeader title="Frequently Asked Questions" centered />
           <div className="space-y-4 mt-10">
-            {faqs.map((faq, i) => (
+            {faqs?.map((faq, i) => (
               <details
                 key={i}
                 className="group bg-white/70 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden cursor-pointer"

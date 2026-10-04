@@ -139,7 +139,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({ court, onBook }) => {
 
           {/* Jewel Amenity Chips */}
           <div className="flex flex-wrap gap-2 mb-7">
-            {court.amenities.map((amenity) => (
+            {court.amenities?.map((amenity) => (
               <span
                 key={amenity}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#F8F7F4] dark:bg-white/[0.04] text-[#2C2C2E] dark:text-[#E5E5EA] border border-black/[0.05] dark:border-white/[0.08] shadow-[0_1px_2px_rgba(0,0,0,0.02)] group-hover:border-[#B89047]/30 transition-colors"

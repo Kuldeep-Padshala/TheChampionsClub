@@ -6,7 +6,7 @@ export const getProducts = async (): Promise<Product[]> => {
   try {
     const res = await api.get('/public/products');
     if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
-      return res.data.data.map((p: any) => ({
+      return res.data.data?.map((p: any) => ({
         id: String(p.id),
         name: p.name,
         category: (p.category_name || 'Rackets').toLowerCase().includes('shoe')

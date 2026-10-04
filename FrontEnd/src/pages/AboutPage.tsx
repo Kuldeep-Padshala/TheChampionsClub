@@ -132,7 +132,7 @@ export const AboutPage = () => {
               { number: `${stats.total_courts}`, label: 'Championship Courts', desc: 'Synthetic grass, hard & indoor' },
               { number: `${new Date().getFullYear() - (stats.established_year || 2018)} Yrs`, label: 'Consistent Excellence', desc: `Established Bengaluru ${stats.established_year || 2018}` },
               { number: `${stats.total_bookings}+`, label: 'Total Matches', desc: 'Played under pro floodlights' },
-            ].map((stat, i) => (
+            ]?.map((stat, i) => (
               <div key={i} className="space-y-1">
                 <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">{stat.number}</div>
                 <div className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#1D1D1F]">{stat.label}</div>
@@ -178,7 +178,7 @@ export const AboutPage = () => {
             centered
           />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            {facilities.map((fac, i) => {
+            {facilities?.map((fac, i) => {
               const Icon = fac.icon;
               return (
                 <SpotlightCard
@@ -208,7 +208,7 @@ export const AboutPage = () => {
             centered
           />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto">
-            {gallery.map(item => (
+            {gallery?.map(item => (
               <div key={item.id} className="overflow-hidden rounded-[28px] border border-black/[0.06] shadow-sm group">
                 <img
                   src={item.url}
@@ -230,7 +230,7 @@ export const AboutPage = () => {
             centered
           />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto mt-12">
-            {team.map((member, i) => (
+            {team?.map((member, i) => (
               <SpotlightCard
                 key={i}
                 className="text-center p-6 group cursor-pointer"

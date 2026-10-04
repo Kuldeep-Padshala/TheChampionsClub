@@ -6,7 +6,7 @@ export const getMenuItems = async (): Promise<MenuItem[]> => {
   try {
     const res = await api.get('/public/menu');
     if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
-      return res.data.data.map((item: any) => {
+      return res.data.data?.map((item: any) => {
         const catName = (item.category_name || '').toLowerCase();
         const cat: 'food' | 'drinks' | 'bar' = catName.includes('cocktail') || catName.includes('wine') || catName.includes('beer') || catName.includes('bar')
           ? 'bar'

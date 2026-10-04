@@ -99,7 +99,7 @@ export const CourtsPage = () => {
           centered
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12">
-          {courts.map(court => (
+          {courts?.map(court => (
             <CourtCard key={court.id} court={court} onBook={() => handleBook(court.id)} />
           ))}
         </div>
@@ -113,7 +113,7 @@ export const CourtsPage = () => {
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <SectionHeader title="Check Availability" subtitle="Click any green slot to book." />
             <div className="flex overflow-x-auto pb-1 gap-2 w-full md:w-auto scrollbar-hide">
-              {courts.map(court => (
+              {courts?.map(court => (
                 <button
                   key={court.id}
                   onClick={() => setSelectedCourtId(court.id)}
@@ -137,7 +137,7 @@ export const CourtsPage = () => {
             onWeekChange={setCurrentWeekStart}
             onSlotBooked={(slotId) => {
               setSlots((prev) =>
-                prev.map((s) => (s.id === slotId ? { ...s, status: 'booked' } : s))
+                prev?.map((s) => (s.id === slotId ? { ...s, status: 'booked' } : s))
               );
             }}
           />

@@ -6,7 +6,7 @@ export const getCourts = async (): Promise<Court[]> => {
   try {
     const res = await api.get('/public/courts');
     if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
-      return res.data.data.map((c: any) => {
+      return res.data.data?.map((c: any) => {
         const sportLower = (c.sport_name || '').toLowerCase();
         const sportType = sportLower.includes('cricket')
           ? 'cricket'

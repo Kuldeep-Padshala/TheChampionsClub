@@ -208,7 +208,7 @@ export const ShopPage = () => {
               onChange={(e) => setActiveSport(e.target.value)}
               className="w-full md:w-44 p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#141418] text-[#1D1D1F] dark:text-white text-xs font-semibold focus:ring-2 focus:ring-[#B89047] outline-none capitalize cursor-pointer shadow-sm"
             >
-              {SPORTS.map((s) => (
+              {SPORTS?.map((s) => (
                 <option key={s} value={s} className="capitalize bg-white dark:bg-[#141418] text-[#1D1D1F] dark:text-white">
                   {s === 'all' ? 'All Sports' : s.charAt(0).toUpperCase() + s.slice(1)}
                 </option>
@@ -230,7 +230,7 @@ export const ShopPage = () => {
         ) : (
           /* Product grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
+            {filteredProducts?.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
