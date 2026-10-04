@@ -14,6 +14,7 @@ export const CourtsPage = () => {
   const [courts, setCourts] = useState<Court[]>([]);
   // Which court is currently selected in the slot calendar
   const [selectedCourtId, setSelectedCourtId] = useState<string>('');
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const { requireLogin } = useLoginPrompt();
 
@@ -26,12 +27,12 @@ export const CourtsPage = () => {
     });
   }, []);
 
-  // Reload slots when selected court changes
+  // Reload slots when selected court or week changes
   useEffect(() => {
     if (selectedCourtId) {
-      getSlotsForWeek(selectedCourtId, formatDate(new Date())).then(setSlots);
+      getSlotsForWeek(selectedCourtId, formatDate(currentWeekStart)).then(setSlots);
     }
-  }, [selectedCourtId]);
+  }, [selectedCourtId, currentWeekStart]);
 
   // When user clicks "View Slots & Book" on a CourtCard:
   // - select that court in the calendar
@@ -62,7 +63,7 @@ export const CourtsPage = () => {
         <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-gold-primary/20 border border-gold-primary/30 text-gold-light rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <Trophy size={14} />
-            <span>4 Courts Available</span>
+            <span>{courts.length ? `${courts.length} Courts Available` : 'Championship Courts'}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-gold-primary mb-4">
             World-Class Courts
@@ -117,7 +118,7 @@ export const CourtsPage = () => {
           <SlotCalendar
             slots={slots}
             court={courts.find((c) => c.id === selectedCourtId)}
-            onWeekChange={() => {}}
+            onWeekChange={setCurrentWeekStart}
             onSlotBooked={(slotId) => {
               setSlots((prev) =>
                 prev.map((s) => (s.id === slotId ? { ...s, status: 'booked' } : s))

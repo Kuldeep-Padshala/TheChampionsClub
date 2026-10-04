@@ -187,13 +187,27 @@ export const AccountantPage: React.FC = () => {
   // Run New Payroll Draft
   const handleRunPayroll = async () => {
     try {
-      const monthStr = new Date().toISOString().substring(0, 7) + '-01';
+      let targetMonth = new Date().toISOString().substring(0, 7) + '-01';
+      if (payrollRuns && payrollRuns.length > 0) {
+        const sorted = [...payrollRuns].sort(
+          (a, b) => new Date(b.period_month).getTime() - new Date(a.period_month).getTime()
+        );
+        const latest = sorted[0];
+        if (latest.status === 'paid' || latest.status === 'approved') {
+          const d = new Date(latest.period_month);
+          d.setMonth(d.getMonth() + 1);
+          targetMonth = d.toISOString().substring(0, 7) + '-01';
+        } else {
+          targetMonth = new Date(latest.period_month).toISOString().substring(0, 7) + '-01';
+        }
+      }
+
       const res = await accountantService.runPayroll({
-        period_month: monthStr,
-        notes: `Payroll for ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+        period_month: targetMonth,
+        notes: `Payroll for ${new Date(targetMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
       });
 
-      toast.success(`Payroll generated for ${res.employeeCount} staff! Total: ₹${res.totalAmount.toLocaleString()}`);
+      toast.success(res.message || `Payroll generated for ${res.employeeCount} staff! Total: ₹${res.totalAmount.toLocaleString()}`);
       loadData();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to run payroll');

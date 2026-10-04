@@ -21,7 +21,9 @@ import {
   PackageCheck,
   CheckCircle2,
   Sparkles,
+  CreditCard,
 } from 'lucide-react';
+import { paymentService } from '../services/paymentService';
 
 // Category and sport filter option lists
 const CATEGORIES = ['all', 'rackets', 'balls', 'shoes', 'accessories', 'apparel'];
@@ -101,6 +103,51 @@ export const ShopPage = () => {
     }
   };
 
+  const handlePayWithRazorpay = async () => {
+    if (!selectedProduct) return;
+    setIsPlacingOrder(true);
+    try {
+      const unitPrice = selectedProduct.memberPrice || selectedProduct.price;
+      const subtotal = unitPrice * orderQuantity;
+      const gst = Math.round(subtotal * 0.18);
+      const grandTotal = subtotal + gst;
+      const fulfillmentText = fulfillmentMethod === 'locker' ? 'VIP Locker Delivery' : 'In-Club Counter Pickup';
+
+      await paymentService.openCheckout({
+        amount: grandTotal,
+        productName: `${selectedProduct.name} (${orderQuantity}x)`,
+        customerName: user?.name || 'Club Member',
+        customerEmail: user?.email || '',
+        onSuccess: async (payResp) => {
+          const notesCombined = `[Paid via Razorpay: ${payResp.payment_id}] ${fulfillmentText}. ${deliveryNotes.trim() ? `Instructions: ${deliveryNotes.trim()}` : ''}`;
+          const res = await memberService.placeOrder({
+            items: [
+              {
+                product_name: selectedProduct.name,
+                quantity: orderQuantity,
+                unit_price: unitPrice,
+              },
+            ],
+            notes: notesCombined,
+          });
+          toast.success(`Payment verified & Order #${res.order_no} placed!`, { duration: 5000 });
+          setIsOrderModalOpen(false);
+          setIsPlacingOrder(false);
+        },
+        onError: (err) => {
+          setIsPlacingOrder(false);
+          if (err?.message !== 'Payment modal closed by user') {
+            toast.error(err?.message || 'Razorpay payment could not be completed');
+          }
+        },
+      });
+    } catch (err: any) {
+      console.error('[ShopPage] Razorpay error:', err);
+      toast.error('Could not initiate Razorpay payment');
+      setIsPlacingOrder(false);
+    }
+  };
+
   return (
     <PageLayout>
       {/* ── Page hero ── */}
@@ -121,19 +168,19 @@ export const ShopPage = () => {
       </div>
 
       {/* ── Member discount banner ── */}
-      <div className="bg-gold-primary/10 border-y border-gold-primary/20">
-        <div className="container mx-auto px-4 md:px-6 py-3">
-          <div className="flex flex-wrap justify-center gap-8 text-sm font-medium text-navy-primary">
+      <div className="bg-[#B89047]/10 dark:bg-[#B89047]/15 border-y border-[#B89047]/20">
+        <div className="container mx-auto px-4 md:px-6 py-3.5">
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-[#1D1D1F] dark:text-[#EAD29A]">
             <span className="flex items-center gap-2">
-              <Percent size={14} className="text-gold-primary" />
+              <Percent size={14} className="text-[#B89047]" />
               Gold Members: 20% off all products
             </span>
             <span className="flex items-center gap-2">
-              <Percent size={14} className="text-gold-primary" />
+              <Percent size={14} className="text-[#B89047]" />
               Silver &amp; Junior Members: 10% off
             </span>
             <span className="flex items-center gap-2">
-              <Truck size={14} className="text-gold-primary" />
+              <Truck size={14} className="text-[#B89047]" />
               Free pickup preparation for active members
             </span>
           </div>
@@ -146,7 +193,7 @@ export const ShopPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           {/* Category pills */}
           <div>
-            <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-2">Gear Type</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-2 font-display">Gear Type</p>
             <CategoryFilter
               categories={CATEGORIES}
               activeCategory={activeCategory}
@@ -155,14 +202,14 @@ export const ShopPage = () => {
           </div>
           {/* Sport dropdown */}
           <div>
-            <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-2">Sport</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-2 font-display">Sport</p>
             <select
               value={activeSport}
               onChange={(e) => setActiveSport(e.target.value)}
-              className="w-full md:w-44 p-2.5 rounded-lg border border-border bg-white text-navy-primary text-sm focus:ring-2 focus:ring-gold-primary outline-none capitalize cursor-pointer"
+              className="w-full md:w-44 p-2.5 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#141418] text-[#1D1D1F] dark:text-white text-xs font-semibold focus:ring-2 focus:ring-[#B89047] outline-none capitalize cursor-pointer shadow-sm"
             >
               {SPORTS.map((s) => (
-                <option key={s} value={s} className="capitalize">
+                <option key={s} value={s} className="capitalize bg-white dark:bg-[#141418] text-[#1D1D1F] dark:text-white">
                   {s === 'all' ? 'All Sports' : s.charAt(0).toUpperCase() + s.slice(1)}
                 </option>
               ))}
@@ -171,8 +218,8 @@ export const ShopPage = () => {
         </div>
 
         {/* Results count */}
-        <p className="text-sm text-text-secondary mb-6">
-          Showing <span className="font-semibold text-navy-primary">{filteredProducts.length}</span> products
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Showing <span className="font-semibold text-[#1D1D1F] dark:text-[#EAD29A]">{filteredProducts.length}</span> products
         </p>
 
         {/* Empty state */}
@@ -347,23 +394,28 @@ export const ShopPage = () => {
             <div className="flex flex-col gap-2.5">
               <button
                 type="button"
+                onClick={handlePayWithRazorpay}
+                disabled={isPlacingOrder}
+                className="w-full h-12 rounded-xl text-sm font-bold bg-gradient-to-r from-[#EAD29A] via-[#B89047] to-[#A67C38] text-black hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
+              >
+                <CreditCard size={16} />
+                <span>{isPlacingOrder ? 'Connecting Gateway...' : 'Pay with Razorpay (Instant Checkout)'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleConfirmOrder}
                 disabled={isPlacingOrder}
-                className="w-full h-12 rounded-xl text-sm font-semibold bg-[#121214] text-white hover:bg-[#B89047] dark:bg-[#B89047] dark:hover:bg-[#A67C38] dark:text-black transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                className="w-full h-11 rounded-xl text-xs font-semibold border border-black/15 dark:border-white/15 text-[#1D1D1F] dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
-                {isPlacingOrder ? (
-                  <span>Reserving Equipment...</span>
-                ) : (
-                  <>
-                    <PackageCheck size={16} />
-                    <span>Confirm &amp; Place Pickup Order</span>
-                  </>
-                )}
+                <PackageCheck size={15} />
+                <span>Reserve Now &amp; Pay In-Club</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsOrderModalOpen(false)}
-                className="w-full h-10 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
+                className="w-full h-8 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Cancel
               </button>

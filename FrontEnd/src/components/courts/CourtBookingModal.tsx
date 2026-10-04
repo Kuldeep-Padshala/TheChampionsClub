@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import paymentService from '../../services/paymentService';
+import { memberService } from '../../services/memberService';
 
 interface CourtBookingModalProps {
   isOpen: boolean;
@@ -29,6 +31,7 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
   const [equipmentNotes, setEquipmentNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedRef, setConfirmedRef] = useState<string | null>(null);
+  const [confirmedPaymentId, setConfirmedPaymentId] = useState<string | null>(null);
 
   if (!isOpen || !slot) return null;
 
@@ -43,34 +46,73 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
 
   const courtName = court?.name || 'Tournament Court';
   const standardPrice = court?.pricePerHour?.walkin || 800;
-  const memberPrice = court?.pricePerHour?.gold ?? 0;
-  const isFreeForMember = memberPrice === 0;
+  const payableAmount = standardPrice > 0 ? standardPrice : 800;
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Simulate booking confirmation with brief luxury delay
-      await new Promise((r) => setTimeout(r, 600));
+      // Trigger Razorpay live modal checkout
+      await paymentService.openCheckout({
+        amount: payableAmount,
+        productName: `Court Reservation: ${courtName} (${slot.startTime} - ${slot.endTime})`,
+        customerName: user?.name || partnerName || 'Club Guest',
+        customerEmail: user?.email || '',
+        onSuccess: async ({ payment_id, order_id }) => {
+          let bookingRef = 'BKNG-' + Date.now().toString().slice(-6);
 
-      const bookingRef = 'BKNG-' + Date.now().toString().slice(-6);
-      setConfirmedRef(bookingRef);
-      onConfirmSuccess(slot.id, bookingRef);
+          // If user is authenticated, also sync with MySQL backend
+          if (user) {
+            try {
+              const numericCourtId = typeof court?.id === 'number'
+                ? court.id
+                : parseInt(String(court?.id).replace('court-', '')) || 1;
+              const startsAt = `${slot.date} ${slot.startTime}:00`;
+              const endsAt = `${slot.date} ${slot.endTime}:00`;
 
-      toast.success(`Court reserved! Booking Ref: ${bookingRef}`, {
-        duration: 4500,
-        icon: '🏆',
+              const res = await memberService.createBooking({
+                court_id: numericCourtId,
+                starts_at: startsAt,
+                ends_at: endsAt,
+                reservation_type: bookingType,
+                razorpay_payment_id: payment_id,
+                amount_charged: payableAmount,
+                notes: `Razorpay Payment Txn: ${payment_id}`,
+              });
+              if (res?.bookingRef) {
+                bookingRef = res.bookingRef;
+              }
+            } catch (syncErr) {
+              console.warn('[CourtBookingModal] Backend sync notice:', syncErr);
+            }
+          }
+
+          setConfirmedRef(bookingRef);
+          setConfirmedPaymentId(payment_id);
+          onConfirmSuccess(slot.id, bookingRef);
+
+          toast.success(`Payment of ₹${payableAmount} verified! Court reserved: ${bookingRef}`, {
+            duration: 5000,
+            icon: '🏆',
+          });
+          setIsSubmitting(false);
+        },
+        onError: (err) => {
+          setIsSubmitting(false);
+          const msg = err?.message || 'Payment was cancelled or failed. Court was not reserved.';
+          toast.error(msg);
+        },
       });
-    } catch {
-      toast.error('Unable to confirm booking. Please try again.');
-    } finally {
+    } catch (err: any) {
       setIsSubmitting(false);
+      toast.error(err?.message || 'Unable to initialize Razorpay checkout.');
     }
   };
 
   const handleClose = () => {
     setConfirmedRef(null);
+    setConfirmedPaymentId(null);
     setPartnerName('');
     setEquipmentNotes('');
     onClose();
@@ -197,16 +239,16 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
             {/* Price & Privilege Breakdown */}
             <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#B89047]/10 via-[#B89047]/5 to-transparent border border-[#B89047]/30 flex items-center justify-between text-xs">
               <div>
-                <p className="font-semibold text-white">Member Booking Privilege</p>
+                <p className="font-semibold text-white">Court Reservation Fee</p>
                 <p className="text-[11px] text-gray-400">
-                  Standard Rate: <span className="line-through text-gray-500">₹{standardPrice}</span>
+                  Payment Gateway: <span className="text-[#EAD29A] font-medium">Razorpay Live Gateway</span>
                 </p>
               </div>
               <div className="text-right">
                 <span className="text-sm font-bold text-[#EAD29A] font-mono">
-                  {isFreeForMember ? 'COMPLIMENTARY' : `₹${memberPrice}`}
+                  ₹{payableAmount.toLocaleString('en-IN')}
                 </span>
-                <p className="text-[10px] text-emerald-400 font-semibold">100% Covered by Membership</p>
+                <p className="text-[10px] text-emerald-400 font-semibold">Instant Razorpay Checkout</p>
               </div>
             </div>
 
@@ -226,11 +268,11 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
                 className="px-6 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] via-[#B89047] to-[#A67C38] hover:opacity-95 shadow-md shadow-[#B89047]/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
-                  <span>Reserving Slot...</span>
+                  <span>Opening Razorpay Gateway...</span>
                 ) : (
                   <>
-                    <Sparkles size={14} />
-                    <span>Confirm Court Reservation</span>
+                    <ShieldCheck size={14} />
+                    <span>Pay ₹{payableAmount} via Razorpay &amp; Book</span>
                   </>
                 )}
               </button>
@@ -246,7 +288,7 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
             <div className="space-y-1.5">
               <h4 className="font-display font-bold text-lg text-white">Court Reserved Successfully!</h4>
               <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                Your reservation is locked. The court lighting and equipment will be prepared for you.
+                Payment verified through Razorpay. Your reservation is locked and lighting prepared.
               </p>
             </div>
 
@@ -256,6 +298,12 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
                 <span className="text-gray-400">Reference</span>
                 <span className="font-mono font-bold text-[#EAD29A]">{confirmedRef}</span>
               </div>
+              {confirmedPaymentId && (
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span className="text-gray-400">Razorpay Payment ID</span>
+                  <span className="font-mono text-[10px] text-emerald-400 font-bold truncate max-w-[140px]">{confirmedPaymentId}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-400">Court</span>
                 <span className="font-semibold text-white">{courtName}</span>
@@ -268,26 +316,30 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
                 <span className="text-gray-400">Date</span>
                 <span className="text-gray-200">{formattedDate}</span>
               </div>
+              <div className="flex justify-between pt-1 border-t border-white/10">
+                <span className="text-gray-400">Paid Amount</span>
+                <span className="font-mono font-bold text-[#EAD29A]">₹{payableAmount}</span>
+              </div>
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#B89047] via-[#D4AF37] to-[#A67C38] text-black hover:opacity-95 shadow-md shadow-[#B89047]/25 transition-all cursor-pointer"
               >
-                Done (Back to Schedule)
+                Done (Back to Court Schedule)
               </button>
 
               <button
                 type="button"
                 onClick={() => {
                   handleClose();
-                  navigate(ROUTES.MEMBER_PORTAL);
+                  navigate(`${ROUTES.MEMBER_PORTAL}?tab=courts`);
                 }}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-semibold bg-[#B89047] text-black hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white transition-opacity flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>View in Member Pass</span>
+                <span>View My Court Bookings</span>
                 <ArrowRight size={13} />
               </button>
             </div>

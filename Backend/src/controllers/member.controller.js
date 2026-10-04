@@ -1,4 +1,5 @@
 const { pool } = require('../config/db');
+const { createAndSendNotification, broadcast, sendToRole } = require('../services/websocket.service');
 
 // Helper to get or create member record for a user
 async function getOrCreateMember(userId, userEmail, userName) {
@@ -240,18 +241,18 @@ async function createMyBooking(req, res) {
       return;
     }
 
-    // 1. Check if member has active membership
+    // 1. Check if member has active membership or has paid via Razorpay
     const [memberships] = await pool.query(
       `SELECT * FROM memberships WHERE member_id = ? AND status = 'active' AND end_date >= CURDATE() LIMIT 1`,
       [member.id]
     );
 
-    if (memberships.length === 0) {
-      res.status(403).json({ success: false, message: 'An active membership plan is required to book courts online.' });
+    const activePlan = memberships.length > 0 ? memberships[0] : null;
+
+    if (!activePlan && !req.body.razorpay_payment_id) {
+      res.status(403).json({ success: false, message: 'An active membership plan or Razorpay payment is required to reserve court slots.' });
       return;
     }
-
-    const activePlan = memberships[0];
 
     // 2. Enforce max 2 bookings per day
     const bookingDate = starts_at.split('T')[0].split(' ')[0];
@@ -281,16 +282,30 @@ async function createMyBooking(req, res) {
       return;
     }
 
-    // 4. Calculate Member Rate (from court_rates)
-    const [rates] = await pool.query(
-      `SELECT price FROM court_rates 
-       WHERE sport_id = (SELECT sport_id FROM courts WHERE id = ?) 
-         AND plan_id = ? 
-       ORDER BY id ASC LIMIT 1`,
-      [court_id, activePlan.plan_id]
-    );
+    // 4. Calculate Rate (from court_rates or request)
+    let amountCharged = 0;
+    if (req.body.amount_charged !== undefined) {
+      amountCharged = Number(req.body.amount_charged);
+    } else if (activePlan) {
+      const [rates] = await pool.query(
+        `SELECT price FROM court_rates 
+         WHERE sport_id = (SELECT sport_id FROM courts WHERE id = ?) 
+           AND plan_id = ? 
+         ORDER BY id ASC LIMIT 1`,
+        [court_id, activePlan.plan_id]
+      );
+      amountCharged = rates.length > 0 ? Number(rates[0].price) : 0;
+    } else {
+      const [rates] = await pool.query(
+        `SELECT price FROM court_rates 
+         WHERE sport_id = (SELECT sport_id FROM courts WHERE id = ?) 
+           AND plan_id IS NULL 
+         ORDER BY id ASC LIMIT 1`,
+        [court_id]
+      );
+      amountCharged = rates.length > 0 ? Number(rates[0].price) : 500;
+    }
 
-    const amountCharged = rates.length > 0 ? Number(rates[0].price) : 0;
     const resType = reservation_type === 'social' ? 'social' : 'exclusive';
     const socialCapacity = resType === 'social' ? 8 : null;
 
@@ -302,12 +317,52 @@ async function createMyBooking(req, res) {
     );
 
     const bookingRef = 'BKNG-' + Date.now();
-    const priceBasis = amountCharged === 0 ? 'plan_included' : 'member_rate';
+    const priceBasis = amountCharged === 0 ? 'plan_included' : (activePlan ? 'member_rate' : 'walkin_rate');
+    const bookingNotes = req.body.razorpay_payment_id 
+      ? `Paid via Razorpay (${req.body.razorpay_payment_id}). ${notes || ''}`.trim()
+      : (notes || 'Online Member Reservation');
+
     const [bookResult] = await pool.query(
       `INSERT INTO bookings (booking_ref, reservation_id, reservation_type, member_id, booked_via, price_basis, status, amount_charged, notes, created_at, updated_at) 
        VALUES (?, ?, ?, ?, 'member_app', ?, 'confirmed', ?, ?, NOW(), NOW())`,
-      [bookingRef, resResult.insertId, resType, member.id, priceBasis, amountCharged, notes || 'Online Member Reservation']
+      [bookingRef, resResult.insertId, resType, member.id, priceBasis, amountCharged, bookingNotes]
     );
+
+    // Fetch court details for clear notification message
+    const [courtRows] = await pool.query('SELECT name FROM courts WHERE id = ?', [court_id]);
+    const courtName = courtRows[0]?.name || `Court ${court_id}`;
+
+    // 1. Send push/in-app notification to member
+    createAndSendNotification({
+      recipient_user_id: userId,
+      title: 'Court Reservation Confirmed',
+      body: `Your booking for ${courtName} (${starts_at.replace('T', ' ').slice(0, 16)}) is confirmed! Reference: ${bookingRef}`,
+      type: 'booking',
+      entity_type: 'booking',
+      entity_id: bookResult.insertId,
+    }).catch(err => console.error('[Notif booking error]', err.message));
+
+    // 2. Broadcast slot booked event to all calendar clients via WebSocket
+    broadcast({
+      type: 'COURT_SLOT_BOOKED',
+      courtId: court_id,
+      courtName,
+      startsAt: starts_at,
+      endsAt: ends_at,
+      bookingRef,
+      reservationId: resResult.insertId,
+    });
+
+    // 3. Notify front desk staff
+    sendToRole('RECEPTIONIST', {
+      type: 'NOTIFICATION',
+      notification: {
+        title: 'New Member Booking',
+        body: `${member.full_name || 'Member'} reserved ${courtName} for ${starts_at.replace('T', ' ').slice(0, 16)}`,
+        type: 'booking',
+        created_at: new Date().toISOString(),
+      },
+    });
 
     res.status(201).json({
       success: true,
@@ -331,9 +386,10 @@ async function cancelMyBooking(req, res) {
 
     // Verify ownership and reservation start time
     const [bookings] = await pool.query(
-      `SELECT b.id, b.member_id, b.reservation_id, r.starts_at 
+      `SELECT b.id, b.member_id, b.reservation_id, b.booking_ref, r.court_id, r.starts_at, r.ends_at, c.name as court_name
        FROM bookings b 
        JOIN court_reservations r ON b.reservation_id = r.id 
+       JOIN courts c ON r.court_id = c.id
        WHERE b.id = ?`,
       [id]
     );
@@ -364,6 +420,25 @@ async function cancelMyBooking(req, res) {
     if (bookings[0].reservation_id) {
       await pool.query(`UPDATE court_reservations SET status = 'cancelled' WHERE id = ?`, [bookings[0].reservation_id]);
     }
+
+    // 1. Send push/in-app notification to member
+    createAndSendNotification({
+      recipient_user_id: userId,
+      title: 'Booking Cancelled',
+      body: `Your booking for ${bookings[0].court_name || 'Court'} (${bookings[0].booking_ref}) has been cancelled.`,
+      type: 'booking',
+      entity_type: 'booking',
+      entity_id: bookings[0].id,
+    }).catch(err => console.error('[Notif cancel error]', err.message));
+
+    // 2. Broadcast slot freed event via WebSocket
+    broadcast({
+      type: 'COURT_SLOT_CANCELLED',
+      courtId: bookings[0].court_id,
+      startsAt: bookings[0].starts_at,
+      endsAt: bookings[0].ends_at,
+      bookingId: bookings[0].id,
+    });
 
     res.json({ success: true, message: 'Booking cancelled successfully.' });
   } catch (error) {
@@ -543,6 +618,27 @@ async function placeMyOrder(req, res) {
       );
     }
 
+    // 1. Send in-app notification to member
+    createAndSendNotification({
+      recipient_user_id: userId,
+      title: 'Pro Shop Order Placed',
+      body: `Your order #${orderNo} (₹${subtotal.toLocaleString('en-IN')}) has been placed and is being prepared for pickup.`,
+      type: 'order',
+      entity_type: 'shop_order',
+      entity_id: orderId,
+    }).catch(err => console.error('[Notif order error]', err.message));
+
+    // 2. Notify front desk staff
+    sendToRole('RECEPTIONIST', {
+      type: 'NOTIFICATION',
+      notification: {
+        title: 'New Pro Shop Order',
+        body: `Order #${orderNo} (₹${subtotal.toLocaleString('en-IN')}) placed by ${member.full_name || 'Member'}.`,
+        type: 'order',
+        created_at: new Date().toISOString(),
+      },
+    });
+
     res.status(201).json({
       success: true,
       message: 'Shop order placed successfully!',
@@ -622,6 +718,27 @@ async function subscribeMembershipPlan(req, res) {
        WHERE m.id = ? LIMIT 1`,
       [memResult.insertId]
     );
+
+    // 1. Send in-app notification to member
+    createAndSendNotification({
+      recipient_user_id: userId,
+      title: 'VIP Pass Activated',
+      body: `Congratulations! Your ${plan.name} Sanctuary Pass is now active with full privileges.`,
+      type: 'membership',
+      entity_type: 'membership',
+      entity_id: memResult.insertId,
+    }).catch(err => console.error('[Notif plan error]', err.message));
+
+    // 2. Notify club admin
+    sendToRole('ADMIN', {
+      type: 'NOTIFICATION',
+      notification: {
+        title: 'New VIP Membership',
+        body: `${member.full_name || 'Member'} upgraded to ${plan.name} pass.`,
+        type: 'membership',
+        created_at: new Date().toISOString(),
+      },
+    });
 
     res.status(201).json({
       success: true,

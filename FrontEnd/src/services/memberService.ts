@@ -132,7 +132,7 @@ export const memberService = {
     return res.data.data;
   },
 
-  subscribeMembershipPlan: async (payload: { plan_id?: number; plan_code?: string }): Promise<{
+  subscribeMembershipPlan: async (payload: { plan_id?: number; plan_code?: string; razorpay_payment_id?: string }): Promise<{
     success: boolean;
     message: string;
     active_membership: ActiveMembership;
@@ -166,6 +166,8 @@ export const memberService = {
     ends_at: string;
     reservation_type?: string;
     notes?: string;
+    razorpay_payment_id?: string;
+    amount_charged?: number;
   }) => {
     const res = await api.post('/members/bookings/me', payload);
     return res.data;

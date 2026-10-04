@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { PageLayout } from '../components/layout/PageLayout';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -12,6 +13,7 @@ import {
   MemberShopProduct,
   MemberShopOrder,
 } from '../services/memberService';
+import { paymentService } from '../services/paymentService';
 import {
   Trophy,
   CreditCard,
@@ -51,8 +53,31 @@ import toast from 'react-hot-toast';
 
 export const MemberPortalPage: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<'pass' | 'courts' | 'billing' | 'shop' | 'settings'>('pass');
+  const validTabs = ['pass', 'courts', 'billing', 'shop', 'settings'] as const;
+  type TabType = typeof validTabs[number];
+
+  const initialTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<TabType>(
+    initialTab && validTabs.includes(initialTab as TabType) ? (initialTab as TabType) : 'pass'
+  );
+
+  const switchTab = (tab: TabType) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && validTabs.includes(tabParam as TabType)) {
+      setActiveTab(tabParam as TabType);
+    }
+    if (searchParams.get('qr') === 'true') {
+      setIsQrModalOpen(true);
+    }
+  }, [searchParams]);
+
   const [isLoading, setIsLoading] = useState(true);
 
   // Member Dashboard Data
@@ -186,17 +211,50 @@ export const MemberPortalPage: React.FC = () => {
   const isExpiringSoon = hasActiveMembership && daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 5;
   const isExpired = !!membership && daysUntilExpiry !== null && daysUntilExpiry < 0;
 
-  // ─── Subscribe / Activate Plan ──────────────────────────────
+  // ─── Subscribe / Activate Plan with Razorpay ───────────────
   const handleSubscribePlan = async (planId: number) => {
     setIsSubscribingPlan(planId);
+    const targetPlan = plans.find((p) => p.id === planId);
+    const planFee = targetPlan ? Number(targetPlan.fee) : 3999;
+    const planName = targetPlan?.name || 'Sanctuary';
+
     try {
-      const res = await memberService.subscribeMembershipPlan({ plan_id: planId });
-      toast.success(res.message || 'Membership plan activated successfully!');
-      await loadMemberData();
+      if (planFee > 0) {
+        await paymentService.openCheckout({
+          amount: planFee,
+          productName: `${planName} Sanctuary Membership Pass`,
+          customerName: user?.name || profile?.full_name || 'Club Member',
+          customerEmail: user?.email || '',
+          customerPhone: profile?.phone || '',
+          onSuccess: async ({ payment_id }) => {
+            try {
+              const res = await memberService.subscribeMembershipPlan({
+                plan_id: planId,
+                razorpay_payment_id: payment_id,
+              });
+              toast.success(`Payment of ₹${planFee.toLocaleString('en-IN')} verified (Txn: ${payment_id})! ${res.message || 'Membership pass activated!'}`);
+              await loadMemberData();
+            } catch (err: any) {
+              toast.error(err?.response?.data?.message || 'Payment verified, but failed to activate plan. Please contact concierge.');
+            } finally {
+              setIsSubscribingPlan(null);
+            }
+          },
+          onError: (err) => {
+            setIsSubscribingPlan(null);
+            const msg = err?.message || 'Membership payment was cancelled or failed.';
+            toast.error(msg);
+          },
+        });
+      } else {
+        const res = await memberService.subscribeMembershipPlan({ plan_id: planId });
+        toast.success(res.message || 'Membership plan activated successfully!');
+        await loadMemberData();
+        setIsSubscribingPlan(null);
+      }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to activate plan');
-    } finally {
       setIsSubscribingPlan(null);
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to initialize payment');
     }
   };
 
@@ -235,7 +293,15 @@ export const MemberPortalPage: React.FC = () => {
     }
   };
 
-  // ─── Court Booking ──────────────────────────────────────────
+  // ─── Court Booking with Razorpay ────────────────────────────
+  const getCourtBookingFee = (court: any) => {
+    if (!court) return 500;
+    if (isGoldMember) return 150; // nominal concierge court reservation fee
+    if (membership?.plan_code === 'silver') return 350;
+    if (membership?.plan_code === 'junior') return 250;
+    return Number(court.base_hourly_rate || court.hourly_rate || 500);
+  };
+
   const handleOpenBooking = (court: any, hour: number) => {
     const pad = (n: number) => (n < 10 ? '0' + n : String(n));
     const start = `${selectedDate} ${pad(hour)}:00:00`;
@@ -248,27 +314,52 @@ export const MemberPortalPage: React.FC = () => {
   const handleConfirmBooking = async () => {
     if (!selectedCourt || !selectedTimeSlot) return;
     setIsBookingSubmitting(true);
+    const courtFee = getCourtBookingFee(selectedCourt);
+
     try {
-      const res = await memberService.createBooking({
-        court_id: selectedCourt.id,
-        starts_at: selectedTimeSlot.start,
-        ends_at: selectedTimeSlot.end,
-        reservation_type: 'exclusive',
+      await paymentService.openCheckout({
+        amount: courtFee,
+        productName: `Court Reservation: ${selectedCourt.name} (${selectedDate})`,
+        customerName: user?.name || profile?.full_name || 'Club Member',
+        customerEmail: user?.email || '',
+        customerPhone: profile?.phone || '',
+        onSuccess: async ({ payment_id }) => {
+          try {
+            const res = await memberService.createBooking({
+              court_id: selectedCourt.id,
+              starts_at: selectedTimeSlot.start,
+              ends_at: selectedTimeSlot.end,
+              reservation_type: 'exclusive',
+              razorpay_payment_id: payment_id,
+              amount_charged: courtFee,
+              notes: `Razorpay Txn: ${payment_id}`,
+            });
+            toast.success(`Payment of ₹${courtFee} verified (Txn: ${payment_id})! ${res.message || 'Court booked successfully!'}`);
+            setIsBookingModalOpen(false);
+            const [bookings, avail] = await Promise.all([
+              memberService.getMyBookings(),
+              memberService.getCourtAvailability(selectedDate, selectedSportId),
+            ]);
+            setMyBookings(bookings);
+            setAvailableCourts(avail.courts || []);
+            setCourtReservations(avail.reservations || []);
+          } catch (err: any) {
+            const msg = err?.response?.data?.message || 'Payment received, but failed to record booking';
+            toast.error(msg);
+          } finally {
+            setIsBookingSubmitting(false);
+          }
+        },
+        onError: (err) => {
+          setIsBookingSubmitting(false);
+          const msg = err?.message || 'Court booking payment cancelled.';
+          toast.error(msg);
+        },
       });
-      toast.success(res.message || 'Court booked successfully!');
-      setIsBookingModalOpen(false);
-      const [bookings, avail] = await Promise.all([
-        memberService.getMyBookings(),
-        memberService.getCourtAvailability(selectedDate, selectedSportId),
-      ]);
-      setMyBookings(bookings);
-      setAvailableCourts(avail.courts || []);
-      setCourtReservations(avail.reservations || []);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to book court slot';
-      toast.error(msg);
-    } finally {
       setIsBookingSubmitting(false);
+      const msg = err?.response?.data?.message || err?.message || 'Failed to initialize court payment';
+      toast.error(msg);
     }
   };
 
@@ -284,27 +375,38 @@ export const MemberPortalPage: React.FC = () => {
     }
   };
 
-  // ─── Online Payment ─────────────────────────────────────────
+  // ─── Online Payment via Razorpay ─────────────────────────────
   const handlePayInvoice = async () => {
     if (!selectedInvoice) return;
     setIsPaying(true);
     try {
-      const res = await memberService.payOnline({
-        invoice_id: selectedInvoice.id,
+      await paymentService.openCheckout({
         amount: Number(selectedInvoice.balance_due),
-        method: paymentMethod,
+        productName: `Settlement for Invoice #${selectedInvoice.invoice_no}`,
+        invoice_id: selectedInvoice.id,
+        customerName: profile?.full_name || user?.name || 'Club Member',
+        customerEmail: profile?.email || user?.email || '',
+        customerPhone: profile?.phone || '',
+        onSuccess: async (payResp) => {
+          toast.success(`Payment verified via Razorpay! ID: ${payResp.payment_id}`, { duration: 5000 });
+          setSelectedInvoice(null);
+          setIsPaying(false);
+          const [data, invData] = await Promise.all([
+            memberService.getProfile(),
+            memberService.getMyInvoices(),
+          ]);
+          setTotalDues(data.total_dues);
+          setInvoices(invData);
+        },
+        onError: (err) => {
+          setIsPaying(false);
+          if (err?.message !== 'Payment modal closed by user') {
+            toast.error(err?.message || 'Razorpay payment could not be completed');
+          }
+        },
       });
-      toast.success(`Payment verified! Receipt: ${res.receipt_no}`);
-      setSelectedInvoice(null);
-      const [data, invData] = await Promise.all([
-        memberService.getProfile(),
-        memberService.getMyInvoices(),
-      ]);
-      setTotalDues(data.total_dues);
-      setInvoices(invData);
     } catch (err: any) {
-      toast.error('Payment processing failed. Please try again.');
-    } finally {
+      toast.error(err?.message || 'Payment processing failed. Please try again.');
       setIsPaying(false);
     }
   };
@@ -447,7 +549,7 @@ export const MemberPortalPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setActiveTab('pass')}
+              onClick={() => switchTab('pass')}
               className="px-5 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] to-[#B89047] hover:brightness-110 shadow-md cursor-pointer whitespace-nowrap self-start sm:self-center"
             >
               Renew Membership
@@ -471,7 +573,7 @@ export const MemberPortalPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setActiveTab('pass')}
+              onClick={() => switchTab('pass')}
               className="px-5 py-2.5 rounded-xl text-xs font-bold text-black bg-red-400 hover:bg-red-300 shadow-md cursor-pointer whitespace-nowrap self-start sm:self-center"
             >
               Select Active Plan
@@ -528,7 +630,7 @@ export const MemberPortalPage: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => switchTab(tab.id as any)}
                 className={`group relative p-4 sm:p-5 rounded-2xl text-left transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden border ${
                   isActive
                     ? 'bg-gradient-to-b from-[#221F1A] via-[#1A1815] to-[#121214] border-[#B89047] shadow-[0_12px_28px_-6px_rgba(184,144,71,0.35)] scale-[1.02]'
@@ -649,7 +751,7 @@ export const MemberPortalPage: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 gap-2.5">
                   <button
-                    onClick={() => setActiveTab('courts')}
+                    onClick={() => switchTab('courts')}
                     className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
@@ -660,7 +762,7 @@ export const MemberPortalPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('billing')}
+                    onClick={() => switchTab('billing')}
                     className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
@@ -671,7 +773,7 @@ export const MemberPortalPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('settings')}
+                    onClick={() => switchTab('settings')}
                     className="p-3.5 rounded-xl border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-[#B89047]/10 flex items-center justify-between text-xs font-semibold text-[#1D1D1F] dark:text-white transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
@@ -1622,12 +1724,19 @@ export const MemberPortalPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Privilege Tier:</span>
-                      <span className="text-[#B89047] font-bold">{memberPlan} Included</span>
+                      <span className="text-[#B89047] font-bold">{memberPlan} Rate</span>
+                    </div>
+                    <div className="flex justify-between border-t border-black/10 dark:border-white/10 pt-1.5">
+                      <span className="text-gray-400">Court Booking Fee:</span>
+                      <span className="font-mono text-sm font-bold text-[#B89047]">
+                        ₹{getCourtBookingFee(selectedCourt).toLocaleString('en-IN')}{' '}
+                        <span className="text-[10px] text-emerald-500 font-sans font-semibold">Razorpay Verified</span>
+                      </span>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-gray-500 leading-relaxed">
-                    By confirming, this slot will be reserved exclusively in your name. You may cancel up to 2 hours before the session.
+                    By proceeding, you will pay via the official Razorpay test gateway. This slot will be reserved exclusively in your name upon payment verification.
                   </p>
                 </div>
 
@@ -1643,9 +1752,14 @@ export const MemberPortalPage: React.FC = () => {
                     type="button"
                     disabled={isBookingSubmitting}
                     onClick={handleConfirmBooking}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
                   >
-                    {isBookingSubmitting ? 'Confirming...' : 'Confirm Booking'}
+                    <ShieldCheck size={14} />
+                    <span>
+                      {isBookingSubmitting
+                        ? 'Opening Gateway...'
+                        : `Pay ₹${getCourtBookingFee(selectedCourt)} & Reserve`}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1681,52 +1795,22 @@ export const MemberPortalPage: React.FC = () => {
                   <div className="text-[10px] text-gray-400 mt-1 font-mono">Invoice Ref: {selectedInvoice.invoice_no}</div>
                 </div>
 
-                {/* Payment Methods */}
-                <div className="space-y-2 mb-6">
-                  <label className="block text-xs uppercase font-semibold text-gray-500 font-display">
-                    Select Gateway / Channel
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'upi', label: 'UPI / QR', icon: Smartphone },
-                      { id: 'card', label: 'Debit/Card', icon: CreditCard },
-                      { id: 'online', label: 'Netbanking', icon: ShieldCheck },
-                    ].map((m) => {
-                      const Icon = m.icon;
-                      const isSel = paymentMethod === m.id;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => setPaymentMethod(m.id as any)}
-                          className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                            isSel
-                              ? 'border-[#B89047] bg-[#B89047]/20 text-[#B89047] font-bold'
-                              : 'border-black/10 dark:border-white/10 text-gray-400 hover:bg-white/5'
-                          }`}
-                        >
-                          <Icon size={16} className="mx-auto mb-1" />
-                          <span className="text-[11px]">{m.label}</span>
-                        </button>
-                      );
-                    })}
+                {/* Payment Gateway Info */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#B89047]/10 via-[#B89047]/5 to-transparent border border-[#B89047]/30 text-center mb-6">
+                  <div className="flex items-center justify-center gap-2 mb-1.5 text-xs font-bold text-[#B89047] uppercase tracking-wider">
+                    <ShieldCheck size={16} />
+                    <span>Razorpay Secure Gateway</span>
                   </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Supports instant UPI (GPay, PhonePe, Paytm), All Major Debit & Credit Cards, and Netbanking.
+                  </p>
                 </div>
-
-                {paymentMethod === 'upi' && (
-                  <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 text-center text-xs text-gray-400 mb-4">
-                    <div className="font-mono text-sm font-bold text-[#1D1D1F] dark:text-white mb-1">
-                      championsclub@okaxis
-                    </div>
-                    <span>Instant UPI QR code generated. Tap below to simulate instant gateway settlement.</span>
-                  </div>
-                )}
 
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedInvoice(null)}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
+                    className="flex-1 py-3 rounded-xl text-xs font-semibold border border-black/10 dark:border-white/10 text-gray-500 hover:bg-black/5 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1734,9 +1818,10 @@ export const MemberPortalPage: React.FC = () => {
                     type="button"
                     disabled={isPaying}
                     onClick={handlePayInvoice}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#B89047] to-[#D4AF37] hover:opacity-95 shadow-md cursor-pointer disabled:opacity-50"
+                    className="flex-2 py-3 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] via-[#B89047] to-[#A67C38] hover:brightness-105 shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
                   >
-                    {isPaying ? 'Processing...' : `Authorize ₹${Number(selectedInvoice.balance_due).toLocaleString('en-IN')}`}
+                    <CreditCard size={15} />
+                    <span>{isPaying ? 'Connecting...' : `Pay ₹${Number(selectedInvoice.balance_due).toLocaleString('en-IN')} with Razorpay`}</span>
                   </button>
                 </div>
               </div>

@@ -87,6 +87,14 @@ export const AdminPage: React.FC = () => {
   const [newTaxRate, setNewTaxRate] = useState('');
   const [isSubmittingTax, setIsSubmittingTax] = useState(false);
 
+  // Dynamic Settings Edit State
+  const [editingSettingKey, setEditingSettingKey] = useState<string | null>(null);
+  const [editingSettingValue, setEditingSettingValue] = useState<string>('');
+  const [isSavingSetting, setIsSavingSetting] = useState(false);
+  const [isAddSettingOpen, setIsAddSettingOpen] = useState(false);
+  const [newSettingKey, setNewSettingKey] = useState('');
+  const [newSettingValue, setNewSettingValue] = useState('');
+
   // Load Data
   const loadData = async () => {
     setIsLoading(true);
@@ -248,6 +256,41 @@ export const AdminPage: React.FC = () => {
       setTaxRates(prev => prev.map(r => r.id === rate.id ? { ...r, is_active: newStatus } : r));
     } catch (err: any) {
       toast.error('Failed to toggle tax rate');
+    }
+  };
+
+  // Dynamic Settings Update Handler
+  const handleSaveSetting = async (key: string, value: string) => {
+    setIsSavingSetting(true);
+    try {
+      const res = await adminService.updateClubSetting(key, value);
+      toast.success(res.message);
+      setSettings(prev => prev.map(s => s.key === key ? { ...s, value } : s));
+      setEditingSettingKey(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update setting');
+    } finally {
+      setIsSavingSetting(false);
+    }
+  };
+
+  // Dynamic Settings Create Handler
+  const handleCreateSetting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSettingKey.trim()) {
+      toast.error('Setting key cannot be empty');
+      return;
+    }
+    try {
+      const res = await adminService.updateClubSetting(newSettingKey.trim(), newSettingValue.trim());
+      toast.success(res.message);
+      setIsAddSettingOpen(false);
+      setNewSettingKey('');
+      setNewSettingValue('');
+      const updated = await adminService.getClubSettings();
+      setSettings(updated);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to create setting');
     }
   };
 
@@ -799,16 +842,24 @@ export const AdminPage: React.FC = () => {
               </div>
             </form>
 
-            {/* Club Settings Key-Value Table */}
+            {/* Club Settings Key-Value Table (100% Dynamic & Editable) */}
             <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-black/10 dark:border-white/10 gap-3">
                 <div>
                   <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white flex items-center gap-2">
                     <Settings className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                     Operational Runtime Parameters ({settings.length} keys)
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-white/50">Club business logic switches, booking cutoff horizons, and cash floats</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Live club business logic switches, booking cutoff horizons, and cash floats</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddSettingOpen(true)}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:brightness-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm self-start sm:self-auto"
+                >
+                  <Plus size={14} />
+                  <span>Add Parameter</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto rounded-2xl border border-black/5 dark:border-white/5">
@@ -818,20 +869,140 @@ export const AdminPage: React.FC = () => {
                       <th className="py-2.5 px-3">Parameter Key</th>
                       <th className="py-2.5 px-3">Configured Value</th>
                       <th className="py-2.5 px-3">Description</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {settings.map((s) => (
-                      <tr key={s.key} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
-                        <td className="py-2 px-3 font-mono text-[11px] text-cyan-600 dark:text-cyan-400">{s.key}</td>
-                        <td className="py-2 px-3 font-mono text-[#1D1D1F] dark:text-white font-bold">{s.value}</td>
-                        <td className="py-2 px-3 text-gray-500 dark:text-white/50 text-[11px]">{s.description || 'System setting'}</td>
-                      </tr>
-                    ))}
+                    {settings.map((s) => {
+                      const isEditing = editingSettingKey === s.key;
+                      return (
+                        <tr key={s.key} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                          <td className="py-2.5 px-3 font-mono text-[11px] text-cyan-600 dark:text-cyan-400 font-semibold">{s.key}</td>
+                          <td className="py-2.5 px-3 font-mono text-[#1D1D1F] dark:text-white">
+                            {isEditing ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={editingSettingValue}
+                                  onChange={(e) => setEditingSettingValue(e.target.value)}
+                                  className="px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-black/60 border border-cyan-500 text-xs font-mono text-[#1D1D1F] dark:text-white outline-none w-48 shadow-inner"
+                                  autoFocus
+                                />
+                              </div>
+                            ) : (
+                              <span className="font-bold bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded text-[11px]">
+                                {s.value}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-gray-500 dark:text-white/50 text-[11px]">{s.description || 'System setting'}</td>
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                            {isEditing ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  disabled={isSavingSetting}
+                                  onClick={() => handleSaveSetting(s.key, editingSettingValue)}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                >
+                                  <Save size={12} />
+                                  <span>{isSavingSetting ? 'Saving...' : 'Save'}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingSettingKey(null)}
+                                  className="px-2 py-1 rounded-lg bg-black/5 dark:bg-white/10 hover:bg-black/10 text-gray-600 dark:text-white/70 text-[11px] transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingSettingKey(s.key);
+                                  setEditingSettingValue(s.value);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 font-medium text-[11px] transition-colors cursor-pointer"
+                              >
+                                Edit Value
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
+
+            {/* Add Setting Parameter Modal */}
+            {isAddSettingOpen && (
+              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#121216] border border-black/10 dark:border-white/15 p-6 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10">
+                    <h3 className="font-display font-bold text-base text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                      Add Runtime Parameter
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddSettingOpen(false)}
+                      className="p-1 rounded-lg text-gray-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateSetting} className="space-y-4 text-xs">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
+                        Parameter Key (Dot-Notation)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. club.guest_pass_limit"
+                        value={newSettingKey}
+                        onChange={(e) => setNewSettingKey(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 font-mono"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-white/60 block mb-1">
+                        Configured Value
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 5 or true or 1500"
+                        value={newSettingValue}
+                        onChange={(e) => setNewSettingValue(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-black/40 border border-black/10 dark:border-white/10 text-[#1D1D1F] dark:text-white outline-none focus:border-cyan-500 font-mono"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddSettingOpen(false)}
+                        className="px-3 py-2 rounded-xl text-gray-600 dark:text-white/60 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl font-bold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:brightness-105 active:scale-95 transition-all cursor-pointer shadow-md"
+                      >
+                        Save Parameter
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

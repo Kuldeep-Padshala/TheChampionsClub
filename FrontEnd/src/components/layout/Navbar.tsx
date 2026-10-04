@@ -9,6 +9,8 @@ import { cn } from '../../utils/cn';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { memberService } from '../../services/memberService';
+import QRCode from 'react-qr-code';
+import { NotificationCenter } from '../common/NotificationCenter';
 
 interface NavItem {
   name: string;
@@ -88,11 +90,19 @@ export const Navbar: React.FC = () => {
   const isNight = theme === 'night';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
   const [memberPlan, setMemberPlan] = useState<{ planCode?: string; isExpiringSoon?: boolean } | null>(null);
+  const [memberData, setMemberData] = useState<{ profile?: any; membership?: any } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && !isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin) {
       memberService.getProfile().then((data) => {
+        if (data) {
+          setMemberData({
+            profile: data.profile,
+            membership: data.active_membership,
+          });
+        }
         if (data?.active_membership) {
           const code = (data.active_membership.plan_code || data.active_membership.plan_name || '').toLowerCase();
           let isExpiringSoon = false;
@@ -107,9 +117,11 @@ export const Navbar: React.FC = () => {
         }
       }).catch(() => {
         setMemberPlan(null);
+        setMemberData(null);
       });
     } else {
       setMemberPlan(null);
+      setMemberData(null);
     }
   }, [isAuthenticated, isFrontDesk, isManager, isBarStaff, isShopStaff, isAccountant, isOwner, isAdmin, user?.id]);
 
@@ -218,10 +230,10 @@ export const Navbar: React.FC = () => {
           BESPOKE ULTRA-LUXURY FLOATING GLASS CAPSULE
           Pure Obsidian (#000) Night & Champagne Pearl Day
           ══════════════════════════════════════════════════════ */}
-      <header className="fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
+      <header className="fixed top-3.5 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-[1360px]">
         <nav
           className={cn(
-            'flex items-center justify-between rounded-full px-5 sm:px-7 py-3 transition-colors duration-200 border shadow-lg select-none',
+            'flex items-center justify-between rounded-full px-4 sm:px-6 py-2.5 sm:py-3 transition-colors duration-200 border shadow-lg select-none',
             isNight
               ? 'bg-[#0D0D12]/95 border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.85)] backdrop-blur-xl'
               : 'bg-[#FCFBF9]/95 border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.08)] backdrop-blur-xl'
@@ -259,7 +271,7 @@ export const Navbar: React.FC = () => {
               )}>
                 {CLUB_INFO.shortName}
               </span>
-              <span className="text-[8.5px] sm:text-[9.5px] font-semibold tracking-[0.24em] text-[#A67C38] dark:text-[#EAD29A] uppercase mt-1 hidden sm:inline leading-none whitespace-nowrap">
+              <span className="text-[8.5px] sm:text-[9.5px] font-semibold tracking-[0.2em] text-[#A67C38] dark:text-[#EAD29A] uppercase mt-1 hidden xl:inline leading-none whitespace-nowrap">
                 {brandSubline}
               </span>
             </div>
@@ -293,7 +305,7 @@ export const Navbar: React.FC = () => {
                     key={link.path}
                     to={link.path}
                     className={cn(
-                      'relative px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-[13px] font-medium rounded-full transition-all duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
+                      'relative px-2 xl:px-2.5 py-1.5 text-xs xl:text-[12.5px] font-medium rounded-full transition-all duration-200 select-none flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 leading-none',
                       isActive
                         ? isNight ? 'text-white font-semibold' : 'text-[#121214] font-semibold'
                         : isNight ? 'text-[#A1A1A6] hover:text-[#EAD29A]' : 'text-[#55555A] hover:text-[#B89047]'
@@ -325,7 +337,10 @@ export const Navbar: React.FC = () => {
           )}
 
           {/* ── Right Section: Theme Toggle, Role-Based Access & CTA ── */}
-          <div className="hidden md:flex items-center gap-2 xl:gap-3 flex-shrink-0 whitespace-nowrap">
+          <div className="hidden md:flex items-center gap-1.5 xl:gap-2 flex-shrink-0 whitespace-nowrap">
+            {/* Real-Time VIP Notification Center */}
+            <NotificationCenter />
+
             {/* Luxury Night / Day Mode Toggle */}
             <button
               onClick={toggleTheme}
@@ -366,51 +381,120 @@ export const Navbar: React.FC = () => {
             {/* Authenticated State vs Public State */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-1.5 xl:gap-2 flex-shrink-0 whitespace-nowrap">
-                {/* Role Badge */}
+                {/* Role Console Navigation Badge */}
                 {isOwner ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/20 text-[#EAD29A] border-amber-500/40 select-none whitespace-nowrap flex-shrink-0 shadow-[0_0_12px_rgba(234,210,154,0.2)]">
-                    <Crown size={13} className="text-[#EAD29A] flex-shrink-0" />
-                    <span className="whitespace-nowrap">Club Owner</span>
-                  </div>
-                ) : isAdmin ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-sky-500/20 text-sky-300 border-sky-500/40 select-none whitespace-nowrap flex-shrink-0 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
-                    <Settings size={13} className="text-sky-300 flex-shrink-0" />
-                    <span className="whitespace-nowrap">System Admin</span>
-                  </div>
-                ) : isShopStaff && !isManager ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-purple-500/15 text-purple-400 border-purple-500/30 select-none whitespace-nowrap flex-shrink-0">
-                    <ShoppingBag size={13} className="text-purple-400 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Shop Staff</span>
-                  </div>
-                ) : isAccountant && !isManager ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-emerald-500/15 text-emerald-400 border-emerald-500/30 select-none whitespace-nowrap flex-shrink-0">
-                    <DollarSign size={13} className="text-emerald-400 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Accountant</span>
-                  </div>
-                ) : isBarStaff && !isManager ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/15 text-amber-500 border-amber-500/30 select-none whitespace-nowrap flex-shrink-0">
-                    <Coffee size={13} className="text-amber-500 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Bar & Cafe</span>
-                  </div>
-                ) : isManager ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-amber-500/15 text-amber-500 border-amber-500/30 select-none whitespace-nowrap flex-shrink-0">
-                    <Briefcase size={13} className="text-amber-500 flex-shrink-0" />
-                    <span className="whitespace-nowrap">General Manager</span>
-                  </div>
-                ) : isFrontDesk ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 select-none whitespace-nowrap flex-shrink-0">
-                    <ShieldCheck size={13} className="text-[#B89047] flex-shrink-0" />
-                    <span className="whitespace-nowrap">Front Desk</span>
-                  </div>
-                ) : (
                   <Link
-                    to={ROUTES.MEMBER_PORTAL}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border bg-[#B89047]/15 text-[#B89047] border-[#B89047]/30 hover:bg-[#B89047]/25 transition-all select-none whitespace-nowrap flex-shrink-0"
-                    title="Open Member Sanctuary Portal"
+                    to={ROUTES.OWNER}
+                    title="Open Executive Suite Console"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-amber-500/20 text-[#EAD29A] border-amber-500/40 shadow-[0_0_12px_rgba(234,210,154,0.2)] hover:bg-amber-500/30'
+                        : 'bg-amber-100/90 text-amber-900 border-amber-300 hover:bg-amber-200/80'
+                    )}
                   >
-                    <Trophy size={12} className="text-[#B89047] flex-shrink-0" />
-                    <span className="whitespace-nowrap">Member Pass</span>
+                    <Crown size={13} className={isNight ? 'text-[#EAD29A]' : 'text-amber-800'} />
+                    <span className="whitespace-nowrap">Club Owner</span>
                   </Link>
+                ) : isAdmin ? (
+                  <Link
+                    to={ROUTES.ADMIN}
+                    title="Open System Administration & Settings Suite"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.2)] hover:bg-sky-500/30'
+                        : 'bg-sky-100/90 text-sky-900 border-sky-300 hover:bg-sky-200/80'
+                    )}
+                  >
+                    <Settings size={13} className={cn('animate-[spin_8s_linear_infinite]', isNight ? 'text-sky-300' : 'text-sky-800')} />
+                    <span className="whitespace-nowrap">System Admin</span>
+                  </Link>
+                ) : isShopStaff && !isManager ? (
+                  <Link
+                    to={ROUTES.SHOP_STATION}
+                    title="Open Pro Shop Terminal"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-purple-500/15 text-purple-400 border-purple-500/30 hover:bg-purple-500/25'
+                        : 'bg-purple-100/90 text-purple-900 border-purple-300 hover:bg-purple-200/80'
+                    )}
+                  >
+                    <ShoppingBag size={13} className={isNight ? 'text-purple-400' : 'text-purple-800'} />
+                    <span className="whitespace-nowrap">Shop Staff</span>
+                  </Link>
+                ) : isAccountant && !isManager ? (
+                  <Link
+                    to={ROUTES.ACCOUNTANT}
+                    title="Open Finance & Ledger Station"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                        : 'bg-emerald-100/90 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
+                    )}
+                  >
+                    <DollarSign size={13} className={isNight ? 'text-emerald-400' : 'text-emerald-800'} />
+                    <span className="whitespace-nowrap">Accountant</span>
+                  </Link>
+                ) : isBarStaff && !isManager ? (
+                  <Link
+                    to={ROUTES.BAR}
+                    title="Open Bar Station & POS"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                        : 'bg-amber-100/90 text-amber-900 border-amber-300 hover:bg-amber-200/80'
+                    )}
+                  >
+                    <Coffee size={13} className={isNight ? 'text-amber-400' : 'text-amber-800'} />
+                    <span className="whitespace-nowrap">Bar & Cafe</span>
+                  </Link>
+                ) : isManager ? (
+                  <Link
+                    to={ROUTES.MANAGER}
+                    title="Open General Manager Console"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                        : 'bg-amber-100/90 text-amber-900 border-amber-300 hover:bg-amber-200/80'
+                    )}
+                  >
+                    <Briefcase size={13} className={isNight ? 'text-amber-400' : 'text-amber-800'} />
+                    <span className="whitespace-nowrap">General Manager</span>
+                  </Link>
+                ) : isFrontDesk ? (
+                  <Link
+                    to={ROUTES.RECEPTIONIST}
+                    title="Open Front Desk Lead Station"
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border select-none whitespace-nowrap flex-shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all',
+                      isNight
+                        ? 'bg-[#B89047]/15 text-[#EAD29A] border-[#B89047]/30 hover:bg-[#B89047]/25'
+                        : 'bg-[#FAF4E6] text-[#7C500C] border-[#B89047]/40 hover:bg-[#F3EAD5]'
+                    )}
+                  >
+                    <ShieldCheck size={13} className={isNight ? 'text-[#EAD29A]' : 'text-[#7C500C]'} />
+                    <span className="whitespace-nowrap">Front Desk</span>
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsPassModalOpen(true)}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 xl:px-3 py-1.5 rounded-full border transition-all select-none whitespace-nowrap flex-shrink-0 cursor-pointer shadow-sm active:scale-95',
+                      isNight
+                        ? 'bg-[#B89047]/15 text-[#EAD29A] border-[#B89047]/45 hover:border-[#B89047] hover:bg-[#B89047]/25'
+                        : 'bg-[#FAF4E6] text-[#7C500C] border-[#B89047]/50 hover:bg-[#F3EAD5] hover:border-[#B89047]'
+                    )}
+                    title="View My Digital VIP Member Pass & Turnstile QR"
+                  >
+                    <Trophy size={13} className={isNight ? 'text-[#EAD29A]' : 'text-[#7C500C]'} />
+                    <span className={cn('whitespace-nowrap font-bold', isNight ? 'text-[#EAD29A]' : 'text-[#7C500C]')}>Member Pass</span>
+                  </button>
                 )}
 
                 <button
@@ -445,13 +529,13 @@ export const Navbar: React.FC = () => {
               <Link
                 to={ROUTES.LOGIN}
                 className={cn(
-                  'inline-flex items-center gap-1.5 text-[13px] font-medium tracking-wide px-3 xl:px-3.5 py-2 rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 select-none',
+                  'inline-flex items-center gap-1.5 text-xs font-medium tracking-wide px-2.5 sm:px-3 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 select-none',
                   isNight
                     ? 'text-white/85 hover:text-[#EAD29A] hover:bg-white/[0.06]'
                     : 'text-[#121214]/85 hover:text-[#B89047] hover:bg-black/[0.04]'
                 )}
               >
-                <User size={14} className="text-[#B89047] flex-shrink-0" />
+                <User size={13} className="text-[#B89047] flex-shrink-0" />
                 <span className="whitespace-nowrap leading-none">Sign In</span>
               </Link>
             )}
@@ -460,18 +544,21 @@ export const Navbar: React.FC = () => {
             {!isAuthenticated && (
               <Link
                 to={ROUTES.COURTS}
-                className="group relative hidden xl:inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 xl:px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-[0_8px_20px_-6px_rgba(20,20,24,0.3)] hover:shadow-[0_10px_24px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
+                className="group relative inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-[#141416] via-[#24242A] to-[#141416] hover:from-[#B89047] hover:via-[#A67C38] hover:to-[#8C6826] shadow-sm hover:shadow-[0_8px_20px_-4px_rgba(184,144,71,0.4)] transition-all duration-300 active:scale-95 border border-[#B89047]/40 hover:border-white/40 overflow-hidden whitespace-nowrap flex-shrink-0"
               >
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/15 to-transparent ease-out" />
-                <Sparkles size={13} className="text-[#EAD29A] group-hover:text-white transition-colors flex-shrink-0" />
+                <Sparkles size={12} className="text-[#EAD29A] group-hover:text-white transition-colors flex-shrink-0" />
                 <span className="tracking-wide whitespace-nowrap">Reserve Court</span>
-                <ChevronRight size={13} className="text-white/60 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+                <ChevronRight size={12} className="text-white/60 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
               </Link>
             )}
           </div>
 
           {/* ── Mobile Trigger & Quick Controls ── */}
           <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
+            {/* Mobile Real-Time Notification Center */}
+            <NotificationCenter />
+
             {/* Mobile Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -621,6 +708,20 @@ export const Navbar: React.FC = () => {
                   </Link>
                 )}
 
+                {isAuthenticated && user && !isFrontDesk && !isManager && !isBarStaff && !isShopStaff && !isAccountant && !isOwner && !isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setIsPassModalOpen(true);
+                    }}
+                    className="w-full h-11 rounded-2xl bg-gradient-to-r from-[#B89047] via-[#D4AF37] to-[#A67C38] text-black font-bold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer mb-3"
+                  >
+                    <Trophy size={14} />
+                    <span>View Digital Member Pass &amp; QR</span>
+                  </button>
+                )}
+
                 {isAuthenticated && user ? (
                   <div className={cn(
                     'p-3.5 rounded-2xl border flex items-center justify-between',
@@ -677,6 +778,94 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
           </motion.div>
+        )}
+
+      {/* ─── DIGITAL VIP MEMBER PASS MODAL ─────────────────────────── */}
+      {isPassModalOpen &&
+        createPortal(
+          <div
+            data-lenis-prevent
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          >
+            <div className="relative w-full max-w-sm rounded-3xl bg-[#121216] border border-[#B89047]/50 p-6 text-center text-white shadow-2xl flex flex-col items-center">
+              
+              {/* Header with Title & Close */}
+              <div className="w-full flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#B89047]/20 border border-[#B89047]/30 flex items-center justify-center text-[#EAD29A]">
+                    <Trophy size={14} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-display font-bold text-sm text-white">Digital VIP Member Pass</h3>
+                    <p className="text-[10px] text-gray-400">The Champions Club Sanctuary</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsPassModalOpen(false)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Luxury Member Card Pill */}
+              <div className="w-full py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-[#1F1C18] to-[#161412] border border-[#B89047]/30 mb-4 flex items-center justify-between text-xs">
+                <div className="text-left">
+                  <div className="font-display font-bold text-sm text-white">{memberData?.profile?.full_name || user?.name || 'Club Member'}</div>
+                  <div className="text-[10px] font-mono text-[#EAD29A]">ID: {memberData?.profile?.member_code || 'CC-2026-003'}</div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-gradient-to-r from-[#B89047] to-[#EAD29A] text-black shadow-sm">
+                  {memberData?.membership?.plan_name ? `${memberData.membership.plan_name} Pass` : 'Active Member'}
+                </span>
+              </div>
+
+              {/* High-Contrast Scannable Optical Turnstile QR Code */}
+              <div className="w-56 h-56 p-3.5 bg-white rounded-2xl border-4 border-[#B89047]/60 shadow-[0_0_35px_rgba(184,144,71,0.3)] flex flex-col items-center justify-center">
+                <QRCode
+                  value={memberData?.profile?.qr_token || memberData?.profile?.member_code || 'CHAMPIONS-CLUB-MEMBER'}
+                  size={185}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="H"
+                />
+              </div>
+
+              <div className="mt-3 font-mono text-sm font-bold tracking-widest text-[#EAD29A]">
+                {memberData?.profile?.member_code || 'CC-2026-003'}
+              </div>
+
+              {/* Status beacon */}
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-semibold text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Optical Turnstile Clearance Active</span>
+              </div>
+
+              <p className="text-[11px] text-gray-400 mt-2.5 leading-relaxed max-w-xs">
+                Present this QR code under the turnstile optical scanner for 1-second contactless club admission.
+              </p>
+
+              {/* Action buttons */}
+              <div className="w-full mt-5 space-y-2">
+                <Link
+                  to={`${ROUTES.MEMBER_PORTAL}?tab=pass`}
+                  onClick={() => setIsPassModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-[#EAD29A] via-[#B89047] to-[#A67C38] hover:brightness-110 shadow-md flex items-center justify-center gap-2 transition-all"
+                >
+                  <Crown size={14} />
+                  <span>Open Sanctuary Portal &amp; Privileges</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPassModalOpen(false)}
+                  className="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  Dismiss Pass
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 

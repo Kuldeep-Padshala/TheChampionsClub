@@ -692,24 +692,6 @@ export const ReceptionistPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Station Controls: Theme & Sign Out */}
-              <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
-                <button
-                  onClick={toggleTheme}
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center border border-black/10 dark:border-white/10 hover:border-[#B89047] bg-white/60 dark:bg-white/[0.04] transition-colors cursor-pointer"
-                  title={isNight ? 'Switch to Day Mode' : 'Switch to Night Mode'}
-                >
-                  {isNight ? <Moon size={16} className="text-[#EAD29A]" /> : <Sun size={16} className="text-[#B89047]" />}
-                </button>
-                <button
-                  onClick={() => logout()}
-                  className="h-11 px-3.5 rounded-2xl flex items-center gap-1.5 text-xs font-semibold border border-red-500/25 bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:border-red-500/40 transition-colors cursor-pointer"
-                  title="Sign Out of Front Desk"
-                >
-                  <LogOut size={14} />
-                  <span>Exit</span>
-                </button>
-              </div>
             </div>
           </div>
 

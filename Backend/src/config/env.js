@@ -40,6 +40,10 @@ const env = {
   },
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   isProduction: process.env.NODE_ENV === 'production',
+  razorpay: {
+    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TjJUqJ4Y2LFsm3',
+    keySecret: process.env.RAZORPAY_KEY_SECRET || 'es4SGeE8cvKGvl4vxx4E282E',
+  },
 };
 
 module.exports = { env };

@@ -119,7 +119,7 @@ export const RegisterPage: React.FC = () => {
   return (
     <PageLayout>
       <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4">
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-2xl">
           {/* Bespoke Luxury Card */}
           <div className="bg-white/80 dark:bg-[#0A0A0D]/85 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
             
@@ -143,7 +143,7 @@ export const RegisterPage: React.FC = () => {
               <label className="block text-xs uppercase font-semibold tracking-wider text-[#1D1D1F] dark:text-gray-200 font-display">
                 Account Type & Role Assignment
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   {
                     id: 'MEMBER' as ClubRole,
@@ -209,25 +209,33 @@ export const RegisterPage: React.FC = () => {
                       type="button"
                       onClick={() => setRole(id)}
                       className={cn(
-                        'p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden',
+                        'p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col justify-between group',
                         isSelected
-                          ? 'border-[#B89047] bg-[#B89047]/15 shadow-[0_0_16px_rgba(184,144,71,0.2)] ring-1 ring-[#B89047]'
-                          : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/40 dark:bg-white/[0.02]'
+                          ? 'border-[#B89047] bg-[#B89047]/10 shadow-[0_4px_20px_rgba(184,144,71,0.15)] ring-1 ring-[#B89047]'
+                          : 'border-black/10 dark:border-white/10 hover:border-[#B89047]/40 bg-white/50 dark:bg-white/[0.02] hover:bg-black/[0.02] dark:hover:bg-white/[0.04]'
                       )}
                     >
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className={cn(
-                          'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0',
-                          isSelected ? 'bg-[#B89047] text-black font-bold' : 'bg-black/5 dark:bg-white/10 text-gray-400'
-                        )}>
-                          <Icon size={15} />
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105',
+                            isSelected ? 'bg-gradient-to-br from-[#EAD29A] to-[#B89047] text-[#121214] font-bold shadow-sm' : 'bg-black/5 dark:bg-white/10 text-gray-400'
+                          )}>
+                            <Icon size={16} />
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-[#1D1D1F] dark:text-white leading-snug">{title}</div>
+                            <span className="text-[10px] text-[#B89047] font-semibold uppercase tracking-wider block mt-0.5">{sub}</span>
+                          </div>
                         </div>
-                        <div className="truncate">
-                          <div className="text-xs font-bold text-[#1D1D1F] dark:text-white truncate">{title}</div>
-                          <span className="text-[9px] text-[#B89047] font-semibold uppercase tracking-wider block leading-none">{sub}</span>
+                        <div className={cn(
+                          'w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors',
+                          isSelected ? 'border-[#B89047] bg-[#B89047]' : 'border-black/20 dark:border-white/20'
+                        )}>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
                         </div>
                       </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-tight">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         {desc}
                       </p>
                     </button>

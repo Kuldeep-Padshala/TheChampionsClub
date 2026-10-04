@@ -6,6 +6,7 @@ import { cn } from '../../utils/cn';
 import { useLoginPrompt } from '../../hooks/useLoginPrompt';
 import { useTheme } from '../../context/ThemeContext';
 import { CourtBookingModal } from './CourtBookingModal';
+import { websocketService } from '../../services/websocketService';
 
 interface SlotCalendarProps {
   slots: TimeSlot[];
@@ -47,6 +48,43 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
       el.removeEventListener('wheel', handleWheel);
     };
   }, []);
+
+  // Real-time synchronization via WebSocket
+  useEffect(() => {
+    const unsub = websocketService.on('court_slot_change', (event: any) => {
+      if (!court || String(event.courtId) === String(court.id) || !event.courtId) {
+        if (event.type === 'COURT_SLOT_BOOKED' && event.startsAt) {
+          const datePart = event.startsAt.split('T')[0].split(' ')[0];
+          const timePart = event.startsAt.includes('T')
+            ? event.startsAt.split('T')[1].slice(0, 5)
+            : (event.startsAt.includes(' ') ? event.startsAt.split(' ')[1].slice(0, 5) : '');
+
+          if (datePart && timePart) {
+            const matchingSlot = slots.find((s) => s.date === datePart && s.startTime.startsWith(timePart));
+            if (matchingSlot) {
+              setLocalBookedSlotIds((prev) => Array.from(new Set([...prev, matchingSlot.id])));
+            }
+          }
+        } else if (event.type === 'COURT_SLOT_CANCELLED' && event.startsAt) {
+          const datePart = event.startsAt.split('T')[0].split(' ')[0];
+          const timePart = event.startsAt.includes('T')
+            ? event.startsAt.split('T')[1].slice(0, 5)
+            : (event.startsAt.includes(' ') ? event.startsAt.split(' ')[1].slice(0, 5) : '');
+
+          if (datePart && timePart) {
+            const matchingSlot = slots.find((s) => s.date === datePart && s.startTime.startsWith(timePart));
+            if (matchingSlot) {
+              setLocalBookedSlotIds((prev) => prev.filter((id) => id !== matchingSlot.id));
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      unsub();
+    };
+  }, [court, slots]);
 
   const weekDays = generateWeekDays(currentDate);
   const timeHours = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
+import { websocketService } from '../services/websocketService';
 
 export interface AuthUser {
   id: string;
@@ -53,6 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const res = await api.get('/auth/me');
       setUser(res.data.user);
+      const activeToken = localStorage.getItem('auth_token');
+      if (activeToken) {
+        websocketService.authenticate(activeToken);
+      }
     } catch {
       setUser(null);
     }
@@ -66,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.post('/auth/login', { email, password });
     if (res.data.token) {
       localStorage.setItem('auth_token', res.data.token);
+      websocketService.authenticate(res.data.token);
     }
     setUser(res.data.user);
     return res.data.user;
@@ -89,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     if (res.data.token) {
       localStorage.setItem('auth_token', res.data.token);
+      websocketService.authenticate(res.data.token);
     }
     setUser(res.data.user);
     return res.data.user;
@@ -102,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       localStorage.removeItem('auth_token');
       setUser(null);
+      websocketService.init();
     }
   };
 

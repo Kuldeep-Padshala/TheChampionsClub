@@ -9,6 +9,7 @@ import { MenuItem } from '../types/menu.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { Clock, Star, Percent, X, Plus, Minus, Utensils, CheckCircle2, RotateCw, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../api/client';
 
 export const CafePage = () => {
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -18,12 +19,20 @@ export const CafePage = () => {
   // Table Order Modal State
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [orderQty, setOrderQty] = useState(1);
-  const [tableLocation, setTableLocation] = useState('Table 4 (Court View Deck)');
+  const [tableLocation, setTableLocation] = useState('T-01 (INDOOR • 4 Seats)');
+  const [diningTables, setDiningTables] = useState<Array<{ id: number; table_number: string; seats: number; zone: string; status: string }>>([]);
   const [specialNotes, setSpecialNotes] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   useEffect(() => {
     getMenuItems().then(setMenu);
+    api.get('/public/tables').then(res => {
+      if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        setDiningTables(res.data.data);
+        const first = res.data.data[0];
+        setTableLocation(`${first.table_number} (${first.zone.toUpperCase()} • ${first.seats} Seats)`);
+      }
+    }).catch(err => console.warn('[CafePage] tables error:', err));
   }, []);
 
   const filteredMenu = menu.filter(item => item.category === activeTab);
@@ -42,9 +51,17 @@ export const CafePage = () => {
 
     setIsSubmittingOrder(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
-      const ref = 'ORD-BAR-' + Math.floor(1000 + Math.random() * 9000);
-      toast.success(`Order confirmed (${ref}) for ${selectedItem.name}! Our waitstaff is delivering to ${tableLocation}.`, {
+      const res = await api.post('/public/table-order', {
+        item_id: selectedItem.id,
+        item_name: selectedItem.name,
+        quantity: orderQty,
+        unit_price: selectedItem.price,
+        table_location: tableLocation,
+        notes: specialNotes,
+      });
+
+      const orderRef = res.data?.order_no || 'ORD-BAR-' + Date.now();
+      toast.success(`Order confirmed (${orderRef}) for ${selectedItem.name}! Our waitstaff is delivering to ${tableLocation}.`, {
         duration: 5000,
         icon: '🍸',
       });
@@ -231,11 +248,19 @@ export const CafePage = () => {
                     onChange={(e) => setTableLocation(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-white text-xs font-semibold outline-none focus:border-[#B89047] cursor-pointer"
                   >
-                    <option value="Table 4 (Court View Deck)" className="bg-[#121216]">Table 4 (Court View Deck)</option>
-                    <option value="Table 1 (Poolside Cabana)" className="bg-[#121216]">Table 1 (Poolside Cabana)</option>
-                    <option value="Table 2 (Cellar Lounge Bar)" className="bg-[#121216]">Table 2 (Cellar Lounge Bar)</option>
-                    <option value="Table 3 (Terrace Deck)" className="bg-[#121216]">Table 3 (Terrace Deck)</option>
-                    <option value="VIP Sanctuary Box" className="bg-[#121216]">VIP Sanctuary Box</option>
+                    {diningTables.length > 0 ? (
+                      diningTables.map((t) => (
+                        <option
+                          key={t.id}
+                          value={`${t.table_number} (${t.zone.toUpperCase()} • ${t.seats} Seats)`}
+                          className="bg-[#121216]"
+                        >
+                          {t.table_number} ({t.zone.toUpperCase()} • {t.seats} Seats {t.status === 'occupied' ? '• Occupied' : ''})
+                        </option>
+                      ))
+                    ) : (
+                      <option value="T-01 (INDOOR • 4 Seats)" className="bg-[#121216]">T-01 (INDOOR • 4 Seats)</option>
+                    )}
                   </select>
                 </div>
 

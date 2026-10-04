@@ -107,7 +107,7 @@ export const ContactPage = () => {
                     <Icon className="text-gold-primary" size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-navy-primary text-sm mb-0.5">{label}</h4>
+                    <h4 className="font-bold text-[#1D1D1F] dark:text-white text-sm mb-0.5">{label}</h4>
                     <p className="text-text-secondary text-sm leading-relaxed">{value}</p>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export const ContactPage = () => {
 
           {/* Right column: enquiry form */}
           <div className="bg-bg-surface p-8 rounded-2xl border border-border shadow-sm">
-            <h3 className="text-2xl font-display font-bold text-navy-primary mb-2">
+            <h3 className="text-2xl font-display font-bold text-[#1D1D1F] dark:text-white mb-2">
               Send an Enquiry
             </h3>
             <p className="text-sm text-text-secondary mb-7">
@@ -153,7 +153,7 @@ export const ContactPage = () => {
                 {/* Name row */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-navy-primary">First Name *</label>
+                    <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">First Name *</label>
                     <input
                       required
                       type="text"
@@ -164,7 +164,7 @@ export const ContactPage = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-navy-primary">Last Name</label>
+                    <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">Last Name</label>
                     <input
                       type="text"
                       value={lastName}
@@ -177,7 +177,7 @@ export const ContactPage = () => {
 
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">Email *</label>
+                  <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">Email *</label>
                   <input
                     required
                     type="email"
@@ -190,7 +190,7 @@ export const ContactPage = () => {
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">Phone</label>
+                  <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">Phone</label>
                   <input
                     type="tel"
                     value={phone}
@@ -202,7 +202,7 @@ export const ContactPage = () => {
 
                 {/* Topic / interest */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">I'm interested in</label>
+                  <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">I'm interested in</label>
                   <select
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
@@ -220,7 +220,7 @@ export const ContactPage = () => {
 
                 {/* Message */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-navy-primary">Message *</label>
+                  <label className="text-sm font-semibold text-[#1D1D1F] dark:text-white">Message *</label>
                   <textarea
                     required
                     rows={4}

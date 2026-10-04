@@ -11,6 +11,7 @@ import { getCourts } from '../services/courtsService';
 import { getPlans } from '../services/membershipService';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/client';
 import { Court } from '../types/court.types';
 import { MembershipPlan } from '../types/membership.types';
 import {
@@ -58,6 +59,12 @@ export const HomePage = () => {
   const { requireLogin } = useLoginPrompt();
   const [courts, setCourts] = useState<Court[]>([]);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [stats, setStats] = useState({
+    active_members: 35,
+    total_courts: 9,
+    total_bookings: 35,
+  });
+  const [gallery, setGallery] = useState(galleryData);
 
   // Automatically redirect staff to their operational workstation
   useEffect(() => {
@@ -71,6 +78,18 @@ export const HomePage = () => {
     getCourts().then(data => setCourts(data.slice(0, 2)));
     // Load all membership plans for the plan cards section
     getPlans().then(setPlans);
+    // Load live club statistics from MySQL
+    api.get('/public/stats').then(res => {
+      if (res.data?.success && res.data.data) {
+        setStats(res.data.data);
+      }
+    }).catch(err => console.warn('[HomePage] stats error:', err));
+    // Load media gallery dynamically
+    api.get('/public/gallery').then(res => {
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setGallery(res.data.data);
+      }
+    }).catch(err => console.warn('[HomePage] gallery error:', err));
   }, []);
 
   // ── Feature cards — 4 main offerings of the club ──
@@ -257,7 +276,7 @@ export const HomePage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center">
             <div className="space-y-1">
-              <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">4</div>
+              <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">{stats.total_courts}</div>
               <div className="text-xs sm:text-sm font-semibold text-[#1D1D1F] uppercase tracking-wider">Championship Courts</div>
               <div className="text-xs text-[#86868B]">Synthetic grass, hard court &amp; indoor</div>
             </div>
@@ -275,7 +294,7 @@ export const HomePage = () => {
             </div>
 
             <div className="space-y-1">
-              <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">500+</div>
+              <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">{stats.active_members}+</div>
               <div className="text-xs sm:text-sm font-semibold text-[#1D1D1F] uppercase tracking-wider">Active Members</div>
               <div className="text-xs text-[#86868B]">Bengaluru's premier sporting community</div>
             </div>
@@ -511,7 +530,7 @@ export const HomePage = () => {
         <div className="container mx-auto px-4 md:px-6">
           <SectionHeader title="Life at The Club" subtitle="A peek inside our world." centered />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-12 max-w-5xl mx-auto">
-            {galleryData.map((item, i) => (
+            {gallery.map((item, i) => (
               <div
                 key={item.id}
                 className={`relative overflow-hidden rounded-xl group cursor-pointer ${

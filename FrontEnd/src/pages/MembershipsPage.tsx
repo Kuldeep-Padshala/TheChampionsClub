@@ -6,14 +6,50 @@ import { getPlans } from '../services/membershipService';
 import { MembershipPlan } from '../types/membership.types';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import { Check, X } from 'lucide-react';
-
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
+import { useAuth } from '../context/AuthContext';
+import { paymentService } from '../services/paymentService';
+import { memberService } from '../services/memberService';
+import toast from 'react-hot-toast';
 
 export const MembershipsPage = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const { requireLogin } = useLoginPrompt();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleJoinPlan = (plan: MembershipPlan) => {
+    requireLogin('choose a membership plan', async () => {
+      const planPrice = plan.monthlyPrice || 2500;
+      try {
+        await paymentService.openCheckout({
+          amount: planPrice,
+          productName: `${plan.name} Sanctuary Membership Pass`,
+          customerName: user?.name || 'Club Member',
+          customerEmail: user?.email || '',
+          onSuccess: async ({ payment_id }) => {
+            try {
+              await memberService.subscribeMembershipPlan({
+                plan_code: plan.id,
+                razorpay_payment_id: payment_id,
+              });
+              toast.success(`Payment ₹${planPrice.toLocaleString('en-IN')} verified! Welcome to ${plan.name} Membership.`);
+              navigate(ROUTES.MEMBER_PORTAL);
+            } catch (err: any) {
+              toast.error(err?.response?.data?.message || 'Payment received, but failed to activate plan. Please contact front desk.');
+              navigate(ROUTES.MEMBER_PORTAL);
+            }
+          },
+          onError: (err) => {
+            toast.error(err?.message || 'Membership payment was cancelled or failed.');
+          },
+        });
+      } catch (err: any) {
+        toast.error('Unable to open payment gateway.');
+      }
+    });
+  };
 
   useEffect(() => {
     getPlans().then(setPlans);
@@ -84,11 +120,7 @@ export const MembershipsPage = () => {
               index={index}
               key={plan.id}
               plan={plan}
-              onJoin={() =>
-                requireLogin('choose a membership plan', () => {
-                  navigate(ROUTES.MEMBER_PORTAL);
-                })
-              }
+              onJoin={() => handleJoinPlan(plan)}
             />
           ))}
         </div>
@@ -118,20 +150,20 @@ export const MembershipsPage = () => {
                 {comparisonRows.map((row, i) => (
                   <tr
                     key={i}
-                    className={`border-t border-border ${i % 2 === 0 ? 'bg-bg-surface' : 'bg-white'}`}
+                    className={`border-t border-black/10 dark:border-white/10 ${i % 2 === 0 ? 'bg-black/[0.02] dark:bg-white/[0.02]' : 'bg-transparent'}`}
                   >
-                    <td className="px-6 py-4 font-medium text-navy-primary">{row.feature}</td>
+                    <td className="px-6 py-4 font-medium text-[#1D1D1F] dark:text-white">{row.feature}</td>
                     {/* Render boolean values as check/cross icons, strings as text */}
                     {(['junior', 'silver', 'gold'] as const).map(planKey => (
-                      <td key={planKey} className={`px-6 py-4 text-center ${planKey === 'gold' ? 'bg-gold-primary/5' : ''}`}>
+                      <td key={planKey} className={`px-6 py-4 text-center ${planKey === 'gold' ? 'bg-[#B89047]/10' : ''}`}>
                         {typeof row[planKey] === 'boolean' ? (
                           row[planKey] ? (
-                            <Check size={18} className="text-green-600 mx-auto" />
+                            <Check size={18} className="text-emerald-500 mx-auto" />
                           ) : (
-                            <X size={18} className="text-gray-300 mx-auto" />
+                            <X size={18} className="text-gray-400 mx-auto" />
                           )
                         ) : (
-                          <span className={planKey === 'gold' ? 'font-semibold text-gold-primary' : 'text-text-secondary'}>
+                          <span className={planKey === 'gold' ? 'font-semibold text-[#B89047] dark:text-[#EAD29A]' : 'text-gray-500 dark:text-gray-400'}>
                             {row[planKey] as string}
                           </span>
                         )}
@@ -146,21 +178,21 @@ export const MembershipsPage = () => {
       </div>
 
       {/* ── FAQ accordion ── */}
-      <div className="py-20 bg-bg-primary">
+      <div className="py-20 bg-transparent">
         <div className="container mx-auto px-4 md:px-6 max-w-3xl">
           <SectionHeader title="Frequently Asked Questions" centered />
           <div className="space-y-4 mt-10">
             {faqs.map((faq, i) => (
               <details
                 key={i}
-                className="group bg-bg-surface border border-border rounded-xl overflow-hidden cursor-pointer"
+                className="group bg-white/70 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden cursor-pointer"
               >
-                <summary className="flex items-center justify-between px-6 py-5 font-semibold text-navy-primary list-none select-none">
+                <summary className="flex items-center justify-between px-6 py-5 font-semibold text-[#1D1D1F] dark:text-white list-none select-none">
                   <span>{faq.q}</span>
                   {/* Chevron rotates when open */}
-                  <span className="text-gold-primary ml-4 transition-transform group-open:rotate-45 text-xl font-light">+</span>
+                  <span className="text-[#B89047] ml-4 transition-transform group-open:rotate-45 text-xl font-light">+</span>
                 </summary>
-                <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-border pt-4">
+                <div className="px-6 pb-5 text-sm text-gray-500 dark:text-gray-400 leading-relaxed border-t border-black/5 dark:border-white/5 pt-4">
                   {faq.a}
                 </div>
               </details>

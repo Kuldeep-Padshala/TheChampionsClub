@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { Trophy, Target, Heart, Users, Award, Zap } from 'lucide-react';
@@ -6,8 +6,30 @@ import galleryData from '../data/gallery.json';
 import { ScrollExpand } from '../components/ui/ScrollExpand';
 import { MaskedHeading } from '../components/ui/MaskedHeading';
 import { SpotlightCard } from '../components/ui/SpotlightCard';
+import api from '../api/client';
 
 export const AboutPage = () => {
+  const [stats, setStats] = useState({
+    active_members: 35,
+    total_courts: 9,
+    total_bookings: 35,
+    established_year: 2018,
+  });
+  const [gallery, setGallery] = useState(galleryData);
+
+  useEffect(() => {
+    api.get('/public/stats').then(res => {
+      if (res.data?.success && res.data.data) {
+        setStats(res.data.data);
+      }
+    }).catch(err => console.warn('[AboutPage] stats error:', err));
+
+    api.get('/public/gallery').then(res => {
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setGallery(res.data.data);
+      }
+    }).catch(err => console.warn('[AboutPage] gallery error:', err));
+  }, []);
   // Club facilities list
   const facilities = [
     {
@@ -106,10 +128,10 @@ export const AboutPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center">
             {[
-              { number: '500+',  label: 'Active Members',         desc: 'Elite sporting community' },
-              { number: '4',     label: 'Championship Courts',   desc: 'Synthetic grass, hard & indoor' },
-              { number: '8 Yrs', label: 'Consistent Excellence',  desc: 'Established Bengaluru 2018' },
-              { number: '1,200+',label: 'Monthly Matches',        desc: 'Played under pro floodlights' },
+              { number: `${stats.active_members}+`, label: 'Active Members', desc: 'Elite sporting community' },
+              { number: `${stats.total_courts}`, label: 'Championship Courts', desc: 'Synthetic grass, hard & indoor' },
+              { number: `${new Date().getFullYear() - (stats.established_year || 2018)} Yrs`, label: 'Consistent Excellence', desc: `Established Bengaluru ${stats.established_year || 2018}` },
+              { number: `${stats.total_bookings}+`, label: 'Total Matches', desc: 'Played under pro floodlights' },
             ].map((stat, i) => (
               <div key={i} className="space-y-1">
                 <div className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">{stat.number}</div>
@@ -186,7 +208,7 @@ export const AboutPage = () => {
             centered
           />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto">
-            {galleryData.map(item => (
+            {gallery.map(item => (
               <div key={item.id} className="overflow-hidden rounded-[28px] border border-black/[0.06] shadow-sm group">
                 <img
                   src={item.url}

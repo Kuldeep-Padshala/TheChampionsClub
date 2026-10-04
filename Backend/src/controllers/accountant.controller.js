@@ -183,17 +183,52 @@ const runPayroll = async (req, res) => {
   const connection = await pool.getConnection();
   try {
     const accountantId = req.user.id;
-    const { period_month = new Date().toISOString().substring(0, 7) + '-01', notes = 'Monthly Payroll Run' } = req.body;
+    let targetMonth = req.body?.period_month;
+    const notes = req.body?.notes || 'Monthly Payroll Run';
+
+    // 1. If not provided or if duplicate month is requested, find appropriate period
+    if (!targetMonth) {
+      targetMonth = new Date().toISOString().substring(0, 7) + '-01';
+    }
+
+    // Check if payroll run already exists for this period
+    const [existing] = await connection.query(
+      'SELECT id, status, period_month FROM payroll_runs WHERE period_month = ?',
+      [targetMonth]
+    );
+
+    let payrollRunId = null;
 
     await connection.beginTransaction();
 
-    // 1. Create a Payroll Run
-    const [runResult] = await connection.query(`
-      INSERT INTO payroll_runs (period_month, status, created_by, notes, created_at) 
-      VALUES (?, 'draft', ?, ?, NOW())
-    `, [period_month, accountantId, notes]);
+    if (existing.length > 0) {
+      if (existing[0].status === 'draft') {
+        // Reuse existing draft run: clear items and re-calculate
+        payrollRunId = existing[0].id;
+        await connection.query('DELETE FROM payroll_items WHERE payroll_run_id = ?', [payrollRunId]);
+        await connection.query('UPDATE payroll_runs SET notes = ?, created_at = NOW() WHERE id = ?', [notes, payrollRunId]);
+      } else {
+        // Already paid or approved: advance to the next monthly cycle
+        const [latestRuns] = await connection.query(
+          'SELECT period_month FROM payroll_runs ORDER BY period_month DESC LIMIT 1'
+        );
+        const baseDate = latestRuns.length > 0 ? new Date(latestRuns[0].period_month) : new Date(targetMonth);
+        baseDate.setMonth(baseDate.getMonth() + 1);
+        targetMonth = baseDate.toISOString().substring(0, 7) + '-01';
 
-    const payrollRunId = runResult.insertId;
+        const [runResult] = await connection.query(`
+          INSERT INTO payroll_runs (period_month, status, created_by, notes, created_at) 
+          VALUES (?, 'draft', ?, ?, NOW())
+        `, [targetMonth, accountantId, `Payroll Run for ${targetMonth.substring(0, 7)}`]);
+        payrollRunId = runResult.insertId;
+      }
+    } else {
+      const [runResult] = await connection.query(`
+        INSERT INTO payroll_runs (period_month, status, created_by, notes, created_at) 
+        VALUES (?, 'draft', ?, ?, NOW())
+      `, [targetMonth, accountantId, notes]);
+      payrollRunId = runResult.insertId;
+    }
 
     // 2. Fetch all active employees
     const [employees] = await connection.query(`
@@ -209,7 +244,7 @@ const runPayroll = async (req, res) => {
       let hoursWorked = 0;
       let daysWorked = 30;
 
-      if (emp.pay_type === 'monthly_salary') {
+      if (emp.pay_type === 'monthly_salary' || emp.pay_type === 'monthly') {
         grossPay = Number(emp.base_salary || 30000);
       } else if (emp.pay_type === 'hourly') {
         hoursWorked = 160; // Standard monthly hours baseline
@@ -235,17 +270,20 @@ const runPayroll = async (req, res) => {
 
     await connection.commit();
 
+    const formattedMonth = new Date(targetMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
     res.status(201).json({
       success: true,
-      message: `Payroll run generated for ${employees.length} employees`,
+      message: `Payroll run generated for ${formattedMonth} (${employees.length} employees)`,
       payrollRunId,
       totalAmount: totalPayrollAmount,
-      employeeCount: employees.length
+      employeeCount: employees.length,
+      periodMonth: targetMonth
     });
   } catch (error) {
     await connection.rollback();
     console.error('[runPayroll error]', error);
-    res.status(500).json({ success: false, message: 'Server error generating payroll' });
+    res.status(500).json({ success: false, message: error.sqlMessage || error.message || 'Server error generating payroll' });
   } finally {
     connection.release();
   }

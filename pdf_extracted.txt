@@ -1,0 +1,76 @@
+=== PAGE 1 ===
+Sports Club Management System
+Build the digital backbone of a club that has outgrown WhatsApp and Excel.
+1) The Challenge
+ Your task is to build one unified software platform that solves the real, day-to-day
+operational headaches of a modern sports club. Think of it as the digital backbone of a
+thriving tennis, padel and badminton club. Read the scenes that follow as things that
+actually happen in an ordinary week, and design the system that makes each of them
+easy.
+2) Meet The Champions Club
+ The Champions Club is a busy sports club with tennis and cricket courts that members
+book, a gear shop selling rackets, balls, shoes and accessories, and a bar and cafeteria
+that serves food and drinks after matches. Its member base is growing across three tiers:
+Gold (premium, full access), Silver (standard) and Junior (under 18, discounted). A
+front desk handles walk-ins, phone calls and staff schedules.
+
+
+=== PAGE 2 ===
+How Things Run Today
+● Court bookings: Arranged over WhatsApp
+● Member lists: Kept in Excel sheets
+● Bar receipts: Written on paper
+● Court availability: Checked by phone calls
+● Revenue and operations: No visibility at all
+The owner is losing money, members are frustrated, and staff are overwhelmed.
+3) A Week at the Club
+ The scenes below follow one week at The Champions Club, from the first-time member at
+the front desk to the owner reviewing the month. Every one of them is a problem
+someone at the club faces today.
+A new member walks in
+Someone signs up at the front desk. The club needs to know who they are, which plan
+they are on (Gold, Silver or Junior), and what that plan entitles them to, from court rates
+to discounts at the shop and the bar.
+Their membership will run out one day, and nobody should have to remember when.
+Whenever they turn up, any member of staff should be able to recognise them quickly
+and see their history with the club.
+Booking a court on a busy evening
+It is 6 pm. Members are messaging the front desk, a walk-in is standing at the counter,
+and someone is on the phone asking what is free. Sessions last an hour, a new slot
+opens every half hour, and each member can play at most twice a day.
+Members pay less than walk-ins, or nothing at all, depending on their plan. Plans
+change, people cancel, and on Friday night the courts open up for social play where
+
+
+=== PAGE 3 ===
+many people share one court. Through all of it, two people must never end up on the
+same court at the same time.
+Gearing up before a match
+A member’s racket string snaps ten minutes before play. Another wants new shoes and
+would rather order them from home and collect them at the club, or have them
+delivered.
+The club sells rackets, balls, shoes, accessories and apparel, and it should always know
+what is in stock and when something is running low. What a member buys at the counter
+and what they order from their sofa come from the same shelf.
+After the match, at the bar
+Twenty people arrive at once. Orders are scribbled on paper, tabs get lost, and the
+kitchen keeps asking who ordered what. Members expect their discount without having
+to ask, and some would rather run a tab and settle up before they leave.
+Guests pay by cash, card or UPI. Staff work in shifts, tables need to be tracked, and at
+closing time the owner wants to know what the bar actually earned that day.
+A stranger finds the club online
+Someone searches for a place to play near them. Today the club has no website, so they
+never find it. If they could see the club, its plans and prices, what is free this week, and
+what the shop sells, they might book a trial session on the spot.
+When a visitor reaches out, that enquiry should not vanish. Someone at the club should
+hear about it, follow up, send a quote and, hopefully, welcome a new member.
+
+
+=== PAGE 4 ===
+The owner, at the end of the month
+The owner sits down and asks a simple question: how much did we earn, from where,
+and what do we owe? Money arrives from courts, the shop and the bar, by card, cash and
+online, and today none of it is in one place.
+There are memberships and business clients to invoice, employees to pay, leave to
+approve, and taxes to report. The owner wants to see how the club is doing today, this
+week and this month, and to share the numbers when needed.
