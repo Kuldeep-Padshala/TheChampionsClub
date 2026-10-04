@@ -31,6 +31,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { adminService } from '../services/adminService';
+import { websocketService } from '../services/websocketService';
 import {
   AdminUser,
   RoleWithPerms,
@@ -39,7 +40,8 @@ import {
   ClubSetting,
   TaxRate,
   AuditLog,
-  AdminStats
+  AdminStats,
+  MembershipRequest
 } from '../types/admin.types';
 import { cn } from '../utils/cn';
 
@@ -87,6 +89,10 @@ export const AdminPage: React.FC = () => {
   const [newTaxRate, setNewTaxRate] = useState('');
   const [isSubmittingTax, setIsSubmittingTax] = useState(false);
 
+  // Membership Requests State
+  const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+
   // Dynamic Settings Edit State
   const [editingSettingKey, setEditingSettingKey] = useState<string | null>(null);
   const [editingSettingValue, setEditingSettingValue] = useState<string>('');
@@ -106,7 +112,8 @@ export const AdminPage: React.FC = () => {
         profileData,
         settingsData,
         taxData,
-        auditData
+        auditData,
+        requestsData
       ] = await Promise.all([
         adminService.getStats().catch(() => null),
         adminService.getUsers().catch(() => []),
@@ -115,6 +122,7 @@ export const AdminPage: React.FC = () => {
         adminService.getClubSettings().catch(() => []),
         adminService.getTaxRates().catch(() => []),
         adminService.getAuditLogs().catch(() => []),
+        adminService.getMembershipRequests().catch(() => []),
       ]);
 
       if (statsData) setStats(statsData);
@@ -128,6 +136,7 @@ export const AdminPage: React.FC = () => {
       setSettings(settingsData);
       setTaxRates(taxData);
       setAuditLogs(auditData);
+      setMembershipRequests(requestsData || []);
 
       // Set initial role permissions
       const initialRole = rolesData.roles.find(r => r.id === selectedRoleId) || rolesData.roles[0];
@@ -136,8 +145,8 @@ export const AdminPage: React.FC = () => {
         setActivePermIds(initialRole.permission_ids || []);
       }
     } catch (err) {
-      console.error('Failed to load admin data', err);
-      toast.error('Failed to load system administration data');
+      console.error('[AdminPage loadData error]', err);
+      toast.error('Failed to load system settings');
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +154,54 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    // Real-time synchronization for new signups and approvals
+    const unsubCreated = websocketService.on('MEMBERSHIP_REQUEST_CREATED', (data: any) => {
+      toast(`New member application received from ${data?.request?.full_name || 'an applicant'}!`, {
+        icon: '📋',
+        duration: 6000,
+      });
+      loadData();
+    });
+
+    const unsubApproved = websocketService.on('MEMBERSHIP_APPROVED', () => {
+      loadData();
+    });
+
+    return () => {
+      unsubCreated();
+      unsubApproved();
+    };
   }, []);
+
+  const handleApproveRequest = async (req: { id: number; full_name: string }) => {
+    setActionLoadingId(req.id);
+    try {
+      const res = await adminService.approveMembershipRequest(req.id);
+      toast.success(res.message || `Approved ${req.full_name} as Member!`);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to approve membership request');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleRejectRequest = async (req: { id: number; full_name: string }) => {
+    const reason = window.prompt(`Enter reason for rejecting ${req.full_name}'s application (optional):`, 'Application criteria not met');
+    if (reason === null) return;
+
+    setActionLoadingId(req.id);
+    try {
+      const res = await adminService.rejectMembershipRequest(req.id, reason);
+      toast.success(res.message || `Membership application rejected.`);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to reject application');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   // Update active permissions when selected role changes
   useEffect(() => {
@@ -323,6 +379,11 @@ export const AdminPage: React.FC = () => {
     });
   }, [usersList, userSearch, userRoleFilter]);
 
+  // Pending Membership Requests Count
+  const pendingCount = useMemo(() => {
+    return membershipRequests.filter(r => r.status === 'pending').length;
+  }, [membershipRequests]);
+
   return (
     <div className="min-h-screen bg-[#F8F7F4] dark:bg-[#0A0A0D] text-[#1D1D1F] dark:text-[#FAF8F5] pt-24 pb-16 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#B89047]/30 transition-colors">
       {/* ── Top Header / Station Badge ────────────────────────────── */}
@@ -367,7 +428,7 @@ export const AdminPage: React.FC = () => {
         </div>
 
         {/* ── KPI Metric Cards ─────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4">
           <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.03] border border-black/10 dark:border-white/10 shadow-sm">
             <span className="text-[11px] font-medium text-gray-500 dark:text-white/50 uppercase tracking-wider block">
               Registered Accounts
@@ -378,6 +439,30 @@ export const AdminPage: React.FC = () => {
               </span>
               <span className="text-xs text-emerald-600 dark:text-emerald-400">
                 {stats?.activeUsers ?? usersList.filter(u => u.status === 'active').length} active
+              </span>
+            </div>
+          </div>
+
+          {/* Pending Member Requests Card */}
+          <div
+            onClick={() => setTab('requests')}
+            className={cn(
+              'p-4 rounded-2xl border shadow-sm cursor-pointer transition-all',
+              pendingCount > 0
+                ? 'bg-amber-500/10 border-amber-500/40 hover:bg-amber-500/20'
+                : 'bg-white dark:bg-white/[0.03] border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5'
+            )}
+          >
+            <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider block flex items-center justify-between">
+              <span>Member Requests</span>
+              {pendingCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-bold font-display text-amber-600 dark:text-amber-400">
+                {pendingCount}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-white/50">
+                {pendingCount > 0 ? 'action needed' : 'all caught up'}
               </span>
             </div>
           </div>
@@ -432,6 +517,25 @@ export const AdminPage: React.FC = () => {
           >
             <Users size={16} />
             <span>User Security & Access</span>
+          </button>
+
+          {/* Membership Requests Tab */}
+          <button
+            onClick={() => setTab('requests')}
+            className={cn(
+              'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap',
+              activeTab === 'requests'
+                ? 'bg-gradient-to-r from-amber-500 to-[#B89047] text-black shadow-md font-bold'
+                : 'text-gray-600 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
+            )}
+          >
+            <UserCheck size={16} />
+            <span>Membership Requests</span>
+            {pendingCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-red-500 text-white font-mono font-bold animate-pulse">
+                {pendingCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -609,6 +713,19 @@ export const AdminPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Approve Member Application inline */}
+                          {u.membership_request_status === 'pending' && u.membership_request_id && (
+                            <button
+                              onClick={() => handleApproveRequest({ id: u.membership_request_id!, full_name: u.full_name })}
+                              disabled={actionLoadingId === u.membership_request_id}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-black bg-gradient-to-r from-amber-400 to-[#B89047] hover:brightness-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-sm"
+                              title="Approve Membership Application"
+                            >
+                              <UserCheck size={13} />
+                              <span>{actionLoadingId === u.membership_request_id ? 'Approving...' : 'Approve'}</span>
+                            </button>
+                          )}
+
                           {/* Force Password Reset */}
                           <button
                             onClick={() => setResetUser(u)}
@@ -638,6 +755,157 @@ export const AdminPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════
+            TAB: MEMBERSHIP APPLICATIONS & APPROVAL WORKFLOW
+            ══════════════════════════════════════════════════════════ */}
+        {activeTab === 'requests' && (
+          <div className="rounded-3xl bg-white dark:bg-white/[0.02] border border-black/10 dark:border-white/10 p-6 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/10 dark:border-white/10">
+              <div>
+                <h3 className="font-display font-bold text-lg text-[#1D1D1F] dark:text-white flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-amber-500" />
+                  Membership Requests & Onboarding Approval
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-white/50">
+                  New users who registered online as Members remain in pending status until approved by an administrator.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  {membershipRequests.filter(r => r.status === 'pending').length} Pending Review
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {membershipRequests.filter(r => r.status === 'approved').length} Approved
+                </span>
+              </div>
+            </div>
+
+            {membershipRequests.length === 0 ? (
+              <div className="py-16 text-center text-gray-400">
+                <UserCheck className="w-12 h-12 mx-auto mb-3 opacity-30 text-amber-500" />
+                <p className="font-medium text-sm text-gray-600 dark:text-gray-300">No membership applications recorded yet</p>
+                <p className="text-xs text-gray-500 dark:text-white/40 mt-1">
+                  When new members sign up through the registration page, their approval requests will appear here in real-time.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider text-gray-500 dark:text-white/50 font-medium">
+                      <th className="py-3 px-3">Applicant Name</th>
+                      <th className="py-3 px-3">Contact Details</th>
+                      <th className="py-3 px-3">Date of Birth</th>
+                      <th className="py-3 px-3">Submission Date</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3">Review Notes / Admin</th>
+                      <th className="py-3 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                    {membershipRequests.map((req) => (
+                      <tr key={req.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3.5 px-3">
+                          <div className="font-semibold text-sm text-[#1D1D1F] dark:text-white">
+                            {req.full_name}
+                          </div>
+                          <span className="text-[10px] font-mono text-gray-400">
+                            Req ID: #{req.id}
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-3">
+                          <div className="text-gray-700 dark:text-white/80 font-mono text-[11px]">{req.email}</div>
+                          <div className="text-gray-500 dark:text-white/50 text-[11px]">{req.phone || 'No phone provided'}</div>
+                        </td>
+
+                        <td className="py-3.5 px-3 text-gray-600 dark:text-white/70">
+                          {req.date_of_birth ? new Date(req.date_of_birth).toLocaleDateString('en-IN') : 'N/A'}
+                        </td>
+
+                        <td className="py-3.5 px-3 text-gray-500 dark:text-white/50">
+                          {new Date(req.created_at).toLocaleString('en-IN', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                          })}
+                        </td>
+
+                        <td className="py-3.5 px-3">
+                          <span className={cn(
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider',
+                            req.status === 'approved'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                              : req.status === 'rejected'
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 animate-pulse'
+                          )}>
+                            <span className={cn(
+                              'w-1.5 h-1.5 rounded-full',
+                              req.status === 'approved' ? 'bg-emerald-500' :
+                              req.status === 'rejected' ? 'bg-rose-500' :
+                              'bg-amber-500'
+                            )} />
+                            {req.status === 'approved' ? 'Approved' : req.status === 'rejected' ? 'Rejected' : 'Pending Review'}
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-3 max-w-[200px]">
+                          {req.admin_notes ? (
+                            <span className="text-gray-600 dark:text-gray-300 text-[11px] italic truncate block" title={req.admin_notes}>
+                              "{req.admin_notes}"
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 dark:text-white/30 text-[11px]">None</span>
+                          )}
+                          {req.reviewed_at && (
+                            <div className="text-[10px] text-gray-400 dark:text-white/40 mt-0.5">
+                              Reviewed: {new Date(req.reviewed_at).toLocaleDateString('en-IN')}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-3 text-right">
+                          {req.status === 'pending' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleApproveRequest(req)}
+                                disabled={actionLoadingId === req.id}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-amber-400 via-amber-500 to-[#B89047] hover:brightness-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md"
+                              >
+                                <CheckCircle2 size={14} />
+                                <span>{actionLoadingId === req.id ? 'Approving...' : 'Accept as Member'}</span>
+                              </button>
+                              <button
+                                onClick={() => handleRejectRequest(req)}
+                                disabled={actionLoadingId === req.id}
+                                className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 active:scale-95 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                              >
+                                <X size={14} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          ) : req.status === 'approved' ? (
+                            <div className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">
+                              <CheckCircle2 size={14} />
+                              <span>Member Activated</span>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1 text-rose-500 dark:text-rose-400 font-medium text-[11px]">
+                              <X size={14} />
+                              <span>Declined</span>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 

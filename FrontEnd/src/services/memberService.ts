@@ -107,11 +107,23 @@ export interface MemberShopOrder {
 }
 
 export interface MemberDashboardData {
-  profile: MemberProfile;
+  profile: MemberProfile | null;
   active_membership: ActiveMembership | null;
   total_dues: number;
   unpaid_invoices: MemberInvoice[];
   recent_checkins: Array<{ id: number; method: string; checked_in_at: string }>;
+  is_pending_approval?: boolean;
+  is_rejected?: boolean;
+  membership_request?: {
+    id: number;
+    user_id: number;
+    full_name: string;
+    email: string;
+    phone: string | null;
+    status: 'pending' | 'approved' | 'rejected';
+    admin_notes?: string | null;
+    created_at: string;
+  } | null;
 }
 
 export const memberService = {

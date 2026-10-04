@@ -4,12 +4,15 @@ const member = require('../controllers/member.controller');
 
 const router = Router();
 
-// ─── Enforce Auth & MEMBER Role on All Member Routes ───
+// ─── Enforce Auth on All Member Routes ───
 router.use(requireAuth);
+
+// 1. Authentication & Profile (allows pending applicants to query their status)
+router.get('/me', member.getMe);
+
+// ─── Require approved MEMBER role for active club operations ───
 router.use(requireRole('MEMBER'));
 
-// 1. Authentication & Profile
-router.get('/me', member.getMe);
 router.patch('/me', member.updateMe);
 router.get('/plans', member.getMembershipPlans);
 router.post('/plans/subscribe', member.subscribeMembershipPlan);

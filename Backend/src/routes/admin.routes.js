@@ -14,14 +14,17 @@ const {
   addTaxRate,
   toggleTaxRate,
   getAuditLogs,
-  getAdminStats
+  getAdminStats,
+  getMembershipRequests,
+  approveMembershipRequest,
+  rejectMembershipRequest,
 } = require('../controllers/admin.controller');
 
 const router = express.Router();
 
 // Require auth and SYSTEM_ADMIN role
 router.use(requireAuth);
-router.use(requireRole('SYSTEM_ADMIN', 'ADMIN'));
+router.use(requireRole('SYSTEM_ADMIN', 'ADMIN', 'OWNER', 'MANAGER'));
 
 // 0. Dashboard Stats
 router.get('/stats', getAdminStats);
@@ -48,5 +51,10 @@ router.patch('/tax-rates/:id/toggle', toggleTaxRate);
 
 // 5. System Auditing
 router.get('/audit-logs', getAuditLogs);
+
+// 6. Membership Requests Management (Admin Approval)
+router.get('/membership-requests', getMembershipRequests);
+router.post('/membership-requests/:id/approve', approveMembershipRequest);
+router.post('/membership-requests/:id/reject', rejectMembershipRequest);
 
 module.exports = router;

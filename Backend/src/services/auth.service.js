@@ -75,10 +75,20 @@ async function getUserRoles(userId) {
       [userId]
     );
     const codes = rows.map((r) => r.code);
-    return codes.length > 0 ? codes : ['MEMBER'];
+    if (codes.length > 0) return codes;
+
+    // Check if user has an approved or pending membership request
+    const [reqs] = await pool.query(
+      'SELECT status FROM membership_requests WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+      [userId]
+    );
+    if (reqs.length > 0 && reqs[0].status === 'approved') return ['MEMBER'];
+    if (reqs.length > 0 && reqs[0].status === 'pending') return ['APPLICANT'];
+
+    return ['APPLICANT'];
   } catch (err) {
     console.error('[AuthService] Error fetching user roles:', err);
-    return ['MEMBER'];
+    return ['APPLICANT'];
   }
 }
 
@@ -103,33 +113,77 @@ async function registerUser(input) {
 
   // Look up requested role from roles table (default: MEMBER)
   const requestedRole = (input.role || 'MEMBER').trim().toUpperCase();
+
+  // If registering as a MEMBER: New user signup requires ADMIN ACCEPTANCE before becoming an active member
+  if (requestedRole === 'MEMBER') {
+    const [reqResult] = await pool.query(
+      `INSERT INTO membership_requests (user_id, full_name, email, phone, date_of_birth, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'pending', NOW(), NOW())`,
+      [userId, input.name, input.email, input.phone || null, input.date_of_birth || null]
+    );
+
+    // Broadcast instant real-time notification to all connected admins
+    try {
+      const { broadcast, sendToRole } = require('./websocket.service');
+      broadcast({
+        type: 'MEMBERSHIP_REQUEST_CREATED',
+        request: {
+          id: reqResult.insertId,
+          user_id: Number(userId),
+          full_name: input.name,
+          email: input.email,
+          phone: input.phone || null,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }
+      });
+
+      sendToRole('SYSTEM_ADMIN', {
+        type: 'NOTIFICATION',
+        notification: {
+          title: 'New Member Registration',
+          body: `${input.name} (${input.email}) has requested club membership. Awaiting your approval.`,
+          type: 'membership_request',
+          created_at: new Date().toISOString()
+        }
+      });
+      sendToRole('OWNER', {
+        type: 'NOTIFICATION',
+        notification: {
+          title: 'New Member Registration',
+          body: `${input.name} has requested club membership. Awaiting admin review.`,
+          type: 'membership_request',
+          created_at: new Date().toISOString()
+        }
+      });
+    } catch (wsErr) {
+      console.warn('[WS Notify error]', wsErr.message);
+    }
+
+    sendWelcomeEmail(input.email, input.name).catch((err) =>
+      console.error('[Email] Failed to send welcome email:', err.message)
+    );
+
+    return {
+      id: userId,
+      name: input.name,
+      email: input.email,
+      phone: input.phone || null,
+      roles: ['APPLICANT'],
+      membership_status: 'pending',
+      is_pending_approval: true
+    };
+  }
+
+  // If registering for a staff / other role directly
   const [roleRows] = await pool.query('SELECT id, code FROM roles WHERE code = ?', [requestedRole]);
-  const roleId = roleRows.length > 0 ? roleRows[0].id : 8; // fallback to 8 (MEMBER)
-  const assignedRoleCode = roleRows.length > 0 ? roleRows[0].code : 'MEMBER';
+  const roleId = roleRows.length > 0 ? roleRows[0].id : 8;
+  const assignedRoleCode = roleRows.length > 0 ? roleRows[0].code : requestedRole;
 
   try {
     await pool.query('INSERT INTO user_roles (user_id, role_id, assigned_at) VALUES (?, ?, NOW())', [userId, roleId]);
   } catch (e) {
     console.error('[AuthService] Could not assign role:', e);
-  }
-
-  // If registering as a MEMBER, automatically generate their digital pass and member profile
-  if (assignedRoleCode === 'MEMBER') {
-    try {
-      const memberCode = 'CC-2026-' + Math.floor(1000 + Math.random() * 9000);
-      const qrToken = 'QR-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-      const dob = input.date_of_birth || '1995-01-01';
-
-      const [memberResult] = await pool.query(
-        `INSERT INTO members (user_id, member_code, qr_token, full_name, email, phone, date_of_birth, status, joined_on, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'active', CURDATE(), NOW(), NOW())`,
-        [userId, memberCode, qrToken, input.name, input.email, input.phone || null, dob]
-      );
-
-      const newMemberId = memberResult.insertId;
-    } catch (memErr) {
-      console.error('[AuthService] Error creating member profile on registration:', memErr.message);
-    }
   }
 
   sendWelcomeEmail(input.email, input.name).catch((err) =>
@@ -186,7 +240,20 @@ async function loginUser(input) {
   );
 
   const roles = await getUserRoles(user.id);
-  return { id: user.id, name: user.name, email: user.email, phone: user.phone, roles };
+  const [pendingReq] = await pool.query(
+    "SELECT id, status, created_at FROM membership_requests WHERE user_id = ? AND status = 'pending' LIMIT 1",
+    [user.id]
+  );
+  const isPending = pendingReq.length > 0;
+  return { 
+    id: user.id, 
+    name: user.name, 
+    email: user.email, 
+    phone: user.phone, 
+    roles,
+    is_pending_approval: isPending,
+    membership_status: isPending ? 'pending' : (roles.includes('MEMBER') ? 'active' : 'none')
+  };
 }
 
 // ─── Forgot Password / OTP ────────────────────────────────────────────────
@@ -353,7 +420,20 @@ async function getUserById(id) {
   const user = await findUserById(id);
   if (!user) return null;
   const roles = await getUserRoles(user.id);
-  return { id: user.id, name: user.name, email: user.email, phone: user.phone, roles };
+  const [pendingReq] = await pool.query(
+    "SELECT id, status, created_at FROM membership_requests WHERE user_id = ? AND status = 'pending' LIMIT 1",
+    [user.id]
+  );
+  const isPending = pendingReq.length > 0;
+  return { 
+    id: user.id, 
+    name: user.name, 
+    email: user.email, 
+    phone: user.phone, 
+    roles,
+    is_pending_approval: isPending,
+    membership_status: isPending ? 'pending' : (roles.includes('MEMBER') ? 'active' : 'none')
+  };
 }
 
 module.exports = {

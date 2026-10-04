@@ -83,6 +83,9 @@ export const MemberPortalPage: React.FC = () => {
 
   // Member Dashboard Data
   const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [isPendingApproval, setIsPendingApproval] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
+  const [membershipRequest, setMembershipRequest] = useState<any>(null);
   const [membership, setMembership] = useState<ActiveMembership | null>(null);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [totalDues, setTotalDues] = useState(0);
@@ -141,6 +144,9 @@ export const MemberPortalPage: React.FC = () => {
         memberService.getMembershipPlans().catch(() => []),
       ]);
       setProfile(data.profile);
+      setIsPendingApproval(Boolean(data.is_pending_approval));
+      setIsRejected(Boolean(data.is_rejected));
+      setMembershipRequest(data.membership_request || null);
       setMembership(data.active_membership);
       setPlans(plansData || []);
       setTotalDues(data.total_dues || 0);
@@ -155,13 +161,15 @@ export const MemberPortalPage: React.FC = () => {
         setEditEmergencyPhone(data.profile.emergency_contact_phone || '');
       }
 
-      // Load bookings & invoices
-      const [bookingsData, invData] = await Promise.all([
-        memberService.getMyBookings().catch(() => []),
-        memberService.getMyInvoices().catch(() => []),
-      ]);
-      setMyBookings(bookingsData);
-      setInvoices(invData);
+      // Load bookings & invoices only if profile exists
+      if (data.profile) {
+        const [bookingsData, invData] = await Promise.all([
+          memberService.getMyBookings().catch(() => []),
+          memberService.getMyInvoices().catch(() => []),
+        ]);
+        setMyBookings(bookingsData);
+        setInvoices(invData);
+      }
     } catch (err: any) {
       console.error('[MemberPortal] Error loading data:', err);
       toast.error('Could not load member profile details');
@@ -172,6 +180,24 @@ export const MemberPortalPage: React.FC = () => {
 
   useEffect(() => {
     loadMemberData();
+  }, [loadMemberData]);
+
+  // Real-time synchronization for Membership Application Approval
+  useEffect(() => {
+    const unsubApproved = websocketService.on('MEMBERSHIP_APPROVED', (payload: any) => {
+      toast.success('🎉 Congratulations! Your membership has been officially approved by the Administrator!', { duration: 6000 });
+      loadMemberData();
+    });
+
+    const unsubRejected = websocketService.on('MEMBERSHIP_REJECTED', (payload: any) => {
+      toast.error('Your membership application was declined by the Administrator.');
+      loadMemberData();
+    });
+
+    return () => {
+      unsubApproved();
+      unsubRejected();
+    };
   }, [loadMemberData]);
 
   // Reload court schedule and my bookings
@@ -526,8 +552,132 @@ export const MemberPortalPage: React.FC = () => {
     );
   }
 
-  const memberName = profile?.full_name || user?.name || 'Club Member';
-  const memberCode = profile?.member_code || 'CC-2026-VIP';
+  // ─── Application Under Administrative Review Screen ──────────
+  if (isPendingApproval && !profile) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex items-center justify-center">
+          <div className="w-full bg-white/80 dark:bg-[#0A0A0D]/90 backdrop-blur-2xl rounded-3xl border border-amber-500/30 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="text-center max-w-xl mx-auto space-y-4">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 via-[#B89047] to-amber-600 p-[2px] mx-auto shadow-xl shadow-amber-500/20">
+                <div className="w-full h-full rounded-3xl bg-[#0D0D12] flex items-center justify-center">
+                  <Clock className="w-9 h-9 text-amber-400 animate-pulse" />
+                </div>
+              </div>
+
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                <span>Application Under Administrative Review</span>
+              </div>
+
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1D1D1F] dark:text-white tracking-tight">
+                Welcome, {membershipRequest?.full_name || user?.name || 'Applicant'}!
+              </h1>
+
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                Your sign-up request for <strong>The Champions Club</strong> sanctuary membership has been submitted and forwarded to our executive administration for identity verification and member pass clearance.
+              </p>
+
+              {/* Status details card */}
+              <div className="mt-6 p-5 rounded-2xl bg-black/5 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 text-left space-y-3">
+                <div className="flex items-center justify-between text-xs pb-3 border-b border-black/10 dark:border-white/10">
+                  <span className="text-gray-500 dark:text-white/50">Application Reference</span>
+                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">#REQ-{membershipRequest?.id || 'PENDING'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs pb-3 border-b border-black/10 dark:border-white/10">
+                  <span className="text-gray-500 dark:text-white/50">Registered Email</span>
+                  <span className="font-mono text-gray-800 dark:text-white/90">{membershipRequest?.email || user?.email}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs pb-3 border-b border-black/10 dark:border-white/10">
+                  <span className="text-gray-500 dark:text-white/50">Submission Timestamp</span>
+                  <span className="text-gray-800 dark:text-white/90">
+                    {membershipRequest?.created_at ? new Date(membershipRequest.created_at).toLocaleString('en-IN') : 'Just now'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500 dark:text-white/50">Real-Time Sync</span>
+                  <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live WebSocket Connection Active
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 text-left">
+                💡 <strong>Instant Activation:</strong> You do not need to refresh this page. As soon as an administrator accepts your application from the Admin Console, this sanctuary portal will unlock instantly with your digital pass and court booking schedule.
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={loadMemberData}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-amber-400 to-[#B89047] hover:brightness-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                >
+                  <RotateCw size={14} />
+                  <span>Check Status Now</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // ─── Application Declined Screen ─────────────────────────────
+  if (isRejected && !profile) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto flex items-center justify-center">
+          <div className="w-full bg-white/80 dark:bg-[#0A0A0D]/90 backdrop-blur-2xl rounded-3xl border border-rose-500/30 p-8 sm:p-12 shadow-2xl relative overflow-hidden text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-500 mx-auto flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-[#1D1D1F] dark:text-white">
+              Application Not Approved
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Your membership application was reviewed by club administration and could not be approved at this time.
+            </p>
+            {membershipRequest?.admin_notes && (
+              <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs text-gray-600 dark:text-gray-300 italic">
+                Reason: "{membershipRequest.admin_notes}"
+              </div>
+            )}
+            <p className="text-xs text-gray-500 dark:text-white/40">
+              For inquiries or appeal, please contact the club concierge desk at concierge@thechampionsclub.in.
+            </p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // ─── Fallback If No Profile ──────────────────────────────────
+  if (!profile) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center pb-16">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-12 h-12 border-2 border-[#B89047]/30 border-t-[#B89047] rounded-full animate-spin" />
+            <span className="text-xs uppercase tracking-widest text-[#B89047] font-semibold">
+              Setting up Member Credentials...
+            </span>
+            <button
+              onClick={loadMemberData}
+              className="mt-2 px-4 py-2 rounded-xl text-xs font-semibold bg-black/5 dark:bg-white/10 text-gray-700 dark:text-white cursor-pointer"
+            >
+              Retry Loading
+            </button>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  const memberName = profile.full_name || user?.name || 'Club Member';
+  const memberCode = profile.member_code || 'CC-2026-VIP';
   const OPERATING_HOURS = Array.from({ length: 16 }, (_, i) => i + 6);
 
   return (

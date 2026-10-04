@@ -8,6 +8,8 @@ export interface AdminUser {
   created_at: string;
   roles: string[];
   role_names: string[];
+  membership_request_status?: 'pending' | 'approved' | 'rejected';
+  membership_request_id?: number;
 }
 
 export interface Permission {
@@ -85,6 +87,22 @@ export interface AdminStats {
   totalStaff: number;
   auditLogsCount: number;
   settingsCount: number;
+  pendingMembershipRequests?: number;
   dbStatus: string;
   nodeEnv: string;
+}
+
+export interface MembershipRequest {
+  id: number;
+  user_id: number;
+  full_name: string;
+  email: string;
+  phone?: string;
+  date_of_birth?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_notes?: string;
+  reviewed_by?: number;
+  reviewer_name?: string;
+  reviewed_at?: string;
+  created_at: string;
 }

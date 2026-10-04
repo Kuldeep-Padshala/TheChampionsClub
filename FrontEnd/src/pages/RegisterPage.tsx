@@ -95,7 +95,11 @@ export const RegisterPage: React.FC = () => {
         dateOfBirth || undefined
       );
 
-      toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Account established.`);
+      if (role === 'MEMBER') {
+        toast.success(`Application submitted! Awaiting administrator approval to activate your membership pass.`, { duration: 6000 });
+      } else {
+        toast.success(`Welcome to ${CLUB_INFO.shortName}, ${firstName}! Account established.`);
+      }
 
       const destinationMap: Record<ClubRole, string> = {
         OWNER: ROUTES.OWNER,

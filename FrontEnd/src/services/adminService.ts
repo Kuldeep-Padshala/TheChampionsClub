@@ -80,4 +80,19 @@ export const adminService = {
     const res = await api.get('/admin/audit-logs');
     return res.data.data || [];
   },
+
+  async getMembershipRequests(): Promise<import('../types/admin.types').MembershipRequest[]> {
+    const res = await api.get('/admin/membership-requests');
+    return res.data.data || [];
+  },
+
+  async approveMembershipRequest(id: number, notes?: string): Promise<{ success: boolean; message: string; memberCode?: string }> {
+    const res = await api.post(`/admin/membership-requests/${id}/approve`, { notes });
+    return res.data;
+  },
+
+  async rejectMembershipRequest(id: number, reason?: string): Promise<{ success: boolean; message: string }> {
+    const res = await api.post(`/admin/membership-requests/${id}/reject`, { reason });
+    return res.data;
+  },
 };

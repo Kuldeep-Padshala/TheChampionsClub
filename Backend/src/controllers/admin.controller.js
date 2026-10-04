@@ -16,19 +16,22 @@ const getAllUsers = async (req, res) => {
         u.status, 
         u.last_login_at, 
         u.created_at,
-        GROUP_CONCAT(r.code) as roles,
-        GROUP_CONCAT(r.name) as role_names
+        GROUP_CONCAT(DISTINCT r.code) as roles,
+        GROUP_CONCAT(DISTINCT r.name) as role_names,
+        mr.status as membership_request_status,
+        mr.id as membership_request_id
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
+      LEFT JOIN membership_requests mr ON u.id = mr.user_id AND mr.status = 'pending'
       GROUP BY u.id
       ORDER BY u.created_at DESC
     `);
 
     const formattedUsers = users.map(u => ({
       ...u,
-      roles: u.roles ? u.roles.split(',') : [],
-      role_names: u.role_names ? u.role_names.split(',') : []
+      roles: u.roles ? u.roles.split(',') : (u.membership_request_status === 'pending' ? ['APPLICANT'] : []),
+      role_names: u.role_names ? u.role_names.split(',') : (u.membership_request_status === 'pending' ? ['Applicant'] : [])
     }));
 
     res.status(200).json({ success: true, data: formattedUsers });
@@ -383,6 +386,8 @@ const getAdminStats = async (req, res) => {
     const [auditCount] = await pool.query('SELECT COUNT(*) as count FROM audit_logs');
     const [settingsCount] = await pool.query('SELECT COUNT(*) as count FROM club_settings');
 
+    const [pendingRequestsCount] = await pool.query("SELECT COUNT(*) as count FROM membership_requests WHERE status = 'pending'");
+
     res.status(200).json({
       success: true,
       data: {
@@ -393,6 +398,7 @@ const getAdminStats = async (req, res) => {
         totalStaff: Number(staffCount[0].count || 0),
         auditLogsCount: Number(auditCount[0].count || 0),
         settingsCount: Number(settingsCount[0].count || 0),
+        pendingMembershipRequests: Number(pendingRequestsCount[0]?.count || 0),
         dbStatus: 'Operational (Aiven MySQL 21561)',
         nodeEnv: process.env.NODE_ENV || 'production'
       }
@@ -400,6 +406,193 @@ const getAdminStats = async (req, res) => {
   } catch (error) {
     console.error('[getAdminStats error]', error);
     res.status(500).json({ success: false, message: 'Server error retrieving admin stats' });
+  }
+};
+
+// ============================================
+// 6. Membership Requests Management (Admin Approval)
+// ============================================
+
+const getMembershipRequests = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        mr.id,
+        mr.user_id,
+        mr.full_name,
+        mr.email,
+        mr.phone,
+        mr.date_of_birth,
+        mr.status,
+        mr.admin_notes,
+        mr.reviewed_by,
+        mr.reviewed_at,
+        mr.created_at,
+        u.created_at as user_created_at,
+        reviewer.full_name as reviewer_name
+      FROM membership_requests mr
+      LEFT JOIN users u ON mr.user_id = u.id
+      LEFT JOIN users reviewer ON mr.reviewed_by = reviewer.id
+      ORDER BY (CASE WHEN mr.status = 'pending' THEN 0 ELSE 1 END) ASC, mr.created_at DESC
+    `);
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('[getMembershipRequests error]', error);
+    res.status(500).json({ success: false, message: 'Server error retrieving membership requests' });
+  }
+};
+
+const approveMembershipRequest = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { id } = req.params; // membership_request id
+    const adminId = req.user.id;
+    const { notes } = req.body || {};
+
+    await connection.beginTransaction();
+
+    const [requests] = await connection.query('SELECT * FROM membership_requests WHERE id = ?', [id]);
+    if (requests.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: 'Membership request not found' });
+    }
+
+    const reqRecord = requests[0];
+    const userId = reqRecord.user_id;
+
+    // 1. Update membership_requests status to approved
+    await connection.query(
+      `UPDATE membership_requests 
+       SET status = 'approved', admin_notes = ?, reviewed_by = ?, reviewed_at = NOW(), updated_at = NOW() 
+       WHERE id = ?`,
+      [notes || 'Approved by Administrator', adminId, id]
+    );
+
+    // 2. Assign MEMBER role (role id 8) in user_roles if not exists
+    const [existingRole] = await connection.query(
+      'SELECT * FROM user_roles WHERE user_id = ? AND role_id = 8',
+      [userId]
+    );
+    if (existingRole.length === 0) {
+      await connection.query(
+        'INSERT INTO user_roles (user_id, role_id, assigned_at) VALUES (?, 8, NOW())',
+        [userId]
+      );
+    }
+
+    // 3. Create or activate members record
+    const [existingMember] = await connection.query('SELECT * FROM members WHERE user_id = ?', [userId]);
+    let memberCode, qrToken;
+    if (existingMember.length === 0) {
+      memberCode = 'CC-2026-' + Math.floor(1000 + Math.random() * 9000);
+      qrToken = 'QR-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const dob = reqRecord.date_of_birth || '1995-01-01';
+      const phone = reqRecord.phone || ('+91-9' + Math.floor(100000000 + Math.random() * 900000000));
+
+      await connection.query(
+        `INSERT INTO members (user_id, member_code, qr_token, full_name, email, phone, date_of_birth, status, joined_on, registered_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'active', CURDATE(), ?, NOW(), NOW())`,
+        [userId, memberCode, qrToken, reqRecord.full_name, reqRecord.email, phone, dob, adminId]
+      );
+    } else {
+      memberCode = existingMember[0].member_code;
+      qrToken = existingMember[0].qr_token;
+      await connection.query(
+        `UPDATE members SET status = 'active', updated_at = NOW() WHERE id = ?`,
+        [existingMember[0].id]
+      );
+    }
+
+    // 4. Audit log
+    await connection.query(
+      'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, new_values, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [adminId, 'MEMBERSHIP_REQUEST_APPROVED', 'membership_requests', id, JSON.stringify({ userId, approved_by: adminId })]
+    ).catch(() => {});
+
+    await connection.commit();
+
+    // 5. Send In-App Notification and WebSocket Broadcast to user and admin
+    const { createAndSendNotification, broadcast } = require('../services/websocket.service');
+    createAndSendNotification({
+      recipient_user_id: userId,
+      title: 'Membership Approved!',
+      body: `Welcome to The Champions Club, ${reqRecord.full_name}! Your membership application has been accepted. Your digital member pass is now active.`,
+      type: 'membership_approved',
+      entity_type: 'member',
+      entity_id: userId,
+    }).catch(err => console.error('[Notif error]', err.message));
+
+    broadcast({
+      type: 'MEMBERSHIP_APPROVED',
+      userId: Number(userId),
+      requestId: Number(id),
+      memberName: reqRecord.full_name,
+      memberCode,
+      qrToken,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Membership approved for ${reqRecord.full_name}. Member pass (${memberCode}) activated successfully!`,
+      memberCode,
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('[approveMembershipRequest error]', error);
+    res.status(500).json({ success: false, message: 'Server error approving membership request' });
+  } finally {
+    connection.release();
+  }
+};
+
+const rejectMembershipRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user.id;
+    const { reason = 'Application criteria not met' } = req.body || {};
+
+    const [requests] = await pool.query('SELECT * FROM membership_requests WHERE id = ?', [id]);
+    if (requests.length === 0) {
+      return res.status(404).json({ success: false, message: 'Membership request not found' });
+    }
+
+    const reqRecord = requests[0];
+
+    await pool.query(
+      `UPDATE membership_requests 
+       SET status = 'rejected', admin_notes = ?, reviewed_by = ?, reviewed_at = NOW(), updated_at = NOW() 
+       WHERE id = ?`,
+      [reason, adminId, id]
+    );
+
+    // Audit log
+    await pool.query(
+      'INSERT INTO audit_logs (user_id, action, entity_type, entity_id, new_values, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [adminId, 'MEMBERSHIP_REQUEST_REJECTED', 'membership_requests', id, JSON.stringify({ userId: reqRecord.user_id, reason })]
+    ).catch(() => {});
+
+    const { createAndSendNotification, broadcast } = require('../services/websocket.service');
+    createAndSendNotification({
+      recipient_user_id: reqRecord.user_id,
+      title: 'Membership Application Update',
+      body: `Your club membership request was not approved: ${reason}. Please contact the concierge desk for assistance.`,
+      type: 'membership_rejected',
+    }).catch(err => console.error('[Notif error]', err.message));
+
+    broadcast({
+      type: 'MEMBERSHIP_REJECTED',
+      userId: Number(reqRecord.user_id),
+      requestId: Number(id),
+      reason,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Membership request #${id} for ${reqRecord.full_name} has been rejected.`,
+    });
+  } catch (error) {
+    console.error('[rejectMembershipRequest error]', error);
+    res.status(500).json({ success: false, message: 'Server error rejecting membership request' });
   }
 };
 
@@ -417,5 +610,8 @@ module.exports = {
   addTaxRate,
   toggleTaxRate,
   getAuditLogs,
-  getAdminStats
+  getAdminStats,
+  getMembershipRequests,
+  approveMembershipRequest,
+  rejectMembershipRequest,
 };

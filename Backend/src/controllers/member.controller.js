@@ -16,6 +16,16 @@ async function getOrCreateMember(userId, userEmail, userName) {
     }
   }
 
+  // Check if user has a pending or rejected membership application
+  const [reqs] = await pool.query(
+    'SELECT * FROM membership_requests WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+    [userId]
+  );
+  if (reqs.length > 0 && reqs[0].status !== 'approved') {
+    // Waiting for admin acceptance or rejected; do NOT auto-create active member
+    return null;
+  }
+
   // Look up user's phone and name from users table if available
   let userPhone = null;
   try {
@@ -54,6 +64,27 @@ async function getMe(req, res) {
     const userName = req.user.name;
 
     const member = await getOrCreateMember(userId, userEmail, userName);
+
+    if (!member) {
+      // Check for pending application
+      const [reqRows] = await pool.query(
+        'SELECT * FROM membership_requests WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+        [userId]
+      );
+      const latestReq = reqRows.length > 0 ? reqRows[0] : null;
+
+      return res.json({
+        success: true,
+        profile: null,
+        is_pending_approval: latestReq?.status === 'pending',
+        is_rejected: latestReq?.status === 'rejected',
+        membership_request: latestReq,
+        active_membership: null,
+        total_dues: 0,
+        unpaid_invoices: [],
+        recent_checkins: [],
+      });
+    }
 
     // Active membership plan details
     const [memberships] = await pool.query(
