@@ -292,7 +292,10 @@ app.get('/api/public/slots', async (req, res) => {
     endDate.setDate(endDate.getDate() + days);
 
     const [reservations] = await pool.query(
-      `SELECT id, starts_at, ends_at, reservation_type, status 
+      `SELECT id, 
+              DATE_FORMAT(starts_at, '%Y-%m-%d %H:%i:%s') as starts_at, 
+              DATE_FORMAT(ends_at, '%Y-%m-%d %H:%i:%s') as ends_at, 
+              reservation_type, status 
        FROM court_reservations 
        WHERE court_id = ? 
          AND status = 'active' 
@@ -312,13 +315,11 @@ app.get('/api/public/slots', async (req, res) => {
         const startHStr = String(hour).padStart(2, '0') + ':00';
         const endHStr = String(hour + 1).padStart(2, '0') + ':00';
 
-        const slotStart = new Date(`${dateStr}T${startHStr}:00`);
-        const slotEnd = new Date(`${dateStr}T${endHStr}:00`);
+        const slotStartStr = `${dateStr} ${startHStr}:00`;
+        const slotEndStr = `${dateStr} ${endHStr}:00`;
 
         const overlapping = reservations.find(r => {
-          const rStart = new Date(r.starts_at);
-          const rEnd = new Date(r.ends_at);
-          return rStart.getTime() < slotEnd.getTime() && rEnd.getTime() > slotStart.getTime();
+          return r.starts_at < slotEndStr && r.ends_at > slotStartStr;
         });
 
         let status = 'available';

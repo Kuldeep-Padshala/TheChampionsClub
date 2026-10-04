@@ -170,8 +170,8 @@ async function getCourtAvailability(req, res) {
       `SELECT 
         r.id as reservation_id, 
         r.court_id, 
-        r.starts_at, 
-        r.ends_at, 
+        DATE_FORMAT(r.starts_at, '%Y-%m-%d %H:%i:%s') as starts_at, 
+        DATE_FORMAT(r.ends_at, '%Y-%m-%d %H:%i:%s') as ends_at, 
         r.reservation_type, 
         r.status as reservation_status,
         b.id as booking_id,
@@ -206,8 +206,8 @@ async function getMyBookings(req, res) {
         b.price_basis,
         b.notes,
         b.created_at,
-        r.starts_at,
-        r.ends_at,
+        DATE_FORMAT(r.starts_at, '%Y-%m-%d %H:%i:%s') as starts_at,
+        DATE_FORMAT(r.ends_at, '%Y-%m-%d %H:%i:%s') as ends_at,
         r.reservation_type,
         c.id as court_id,
         c.name as court_name,
@@ -219,8 +219,10 @@ async function getMyBookings(req, res) {
        JOIN courts c ON r.court_id = c.id
        LEFT JOIN sports s ON c.sport_id = s.id
        WHERE b.member_id = ?
+          OR b.member_id IN (SELECT id FROM members WHERE user_id = ?)
+          OR b.member_id IN (SELECT id FROM members WHERE email = ?)
        ORDER BY r.starts_at DESC`,
-      [member.id]
+      [member.id, userId, req.user.email || '']
     );
 
     res.json({ success: true, data: bookings });
@@ -249,11 +251,6 @@ async function createMyBooking(req, res) {
 
     const activePlan = memberships.length > 0 ? memberships[0] : null;
 
-    if (!activePlan && !req.body.razorpay_payment_id) {
-      res.status(403).json({ success: false, message: 'An active membership plan or Razorpay payment is required to reserve court slots.' });
-      return;
-    }
-
     // 2. Enforce max 2 bookings per day
     const bookingDate = starts_at.split('T')[0].split(' ')[0];
     const [dailyBookings] = await pool.query(
@@ -269,12 +266,12 @@ async function createMyBooking(req, res) {
       return;
     }
 
-    // 3. Check Court Conflict
+    // 3. Check Court Conflict (accurate overlap condition: starts_at < new_ends AND ends_at > new_starts)
     const [conflicts] = await pool.query(
       `SELECT id FROM court_reservations 
        WHERE court_id = ? AND status = 'active'
-       AND ((starts_at < ? AND ends_at > ?) OR (starts_at < ? AND ends_at > ?))`,
-      [court_id, ends_at, starts_at, starts_at, ends_at]
+         AND starts_at < ? AND ends_at > ?`,
+      [court_id, ends_at, starts_at]
     );
 
     if (conflicts.length > 0) {
@@ -309,24 +306,37 @@ async function createMyBooking(req, res) {
     const resType = reservation_type === 'social' ? 'social' : 'exclusive';
     const socialCapacity = resType === 'social' ? 8 : null;
 
-    // 5. Insert Reservation & Booking
-    const [resResult] = await pool.query(
-      `INSERT INTO court_reservations (court_id, starts_at, ends_at, reservation_type, status, social_capacity, created_at) 
-       VALUES (?, ?, ?, ?, 'active', ?, NOW())`,
-      [court_id, starts_at, ends_at, resType, socialCapacity]
-    );
+    // 5. Insert Reservation & Booking safely within a transaction
+    const conn = await pool.getConnection();
+    let resResult, bookResult, bookingRef;
+    try {
+      await conn.beginTransaction();
 
-    const bookingRef = 'BKNG-' + Date.now();
-    const priceBasis = amountCharged === 0 ? 'plan_included' : (activePlan ? 'member_rate' : 'walkin_rate');
-    const bookingNotes = req.body.razorpay_payment_id 
-      ? `Paid via Razorpay (${req.body.razorpay_payment_id}). ${notes || ''}`.trim()
-      : (notes || 'Online Member Reservation');
+      [resResult] = await conn.query(
+        `INSERT INTO court_reservations (court_id, starts_at, ends_at, reservation_type, status, social_capacity, created_at) 
+         VALUES (?, ?, ?, ?, 'active', ?, NOW())`,
+        [court_id, starts_at, ends_at, resType, socialCapacity]
+      );
 
-    const [bookResult] = await pool.query(
-      `INSERT INTO bookings (booking_ref, reservation_id, reservation_type, member_id, booked_via, price_basis, status, amount_charged, notes, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, 'member_app', ?, 'confirmed', ?, ?, NOW(), NOW())`,
-      [bookingRef, resResult.insertId, resType, member.id, priceBasis, amountCharged, bookingNotes]
-    );
+      bookingRef = 'BKNG-' + Date.now();
+      const priceBasis = amountCharged === 0 ? 'plan_included' : (activePlan ? 'member_rate' : 'walk_in_rate');
+      const bookingNotes = req.body.razorpay_payment_id 
+        ? `Paid via Razorpay (${req.body.razorpay_payment_id}). ${notes || ''}`.trim()
+        : (notes || 'Online Member Reservation');
+
+      [bookResult] = await conn.query(
+        `INSERT INTO bookings (booking_ref, reservation_id, reservation_type, member_id, booked_via, price_basis, status, amount_charged, notes, created_at, updated_at) 
+         VALUES (?, ?, ?, ?, 'member_app', ?, 'confirmed', ?, ?, NOW(), NOW())`,
+        [bookingRef, resResult.insertId, resType, member.id, priceBasis, amountCharged, bookingNotes]
+      );
+
+      await conn.commit();
+    } catch (dbErr) {
+      await conn.rollback();
+      throw dbErr;
+    } finally {
+      conn.release();
+    }
 
     // Fetch court details for clear notification message
     const [courtRows] = await pool.query('SELECT name FROM courts WHERE id = ?', [court_id]);
@@ -374,7 +384,7 @@ async function createMyBooking(req, res) {
     });
   } catch (error) {
     console.error('[createMyBooking]', error);
-    res.status(500).json({ success: false, message: 'Failed to create court booking' });
+    res.status(500).json({ success: false, message: 'Failed to create court booking: ' + (error.sqlMessage || error.message) });
   }
 }
 
@@ -386,7 +396,10 @@ async function cancelMyBooking(req, res) {
 
     // Verify ownership and reservation start time
     const [bookings] = await pool.query(
-      `SELECT b.id, b.member_id, b.reservation_id, b.booking_ref, r.court_id, r.starts_at, r.ends_at, c.name as court_name
+      `SELECT b.id, b.member_id, b.reservation_id, b.booking_ref, r.court_id, 
+              DATE_FORMAT(r.starts_at, '%Y-%m-%d %H:%i:%s') as starts_at_str,
+              DATE_FORMAT(r.ends_at, '%Y-%m-%d %H:%i:%s') as ends_at_str,
+              r.starts_at, r.ends_at, c.name as court_name
        FROM bookings b 
        JOIN court_reservations r ON b.reservation_id = r.id 
        JOIN courts c ON r.court_id = c.id
@@ -435,8 +448,8 @@ async function cancelMyBooking(req, res) {
     broadcast({
       type: 'COURT_SLOT_CANCELLED',
       courtId: bookings[0].court_id,
-      startsAt: bookings[0].starts_at,
-      endsAt: bookings[0].ends_at,
+      startsAt: bookings[0].starts_at_str || bookings[0].starts_at,
+      endsAt: bookings[0].ends_at_str || bookings[0].ends_at,
       bookingId: bookings[0].id,
     });
 

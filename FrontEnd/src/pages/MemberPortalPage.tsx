@@ -50,6 +50,7 @@ import {
 import { cn } from '../utils/cn';
 import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
+import { websocketService } from '../services/websocketService';
 
 export const MemberPortalPage: React.FC = () => {
   const { user } = useAuth();
@@ -173,15 +174,48 @@ export const MemberPortalPage: React.FC = () => {
     loadMemberData();
   }, [loadMemberData]);
 
+  // Reload court schedule and my bookings
+  const reloadCourtSchedule = useCallback(async () => {
+    try {
+      const [avail, bookings] = await Promise.all([
+        memberService.getCourtAvailability(selectedDate, selectedSportId),
+        memberService.getMyBookings(),
+      ]);
+      setAvailableCourts(avail.courts || []);
+      setCourtReservations(avail.reservations || []);
+      setMyBookings(bookings || []);
+    } catch (err) {
+      console.error('[reloadCourtSchedule] Error:', err);
+    }
+  }, [selectedDate, selectedSportId]);
+
   // Load court availability when tab is 'courts' or date/sport changes
   useEffect(() => {
     if (activeTab === 'courts') {
-      memberService.getCourtAvailability(selectedDate, selectedSportId).then((data) => {
-        setAvailableCourts(data.courts || []);
-        setCourtReservations(data.reservations || []);
-      }).catch(console.error);
+      reloadCourtSchedule();
     }
-  }, [activeTab, selectedDate, selectedSportId]);
+  }, [activeTab, reloadCourtSchedule]);
+
+  // Real-time synchronization via WebSocket & local events
+  useEffect(() => {
+    const unsubCourt = websocketService.on('court_slot_change', () => {
+      reloadCourtSchedule();
+    });
+    const unsubNotif = websocketService.on('notification', () => {
+      reloadCourtSchedule();
+    });
+
+    const handleLocalSuccess = () => {
+      reloadCourtSchedule();
+    };
+    window.addEventListener('court_booking_success', handleLocalSuccess);
+
+    return () => {
+      unsubCourt();
+      unsubNotif();
+      window.removeEventListener('court_booking_success', handleLocalSuccess);
+    };
+  }, [reloadCourtSchedule]);
 
   // Load shop products when tab is 'shop'
   useEffect(() => {
@@ -316,46 +350,66 @@ export const MemberPortalPage: React.FC = () => {
     setIsBookingSubmitting(true);
     const courtFee = getCourtBookingFee(selectedCourt);
 
+    const recordBooking = async (paymentId?: string) => {
+      try {
+        const res = await memberService.createBooking({
+          court_id: selectedCourt.id,
+          starts_at: selectedTimeSlot.start,
+          ends_at: selectedTimeSlot.end,
+          reservation_type: 'exclusive',
+          razorpay_payment_id: paymentId,
+          amount_charged: courtFee,
+          notes: paymentId ? `Razorpay Txn: ${paymentId}` : 'Complimentary Membership Slot',
+        });
+
+        toast.success(res.message || 'Court booked successfully!');
+        setIsBookingModalOpen(false);
+
+        // Optimistically update visual grid
+        setCourtReservations((prev) => [
+          ...prev,
+          {
+            reservation_id: res.reservationId || Date.now(),
+            court_id: selectedCourt.id,
+            starts_at: selectedTimeSlot.start,
+            ends_at: selectedTimeSlot.end,
+            reservation_type: 'exclusive',
+            reservation_status: 'active',
+          },
+        ]);
+
+        await reloadCourtSchedule();
+        window.dispatchEvent(new CustomEvent('court_booking_success', {
+          detail: { courtId: selectedCourt.id, startsAt: selectedTimeSlot.start, endsAt: selectedTimeSlot.end }
+        }));
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || err?.message || 'Failed to record court reservation';
+        toast.error(msg);
+      } finally {
+        setIsBookingSubmitting(false);
+      }
+    };
+
     try {
-      await paymentService.openCheckout({
-        amount: courtFee,
-        productName: `Court Reservation: ${selectedCourt.name} (${selectedDate})`,
-        customerName: user?.name || profile?.full_name || 'Club Member',
-        customerEmail: user?.email || '',
-        customerPhone: profile?.phone || '',
-        onSuccess: async ({ payment_id }) => {
-          try {
-            const res = await memberService.createBooking({
-              court_id: selectedCourt.id,
-              starts_at: selectedTimeSlot.start,
-              ends_at: selectedTimeSlot.end,
-              reservation_type: 'exclusive',
-              razorpay_payment_id: payment_id,
-              amount_charged: courtFee,
-              notes: `Razorpay Txn: ${payment_id}`,
-            });
-            toast.success(`Payment of ₹${courtFee} verified (Txn: ${payment_id})! ${res.message || 'Court booked successfully!'}`);
-            setIsBookingModalOpen(false);
-            const [bookings, avail] = await Promise.all([
-              memberService.getMyBookings(),
-              memberService.getCourtAvailability(selectedDate, selectedSportId),
-            ]);
-            setMyBookings(bookings);
-            setAvailableCourts(avail.courts || []);
-            setCourtReservations(avail.reservations || []);
-          } catch (err: any) {
-            const msg = err?.response?.data?.message || 'Payment received, but failed to record booking';
-            toast.error(msg);
-          } finally {
+      if (courtFee > 0) {
+        await paymentService.openCheckout({
+          amount: courtFee,
+          productName: `Court Reservation: ${selectedCourt.name} (${selectedDate})`,
+          customerName: user?.name || profile?.full_name || 'Club Member',
+          customerEmail: user?.email || '',
+          customerPhone: profile?.phone || '',
+          onSuccess: async ({ payment_id }) => {
+            await recordBooking(payment_id);
+          },
+          onError: (err) => {
             setIsBookingSubmitting(false);
-          }
-        },
-        onError: (err) => {
-          setIsBookingSubmitting(false);
-          const msg = err?.message || 'Court booking payment cancelled.';
-          toast.error(msg);
-        },
-      });
+            const msg = err?.message || 'Court booking payment cancelled.';
+            toast.error(msg);
+          },
+        });
+      } else {
+        await recordBooking();
+      }
     } catch (err: any) {
       setIsBookingSubmitting(false);
       const msg = err?.response?.data?.message || err?.message || 'Failed to initialize court payment';
@@ -368,8 +422,11 @@ export const MemberPortalPage: React.FC = () => {
     try {
       const res = await memberService.cancelBooking(bookingId);
       toast.success(res.message || 'Booking cancelled');
-      const bookings = await memberService.getMyBookings();
-      setMyBookings(bookings);
+      setMyBookings((prev) => prev.filter((b) => b.id !== bookingId));
+      await reloadCourtSchedule();
+      window.dispatchEvent(new CustomEvent('court_booking_success', {
+        detail: { bookingId, action: 'cancel' }
+      }));
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Could not cancel booking');
     }
@@ -1125,10 +1182,15 @@ export const MemberPortalPage: React.FC = () => {
                         const slotEnd = `${selectedDate} ${pad(hr + 1)}:00:00`;
 
                         const isOccupied = courtReservations.some((r) => {
-                          if (r.court_id !== court.id) return false;
-                          const rStart = r.starts_at.replace('T', ' ').split('.')[0];
-                          const rEnd = r.ends_at.replace('T', ' ').split('.')[0];
-                          return (rStart < slotEnd && rEnd > slotStart);
+                          if (String(r.court_id) !== String(court.id)) return false;
+                          const rStart = String(r.starts_at || '').replace('T', ' ').split('.')[0];
+                          const rEnd = String(r.ends_at || '').replace('T', ' ').split('.')[0];
+                          if (rStart < slotEnd && rEnd > slotStart) return true;
+                          const rStartMs = new Date(String(r.starts_at)).getTime();
+                          const rEndMs = new Date(String(r.ends_at)).getTime();
+                          const sStartMs = new Date(slotStart.replace(' ', 'T')).getTime();
+                          const sEndMs = new Date(slotEnd.replace(' ', 'T')).getTime();
+                          return (!isNaN(rStartMs) && !isNaN(rEndMs) && rStartMs < sEndMs && rEndMs > sStartMs);
                         });
 
                         return (

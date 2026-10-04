@@ -49,7 +49,7 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
     };
   }, []);
 
-  // Real-time synchronization via WebSocket
+  // Real-time synchronization via WebSocket & local events
   useEffect(() => {
     const unsub = websocketService.on('court_slot_change', (event: any) => {
       if (!court || String(event.courtId) === String(court.id) || !event.courtId) {
@@ -81,8 +81,35 @@ export const SlotCalendar: React.FC<SlotCalendarProps> = ({
       }
     });
 
+    const handleLocalBooking = (e: any) => {
+      const detail = e.detail;
+      if (!detail) return;
+      if (!court || String(detail.courtId) === String(court.id) || !detail.courtId) {
+        if (detail.startsAt) {
+          const datePart = detail.startsAt.split('T')[0].split(' ')[0];
+          const timePart = detail.startsAt.includes('T')
+            ? detail.startsAt.split('T')[1].slice(0, 5)
+            : (detail.startsAt.includes(' ') ? detail.startsAt.split(' ')[1].slice(0, 5) : '');
+
+          if (datePart && timePart) {
+            const matchingSlot = slots.find((s) => s.date === datePart && s.startTime.startsWith(timePart));
+            if (matchingSlot) {
+              if (detail.action === 'cancel') {
+                setLocalBookedSlotIds((prev) => prev.filter((id) => id !== matchingSlot.id));
+              } else {
+                setLocalBookedSlotIds((prev) => Array.from(new Set([...prev, matchingSlot.id])));
+              }
+            }
+          }
+        }
+      }
+    };
+
+    window.addEventListener('court_booking_success', handleLocalBooking);
+
     return () => {
       unsub();
+      window.removeEventListener('court_booking_success', handleLocalBooking);
     };
   }, [court, slots]);
 

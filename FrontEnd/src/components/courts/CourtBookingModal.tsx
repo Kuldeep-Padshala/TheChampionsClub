@@ -83,8 +83,15 @@ export const CourtBookingModal: React.FC<CourtBookingModalProps> = ({
               if (res?.bookingRef) {
                 bookingRef = res.bookingRef;
               }
-            } catch (syncErr) {
+
+              // Dispatch event to synchronize all open views instantly
+              window.dispatchEvent(new CustomEvent('court_booking_success', {
+                detail: { courtId: numericCourtId, startsAt, endsAt, bookingRef }
+              }));
+            } catch (syncErr: any) {
               console.warn('[CourtBookingModal] Backend sync notice:', syncErr);
+              const errMsg = syncErr?.response?.data?.message || syncErr?.message || 'Sync with club servers encountered an issue';
+              toast.error(errMsg);
             }
           }
 
