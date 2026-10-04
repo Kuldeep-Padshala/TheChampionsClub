@@ -1,0 +1,3810 @@
+[
+  {
+    "id": "s1",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s2",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s3",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s4",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s5",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s6",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s7",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s8",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s9",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s10",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "booked"
+  },
+  {
+    "id": "s11",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s12",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s13",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s14",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s15",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s16",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s17",
+    "courtId": "court-1",
+    "date": "2026-10-05",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s18",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s19",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s20",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s21",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s22",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s23",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s24",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "booked"
+  },
+  {
+    "id": "s25",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s26",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s27",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "booked"
+  },
+  {
+    "id": "s28",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s29",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s30",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s31",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s32",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s33",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s34",
+    "courtId": "court-1",
+    "date": "2026-10-06",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s35",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s36",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s37",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s38",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s39",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s40",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s41",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s42",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s43",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s44",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s45",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s46",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s47",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s48",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s49",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s50",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s51",
+    "courtId": "court-1",
+    "date": "2026-10-07",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s52",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s53",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s54",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s55",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s56",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s57",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "booked"
+  },
+  {
+    "id": "s58",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s59",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s60",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s61",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s62",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s63",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s64",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s65",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s66",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s67",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s68",
+    "courtId": "court-1",
+    "date": "2026-10-08",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "booked"
+  },
+  {
+    "id": "s69",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s70",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s71",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s72",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s73",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s74",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s75",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s76",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s77",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s78",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s79",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s80",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s81",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s82",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "social"
+  },
+  {
+    "id": "s83",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s84",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s85",
+    "courtId": "court-1",
+    "date": "2026-10-09",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "social"
+  },
+  {
+    "id": "s86",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s87",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s88",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s89",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s90",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "booked"
+  },
+  {
+    "id": "s91",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "booked"
+  },
+  {
+    "id": "s92",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s93",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s94",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s95",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "booked"
+  },
+  {
+    "id": "s96",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s97",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s98",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s99",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s100",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s101",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s102",
+    "courtId": "court-1",
+    "date": "2026-10-10",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s103",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s104",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s105",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s106",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s107",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "booked"
+  },
+  {
+    "id": "s108",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s109",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s110",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s111",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s112",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s113",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s114",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s115",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s116",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s117",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s118",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s119",
+    "courtId": "court-1",
+    "date": "2026-10-11",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s120",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s121",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s122",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s123",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s124",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s125",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "booked"
+  },
+  {
+    "id": "s126",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s127",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s128",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s129",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s130",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s131",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s132",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s133",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s134",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s135",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s136",
+    "courtId": "court-2",
+    "date": "2026-10-05",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s137",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s138",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s139",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s140",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s141",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s142",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s143",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s144",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s145",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s146",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s147",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s148",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s149",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s150",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s151",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s152",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s153",
+    "courtId": "court-2",
+    "date": "2026-10-06",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s154",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s155",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s156",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s157",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s158",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s159",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s160",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s161",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s162",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s163",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s164",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s165",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s166",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s167",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s168",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s169",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s170",
+    "courtId": "court-2",
+    "date": "2026-10-07",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "booked"
+  },
+  {
+    "id": "s171",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s172",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s173",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s174",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s175",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s176",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "booked"
+  },
+  {
+    "id": "s177",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "booked"
+  },
+  {
+    "id": "s178",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s179",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s180",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s181",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s182",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s183",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s184",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s185",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s186",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s187",
+    "courtId": "court-2",
+    "date": "2026-10-08",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s188",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s189",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s190",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s191",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s192",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s193",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s194",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s195",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s196",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s197",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s198",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s199",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s200",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s201",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s202",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s203",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s204",
+    "courtId": "court-2",
+    "date": "2026-10-09",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "social"
+  },
+  {
+    "id": "s205",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s206",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s207",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s208",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s209",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s210",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s211",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s212",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s213",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s214",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s215",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s216",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s217",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s218",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s219",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s220",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s221",
+    "courtId": "court-2",
+    "date": "2026-10-10",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s222",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s223",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s224",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s225",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s226",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s227",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s228",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s229",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s230",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s231",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "booked"
+  },
+  {
+    "id": "s232",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s233",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s234",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s235",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s236",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s237",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s238",
+    "courtId": "court-2",
+    "date": "2026-10-11",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s239",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s240",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s241",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s242",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s243",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s244",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s245",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s246",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s247",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s248",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s249",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s250",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s251",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s252",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s253",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s254",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s255",
+    "courtId": "court-3",
+    "date": "2026-10-05",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s256",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s257",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s258",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s259",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s260",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s261",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s262",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s263",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s264",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "booked"
+  },
+  {
+    "id": "s265",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s266",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s267",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s268",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s269",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s270",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s271",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s272",
+    "courtId": "court-3",
+    "date": "2026-10-06",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s273",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s274",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s275",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s276",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s277",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "booked"
+  },
+  {
+    "id": "s278",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s279",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s280",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s281",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s282",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s283",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s284",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s285",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s286",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s287",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s288",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s289",
+    "courtId": "court-3",
+    "date": "2026-10-07",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s290",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s291",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s292",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s293",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s294",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s295",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s296",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s297",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s298",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "booked"
+  },
+  {
+    "id": "s299",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "booked"
+  },
+  {
+    "id": "s300",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s301",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s302",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s303",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s304",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s305",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s306",
+    "courtId": "court-3",
+    "date": "2026-10-08",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "booked"
+  },
+  {
+    "id": "s307",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s308",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s309",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s310",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s311",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s312",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s313",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s314",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s315",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s316",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s317",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s318",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s319",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "social"
+  },
+  {
+    "id": "s320",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s321",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s322",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s323",
+    "courtId": "court-3",
+    "date": "2026-10-09",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s324",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s325",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s326",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s327",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s328",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s329",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s330",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s331",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s332",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s333",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s334",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s335",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "available"
+  },
+  {
+    "id": "s336",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s337",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s338",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s339",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s340",
+    "courtId": "court-3",
+    "date": "2026-10-10",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s341",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s342",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s343",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s344",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s345",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s346",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s347",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s348",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s349",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s350",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s351",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s352",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s353",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s354",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s355",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s356",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s357",
+    "courtId": "court-3",
+    "date": "2026-10-11",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s358",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s359",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s360",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s361",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s362",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s363",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s364",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s365",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s366",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s367",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s368",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s369",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s370",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s371",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s372",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s373",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s374",
+    "courtId": "court-4",
+    "date": "2026-10-05",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s375",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s376",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s377",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s378",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s379",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s380",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s381",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s382",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s383",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s384",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s385",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s386",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s387",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s388",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s389",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s390",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s391",
+    "courtId": "court-4",
+    "date": "2026-10-06",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s392",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s393",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s394",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s395",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "booked"
+  },
+  {
+    "id": "s396",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s397",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s398",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s399",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s400",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s401",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s402",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s403",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s404",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s405",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "available"
+  },
+  {
+    "id": "s406",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s407",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s408",
+    "courtId": "court-4",
+    "date": "2026-10-07",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s409",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s410",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s411",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s412",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s413",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s414",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s415",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "booked"
+  },
+  {
+    "id": "s416",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s417",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s418",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s419",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s420",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s421",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s422",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s423",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s424",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s425",
+    "courtId": "court-4",
+    "date": "2026-10-08",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s426",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "booked"
+  },
+  {
+    "id": "s427",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s428",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "booked"
+  },
+  {
+    "id": "s429",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s430",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s431",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "booked"
+  },
+  {
+    "id": "s432",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s433",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "booked"
+  },
+  {
+    "id": "s434",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s435",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s436",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s437",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s438",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "available"
+  },
+  {
+    "id": "s439",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "social"
+  },
+  {
+    "id": "s440",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s441",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "available"
+  },
+  {
+    "id": "s442",
+    "courtId": "court-4",
+    "date": "2026-10-09",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s443",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s444",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "available"
+  },
+  {
+    "id": "s445",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s446",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s447",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s448",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s449",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "available"
+  },
+  {
+    "id": "s450",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s451",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s452",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s453",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "available"
+  },
+  {
+    "id": "s454",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s455",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s456",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s457",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "available"
+  },
+  {
+    "id": "s458",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s459",
+    "courtId": "court-4",
+    "date": "2026-10-10",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  },
+  {
+    "id": "s460",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "06:00",
+    "endTime": "07:00",
+    "status": "available"
+  },
+  {
+    "id": "s461",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "07:00",
+    "endTime": "08:00",
+    "status": "booked"
+  },
+  {
+    "id": "s462",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "08:00",
+    "endTime": "09:00",
+    "status": "available"
+  },
+  {
+    "id": "s463",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "status": "available"
+  },
+  {
+    "id": "s464",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "status": "available"
+  },
+  {
+    "id": "s465",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "status": "available"
+  },
+  {
+    "id": "s466",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "12:00",
+    "endTime": "13:00",
+    "status": "booked"
+  },
+  {
+    "id": "s467",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "13:00",
+    "endTime": "14:00",
+    "status": "available"
+  },
+  {
+    "id": "s468",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "status": "available"
+  },
+  {
+    "id": "s469",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "status": "available"
+  },
+  {
+    "id": "s470",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "status": "booked"
+  },
+  {
+    "id": "s471",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "status": "booked"
+  },
+  {
+    "id": "s472",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "status": "booked"
+  },
+  {
+    "id": "s473",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "status": "booked"
+  },
+  {
+    "id": "s474",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "20:00",
+    "endTime": "21:00",
+    "status": "booked"
+  },
+  {
+    "id": "s475",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "21:00",
+    "endTime": "22:00",
+    "status": "booked"
+  },
+  {
+    "id": "s476",
+    "courtId": "court-4",
+    "date": "2026-10-11",
+    "startTime": "22:00",
+    "endTime": "23:00",
+    "status": "available"
+  }
+]

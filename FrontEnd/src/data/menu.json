@@ -1,0 +1,146 @@
+[
+  {
+    "id": "menu-1",
+    "name": "Grilled Chicken Wrap",
+    "description": "Tender grilled chicken breast, lettuce, tomato, and chipotle mayo in a toasted whole-wheat wrap. Served with seasoned fries.",
+    "price": 290,
+    "category": "food",
+    "isVeg": false,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-2",
+    "name": "Club Sandwich",
+    "description": "Triple-decker classic with turkey, bacon, egg, tomato, and lettuce. Served with coleslaw and fries.",
+    "price": 260,
+    "category": "food",
+    "isVeg": false,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-3",
+    "name": "Avocado Toast",
+    "description": "Thick-cut sourdough with smashed avocado, cherry tomatoes, micro greens, and a drizzle of extra-virgin olive oil.",
+    "price": 220,
+    "category": "food",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-4",
+    "name": "Paneer Tikka Platter",
+    "description": "Marinated paneer cubes grilled in tandoor, served with mint chutney, onion salad, and naan bread.",
+    "price": 280,
+    "category": "food",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-5",
+    "name": "Caesar Salad",
+    "description": "Romaine lettuce, parmesan shavings, house croutons, and classic Caesar dressing. Add grilled chicken for ₹80 extra.",
+    "price": 210,
+    "category": "food",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-6",
+    "name": "Eggs Benedict",
+    "description": "Poached eggs on toasted English muffin with smoked salmon and hollandaise sauce. Weekend breakfast special.",
+    "price": 320,
+    "category": "food",
+    "isVeg": false,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-7",
+    "name": "Protein Recovery Shake",
+    "description": "Whey protein, banana, peanut butter, almond milk, and honey. 30g protein — the post-match essential.",
+    "price": 180,
+    "category": "drinks",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-8",
+    "name": "Fresh Lime Soda",
+    "description": "Hand-squeezed lime, sparkling water, salt or sugar — your choice. Refreshing and guilt-free.",
+    "price": 90,
+    "category": "drinks",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-9",
+    "name": "Cold Brew Coffee",
+    "description": "Slow-steeped premium arabica cold brew. Served over ice with oat milk or black.",
+    "price": 160,
+    "category": "drinks",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-10",
+    "name": "Tropical Smoothie",
+    "description": "Mango, pineapple, coconut water, and a hint of ginger. Naturally sweet and energising.",
+    "price": 170,
+    "category": "drinks",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-11",
+    "name": "Masala Chai",
+    "description": "Aromatic spiced tea brewed with whole spices, full-cream milk, and jaggery. A classic after the morning session.",
+    "price": 70,
+    "category": "drinks",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-12",
+    "name": "Craft Beer — On Tap",
+    "description": "Rotating selection of premium local brewery beers. Ask your server for today's special. 330ml pint glass.",
+    "price": 350,
+    "category": "bar",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-13",
+    "name": "Old Fashioned",
+    "description": "Bourbon whiskey, Angostura bitters, sugar, orange zest. A club classic, prepared tableside.",
+    "price": 480,
+    "category": "bar",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-14",
+    "name": "Champagne Spritz",
+    "description": "Prosecco, Aperol, and sparkling water with a fresh orange slice. Perfect for post-tournament celebrations.",
+    "price": 550,
+    "category": "bar",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-15",
+    "name": "Single Malt Whisky",
+    "description": "Curated selection of Scottish and Indian single malts. Available in 30ml and 60ml pours. Ask our bar staff for the selection.",
+    "price": 650,
+    "category": "bar",
+    "isVeg": true,
+    "memberDiscount": 15
+  },
+  {
+    "id": "menu-16",
+    "name": "Virgin Mojito",
+    "description": "Fresh mint, lime juice, sugar syrup, and sparkling water. All the fun, none of the spirits.",
+    "price": 150,
+    "category": "bar",
+    "isVeg": true,
+    "memberDiscount": 15
+  }
+]
